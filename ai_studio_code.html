@@ -1,0 +1,1181 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Silent Rhythm - 3つの世界とタイピング</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.gstatic.com">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500&family=Quicksand:wght@300;400;500;600&display=swap" rel="stylesheet">
+    
+    <style>
+        /* --- 1. 基本リセットとフォント定義 --- */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: 'Quicksand', 'Noto Sans JP', sans-serif;
+            overflow: hidden;
+            background-color: #f0f9ff;
+            user-select: none;
+            transition: background-color 2s ease;
+        }
+
+        /* --- 2. 複数の世界を切り替える水面・空間背景（SVG連動） --- */
+        .water-bg {
+            position: absolute;
+            top: -10%;
+            left: -10%;
+            width: 120%;
+            height: 120%;
+            z-index: 1;
+            /* 初期値（水モード） */
+            background: linear-gradient(135deg, #e0f2fe 0%, #bae6fd 40%, #7dd3fc 70%, #38bdf8 100%);
+            filter: url(#water-wave-filter);
+            opacity: 0.9;
+            transition: background 3s cubic-bezier(0.25, 1, 0.5, 1);
+        }
+
+        .water-shimmer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 2;
+            background: radial-gradient(circle at 50% 10%, rgba(255, 255, 255, 0.4) 0%, transparent 60%);
+            mix-blend-mode: overlay;
+            pointer-events: none;
+        }
+
+        /* 浄化フラッシュ（コンボ遷移時） */
+        .purify-flash {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 4;
+            background: radial-gradient(circle, rgba(255, 255, 255, 0.75) 0%, transparent 80%);
+            pointer-events: none;
+            mix-blend-mode: overlay;
+            opacity: 0;
+            transition: opacity 0.5s ease;
+        }
+
+        .flash-active {
+            animation: purifyAnimate 1.5s cubic-bezier(0.1, 0.8, 0.3, 1) forwards;
+        }
+
+        @keyframes purifyAnimate {
+            0% { opacity: 0; transform: scale(0.6); }
+            30% { opacity: 1; transform: scale(1.1); }
+            100% { opacity: 0; transform: scale(1.5); }
+        }
+
+        /* --- 3. 波紋エフェクト（前面） --- */
+        #rippleContainer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 15;
+            pointer-events: none;
+            overflow: hidden;
+        }
+
+        .ripple {
+            position: absolute;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            transform: translate(-50%, -50%) scale(0);
+            animation: rippleEffect 1.6s cubic-bezier(0.1, 0.8, 0.25, 1) forwards;
+            pointer-events: none;
+        }
+
+        @keyframes rippleEffect {
+            to {
+                transform: translate(-50%, -50%) scale(6.5);
+                opacity: 0;
+                border-color: rgba(255, 255, 255, 0);
+            }
+        }
+
+        /* モード別の波紋（CSSで個別に見た目を調整） */
+        .ripple.water-ripple {
+            border: 1px solid rgba(255, 255, 255, 0.75);
+            box-shadow: 0 0 10px rgba(255, 255, 255, 0.15);
+        }
+
+        .ripple.magma-ripple {
+            border: 1.5px solid rgba(239, 68, 68, 0.8);
+            box-shadow: 0 0 15px rgba(249, 115, 22, 0.5);
+        }
+
+        .ripple.cosmos-ripple {
+            border: 1px solid rgba(192, 132, 252, 0.85);
+            box-shadow: 0 0 20px rgba(59, 130, 246, 0.7);
+        }
+
+        /* --- 4. ガラスプレート（グラスモーフィズム） --- */
+        .game-container {
+            position: relative;
+            z-index: 10;
+            width: 95%;
+            max-width: 680px;
+            padding: 55px 45px;
+            border-radius: 32px;
+            /* デフォルト（水モード） */
+            background: rgba(255, 255, 255, 0.25);
+            backdrop-filter: blur(25px);
+            -webkit-backdrop-filter: blur(25px);
+            border: 1px solid rgba(255, 255, 255, 0.45);
+            box-shadow: 
+                0 30px 70px rgba(2, 132, 199, 0.04),
+                inset 0 1px 0 rgba(255, 255, 255, 0.6);
+            text-align: center;
+            transition: all 0.8s cubic-bezier(0.25, 1, 0.5, 1);
+        }
+
+        .hidden {
+            display: none !important;
+            opacity: 0;
+        }
+
+        /* --- 5. ホーム（スタート）画面の強化 --- */
+        .start-screen {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 24px;
+        }
+
+        .main-header {
+            margin-bottom: 10px;
+        }
+
+        .game-title {
+            font-size: 2.4rem;
+            font-weight: 300;
+            color: #0369a1;
+            letter-spacing: 0.2em;
+            margin-bottom: 8px;
+            transition: color 0.8s;
+        }
+
+        .game-subtitle {
+            font-size: 0.85rem;
+            color: #475569;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            transition: color 0.8s;
+        }
+
+        /* 3つのモード選択カード（プロ級のカードデザイン） */
+        .mode-select-box {
+            display: flex;
+            gap: 15px;
+            width: 100%;
+            justify-content: center;
+            margin: 15px 0 25px 0;
+        }
+
+        .mode-card {
+            flex: 1;
+            padding: 24px 15px;
+            border-radius: 20px;
+            background: rgba(255, 255, 255, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            min-width: 160px;
+        }
+
+        .mode-card:hover {
+            transform: translateY(-5px);
+            background: rgba(255, 255, 255, 0.6);
+            box-shadow: 0 10px 25px rgba(2, 132, 199, 0.08);
+        }
+
+        .mode-card.active {
+            background: rgba(255, 255, 255, 0.85);
+            border-color: #0284c7;
+            box-shadow: 0 12px 30px rgba(2, 132, 199, 0.15);
+        }
+
+        .mode-card h3 {
+            font-size: 0.95rem;
+            font-weight: 500;
+            color: #1e293b;
+            letter-spacing: 0.05em;
+        }
+
+        .difficulty-badge {
+            font-size: 0.65rem;
+            font-weight: 600;
+            padding: 2px 10px;
+            border-radius: 10px;
+            letter-spacing: 0.1em;
+        }
+
+        /* 難易度バッジの色分け */
+        .water-card .difficulty-badge { background: #e0f2fe; color: #0369a1; }
+        .magma-card .difficulty-badge { background: #fee2e2; color: #991b1b; }
+        .cosmos-card .difficulty-badge { background: #f3e8ff; color: #6b21a8; }
+
+        .mode-desc {
+            font-size: 0.75rem;
+            color: #64748b;
+            font-weight: 300;
+            line-height: 1.4;
+        }
+
+        /* --- 6. プレイ画面のスタイル --- */
+        .status-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 40px;
+            padding: 0 5px;
+        }
+
+        .progress-indicator, .combo-badge {
+            font-size: 0.8rem;
+            font-weight: 500;
+            letter-spacing: 0.1em;
+            transition: color 0.8s;
+        }
+
+        .combo-count {
+            font-size: 1.1rem;
+            font-weight: 500;
+            transition: color 0.8s;
+        }
+
+        .japanese-sentence {
+            font-size: 1.6rem;
+            font-weight: 300;
+            margin-bottom: 18px;
+            letter-spacing: 0.06em;
+            transition: color 0.8s;
+        }
+
+        .roman-container {
+            font-size: 1.25rem;
+            font-family: 'Quicksand', monospace;
+            font-weight: 400;
+            letter-spacing: 0.12em;
+            margin-bottom: 40px;
+            display: inline-block;
+            transition: color 0.8s;
+        }
+
+        /* 現在位置の呼吸キャレット */
+        .char-current {
+            border-bottom: 1.5px solid rgba(71, 85, 105, 0.4);
+            display: inline-block;
+            animation: breathBlink 2s infinite ease-in-out;
+        }
+
+        @keyframes breathBlink {
+            0%, 100% { border-bottom-color: rgba(71, 85, 105, 0.4); }
+            50% { border-bottom-color: rgba(71, 85, 105, 0.05); }
+        }
+
+        /* --- 7. 美しく刷新したリザルト画面 --- */
+        .result-screen {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 25px;
+            animation: resultFadeIn 1s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+        }
+
+        @keyframes resultFadeIn {
+            from { opacity: 0; transform: translateY(15px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .result-title {
+            font-size: 1.6rem;
+            font-weight: 300;
+            letter-spacing: 0.2em;
+            transition: color 0.8s;
+        }
+
+        /* 円形の進捗サークル */
+        .purity-ring-box {
+            position: relative;
+            width: 140px;
+            height: 140px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .purity-ring-svg { transform: rotate(-90deg); }
+
+        .purity-ring-bg {
+            fill: none;
+            stroke: rgba(0, 0, 0, 0.05);
+            stroke-width: 6;
+        }
+
+        .purity-ring-fill {
+            fill: none;
+            stroke-width: 6;
+            stroke-dasharray: 377;
+            stroke-dashoffset: 377;
+            stroke-linecap: round;
+            transition: stroke-dashoffset 2s cubic-bezier(0.1, 0.8, 0.3, 1), stroke 0.8s;
+        }
+
+        .water-quality-title {
+            font-size: 1.3rem;
+            font-weight: 400;
+            letter-spacing: 0.05em;
+            transition: color 0.8s;
+        }
+
+        .result-stats {
+            width: 100%;
+            max-width: 340px;
+            display: flex;
+            justify-content: space-around;
+            gap: 20px;
+            margin: 15px 0 20px 0;
+            padding: 15px 10px;
+            border-radius: 16px;
+            transition: background 0.8s, border-color 0.8s;
+        }
+
+        .stat-col {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .stat-label {
+            font-size: 0.75rem;
+            font-weight: 300;
+            letter-spacing: 0.05em;
+            transition: color 0.8s;
+        }
+
+        .stat-value {
+            font-size: 1.3rem;
+            font-weight: 400;
+            transition: color 0.8s;
+        }
+
+        /* ====================================================
+           8. モード別カラーテーマ切り替え（CSS子孫セレクタで管理）
+           ==================================================== */
+        
+        /* ── 水モード (Water) ── */
+        body.theme-water .game-title, body.theme-water .result-title { color: #0369a1; }
+        body.theme-water .game-subtitle { color: #0284c7; }
+        body.theme-water .progress-indicator, body.theme-water .combo-badge { color: #0369a1; }
+        body.theme-water .combo-count { color: #0284c7; }
+        body.theme-water .japanese-sentence { color: #1e293b; }
+        body.theme-water .roman-container { color: rgba(15, 23, 42, 0.25); }
+        body.theme-water .char-typed { color: #0284c7; }
+        body.theme-water .water-quality-title { color: #0284c7; }
+        body.theme-water .result-stats { background: rgba(255, 255, 255, 0.15); border: 1px solid rgba(255, 255, 255, 0.3); }
+        body.theme-water .stat-label { color: #475569; }
+        body.theme-water .stat-value { color: #0f172a; }
+        body.theme-water .purity-ring-fill { stroke: #0284c7; }
+
+        /* ── 火山モード (Magma) ── */
+        body.theme-magma .game-container {
+            background: rgba(28, 25, 23, 0.45); /* ダークな焦げ茶色ガラス */
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            box-shadow: 
+                0 30px 70px rgba(120, 20, 0, 0.1),
+                inset 0 1px 0 rgba(255, 255, 255, 0.15);
+        }
+        body.theme-magma .game-title, body.theme-magma .result-title { color: #ea580c; text-shadow: 0 0 15px rgba(234, 88, 12, 0.2); }
+        body.theme-magma .game-subtitle { color: #f97316; }
+        body.theme-magma .progress-indicator, body.theme-magma .combo-badge { color: #ea580c; }
+        body.theme-magma .combo-count { color: #f97316; text-shadow: 0 0 10px rgba(249, 115, 22, 0.3); }
+        body.theme-magma .japanese-sentence { color: #f8fafc; }
+        body.theme-magma .roman-container { color: rgba(248, 250, 252, 0.25); }
+        body.theme-magma .char-typed { color: #f97316; text-shadow: 0 0 10px rgba(249, 115, 22, 0.4); }
+        body.theme-magma .char-current { color: #ef4444; border-bottom-color: rgba(239, 68, 68, 0.6); }
+        body.theme-magma .water-quality-title { color: #f59e0b; }
+        body.theme-magma .result-stats { background: rgba(0, 0, 0, 0.25); border: 1px solid rgba(239, 68, 68, 0.15); }
+        body.theme-magma .stat-label { color: #94a3b8; }
+        body.theme-magma .stat-value { color: #f1f5f9; }
+        body.theme-magma .purity-ring-fill { stroke: #ea580c; }
+        body.theme-magma .start-btn, body.theme-magma .restart-btn {
+            color: #f97316;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(249, 115, 22, 0.4);
+            box-shadow: 0 4px 15px rgba(249, 115, 22, 0.05);
+        }
+        body.theme-magma .start-btn:hover, body.theme-magma .restart-btn:hover {
+            background: rgba(249, 115, 22, 0.2);
+            color: #fdba74;
+            border-color: rgba(249, 115, 22, 0.8);
+        }
+        body.theme-magma .mode-card {
+            background: rgba(0, 0, 0, 0.15);
+            border-color: rgba(255, 255, 255, 0.08);
+        }
+        body.theme-magma .mode-card h3 { color: #e2e8f0; }
+        body.theme-magma .mode-card:hover { background: rgba(249, 115, 22, 0.08); }
+        body.theme-magma .mode-card.active { background: rgba(28, 25, 23, 0.8); border-color: #f97316; box-shadow: 0 12px 30px rgba(249, 115, 22, 0.15); }
+
+        /* ── 宇宙モード (Cosmos) ── */
+        body.theme-cosmos .game-container {
+            background: rgba(15, 10, 30, 0.45); /* サイバーネオン紺色ガラス */
+            border: 1px solid rgba(168, 85, 247, 0.3);
+            box-shadow: 
+                0 30px 70px rgba(168, 85, 247, 0.15),
+                inset 0 1px 0 rgba(255, 255, 255, 0.15);
+        }
+        body.theme-cosmos .game-title, body.theme-cosmos .result-title { color: #a855f7; text-shadow: 0 0 15px rgba(168, 85, 247, 0.3); }
+        body.theme-cosmos .game-subtitle { color: #c084fc; }
+        body.theme-cosmos .progress-indicator, body.theme-cosmos .combo-badge { color: #a855f7; }
+        body.theme-cosmos .combo-count { color: #3b82f6; text-shadow: 0 0 10px rgba(59, 130, 246, 0.4); }
+        body.theme-cosmos .japanese-sentence { color: #f8fafc; }
+        body.theme-cosmos .roman-container { color: rgba(248, 250, 252, 0.25); }
+        body.theme-cosmos .char-typed { color: #a855f7; text-shadow: 0 0 10px rgba(168, 85, 247, 0.5), 0 0 20px rgba(59, 130, 246, 0.3); }
+        body.theme-cosmos .char-current { color: #3b82f6; border-bottom-color: rgba(59, 130, 246, 0.6); }
+        body.theme-cosmos .water-quality-title { color: #c084fc; }
+        body.theme-cosmos .result-stats { background: rgba(0, 0, 0, 0.3); border: 1px solid rgba(168, 85, 247, 0.2); }
+        body.theme-cosmos .stat-label { color: #94a3b8; }
+        body.theme-cosmos .stat-value { color: #f1f5f9; }
+        body.theme-cosmos .purity-ring-fill { stroke: #a855f7; }
+        body.theme-cosmos .start-btn, body.theme-cosmos .restart-btn {
+            color: #a855f7;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(168, 85, 247, 0.4);
+            box-shadow: 0 4px 15px rgba(168, 85, 247, 0.05);
+        }
+        body.theme-cosmos .start-btn:hover, body.theme-cosmos .restart-btn:hover {
+            background: rgba(168, 85, 247, 0.15);
+            color: #e9d5ff;
+            border-color: rgba(168, 85, 247, 0.8);
+        }
+        body.theme-cosmos .mode-card {
+            background: rgba(0, 0, 0, 0.2);
+            border-color: rgba(255, 255, 255, 0.05);
+        }
+        body.theme-cosmos .mode-card h3 { color: #e2e8f0; }
+        body.theme-cosmos .mode-card:hover { background: rgba(168, 85, 247, 0.08); }
+        body.theme-cosmos .mode-card.active { background: rgba(15, 10, 30, 0.85); border-color: #a855f7; box-shadow: 0 12px 30px rgba(168, 85, 247, 0.2); }
+    </style>
+</head>
+<body class="theme-water"> <!-- 初期テーマは水 -->
+
+    <div id="waterBg" class="water-bg"></div>
+    <div class="water-shimmer"></div>
+    <div id="purifyFlash" class="purify-flash"></div>
+    <div id="rippleContainer"></div>
+
+    <div id="gameContainer" class="game-container">
+        
+        <!-- A. 強化したホーム画面 -->
+        <div id="startScreen" class="start-screen">
+            <div class="main-header">
+                <h1 class="game-title">Silent Rhythm</h1>
+                <div class="game-subtitle" id="subTitleText">清流のガラスの上に浮かぶ心</div>
+            </div>
+            
+            <p class="game-desc" id="descText">
+                流れる水の上に置かれた、ガラスのプレート。<br>
+                日常の言葉に指を滑らせ、穏やかな時間をお楽しみください。
+            </p>
+
+            <!-- 3つのモード選択カード -->
+            <div class="mode-select-box">
+                <!-- 水モード -->
+                <div class="mode-card water-card active" onclick="selectMode('water')">
+                    <h3>水流のガラス</h3>
+                    <span class="difficulty-badge">EASY</span>
+                    <p class="mode-desc">穏やかで短い<br>日常の言葉</p>
+                </div>
+                <!-- 火山モード -->
+                <div class="mode-card magma-card" onclick="selectMode('magma')">
+                    <h3>灼熱の溶岩</h3>
+                    <span class="difficulty-badge">NORMAL</span>
+                    <p class="mode-desc">少し長さのある<br>丁寧な対話文</p>
+                </div>
+                <!-- 宇宙モード -->
+                <div class="mode-card cosmos-card" onclick="selectMode('cosmos')">
+                    <h3>星雲の星海</h3>
+                    <span class="difficulty-badge">HARD</span>
+                    <p class="mode-desc">拗音やハイフンを含む<br>難解な用語</p>
+                </div>
+            </div>
+
+            <button id="startBtn" class="start-btn">はじめる</button>
+        </div>
+
+        <!-- B. プレイ画面 -->
+        <div id="playScreen" class="play-screen hidden">
+            <div class="status-header">
+                <div class="progress-indicator">
+                    PROGRESS: <span id="currentNum">1</span> / 10
+                </div>
+                <div class="combo-badge">
+                    STREAK: <span class="combo-count" id="comboCount">0</span>
+                </div>
+            </div>
+
+            <div class="japanese-sentence" id="jpText">--</div>
+            <div class="roman-container" id="romanText"></div>
+            <div class="status-message" id="statusMsg"></div>
+        </div>
+
+        <!-- C. リザルト画面 -->
+        <div id="resultScreen" class="result-screen hidden">
+            <h2 class="result-title">水質の測定結果</h2>
+            
+            <div class="purity-ring-box">
+                <svg class="purity-ring-svg" width="130" height="130">
+                    <circle class="purity-ring-bg" cx="65" cy="65" r="58"></circle>
+                    <circle id="purityRingFill" class="purity-ring-fill" cx="65" cy="65" r="58"></circle>
+                </svg>
+                <div style="position: absolute; display: flex; flex-direction: column; align-items: center;">
+                    <span style="font-size: 0.7rem; color: #475569; font-weight: 300; letter-spacing: 0.05em;">ACCURACY</span>
+                    <span id="purityScore" class="combo-count" style="font-size: 1.5rem; font-weight: 500;">0%</span>
+                </div>
+            </div>
+
+            <div class="water-quality-title" id="waterQuality">澄み切ったクリスタル</div>
+
+            <div class="result-stats">
+                <div class="stat-col">
+                    <span class="stat-label">経過時間</span>
+                    <span class="stat-value" id="resultTime">0秒</span>
+                </div>
+                <div class="stat-col">
+                    <span class="stat-label">正確性</span>
+                    <span class="stat-value" id="resultAccuracy">0%</span>
+                </div>
+                <div class="stat-col">
+                    <span class="stat-label">最大ストリーク</span>
+                    <span class="stat-value" id="resultMaxCombo">0</span>
+                </div>
+            </div>
+
+            <button id="restartBtn" class="restart-btn">もう一度</button>
+        </div>
+
+    </div>
+
+    <!-- SVGフィルター -->
+    <svg style="position: absolute; width: 0; height: 0;">
+        <filter id="water-wave-filter">
+            <feTurbulence type="fractalNoise" baseFrequency="0.007" numOctaves="3" result="wave">
+                <animate attributeName="baseFrequency" dur="35s" keyTimes="0;0.5;1" values="0.007;0.011;0.007" repeatCount="indefinite" />
+            </feTurbulence>
+            <feDisplacementMap in="SourceGraphic" in2="wave" scale="15" xChannelSelector="R" yChannelSelector="G" />
+        </filter>
+    </svg>
+
+    <script>
+        // --- 難易度別お題リストの定義 ---
+        const wordsEasy = [
+            { jp: "お疲れ様でした。", kana: "おつかれさまでした。" },
+            { jp: "お腹が空いてきました。", kana: "おなかがすいてきました。" },
+            { jp: "美味しいコーヒーを飲む。", kana: "おいしいこーひーをのむ。" },
+            { jp: "今日の天気は晴れです。", kana: "きょうのてんきははれです。" },
+            { jp: "新しいノートを買う。", kana: "あたらしいのーとをかう。" },
+            { jp: "散歩に出かけましょう。", kana: "さんぽにでかけましょう。" },
+            { jp: "お気に入りの音楽。", kana: "おきにいりのおんがく。" },
+            { jp: "朝起きて水を飲む。", kana: "あさおきてみずをのむ。" },
+            { jp: "部屋の片付けをする。", kana: "へやのかたづけをする。" },
+            { jp: "お茶を淹れましょう。", kana: "おちゃをいれましょう。" }
+        ];
+
+        const wordsNormal = [
+            { jp: "よろしくお願いいたします。", kana: "よろしくおねがいいたします。" },
+            { jp: "明日の予定を確認する。", kana: "あしたのよていをかくにんする。" },
+            { jp: "メールの返信を送る。", kana: "めーるのへんしんをおくる。" },
+            { jp: "少し休憩をしましょう。", kana: "すこしきゅうけいをしましょう。" },
+            { jp: "カレンダーを確認します。", kana: "かれんだーをかくにんします。" },
+            { jp: "楽しい週末の計画を立てる。", kana: "たのしいしゅうまつのけいかくをたてる。" },
+            { jp: "近くの公園を散策する。", kana: "ちかくのこうえんをさんさくする。" },
+            { jp: "駅前のパン屋に寄る。", kana: "えきまえのぱんやによる。" },
+            { jp: "明日の準備を済ませる。", kana: "あしたのじゅんびをすませる。" },
+            { jp: "穏やかな日常を大切にする。", kana: "おだやかなにちじょうをたいせつにする。" }
+        ];
+
+        const wordsHard = [
+            { jp: "静かな図書館で勉強する。", kana: "しずかなとしょかんでべんきょうする。" },
+            { jp: "パスワードを入力する。", kana: "ぱすわーどをにゅうりょくする。" },
+            { jp: "インターフェースを調整する。", kana: "いんたーふぇーすをちょうせいする。" },
+            { jp: "データベースを更新する。", kana: "でーたべーすをこうしんする。" },
+            { jp: "バックアップを保存します。", kana: "ばっくあっぷをほぞんします。" },
+            { jp: "プログラムを実行してください。", kana: "ぷろぐらむをじっこうしてください。" },
+            { jp: "サーバーの接続を確認する。", kana: "さーばーのせつぞくをかくにんする。" },
+            { jp: "クリエイティブな発想を生む。", kana: "くりえいてぃぶなはっそうをうむ。" },
+            { jp: "アプリケーションを開発する。", kana: "あぷりけーしょんをかいはつする。" },
+            { jp: "セキュリティの設定を見直す。", kana: "せきゅりてぃのせっていをみなおす。" }
+        ];
+
+        // --- ローマ字解析マップ ---
+        const ROMAJI_MAP = {
+            'あ': ['a'], 'い': ['i', 'yi'], 'う': ['u', 'wu'], 'え': ['e', 'ye'], 'お': ['o'],
+            'か': ['ka', 'ca'], 'き': ['ki'], 'く': ['ku', 'cu', 'qu'], 'け': ['ke'], 'こ': ['ko', 'co'],
+            'さ': ['sa'], 'し': ['si', 'shi', 'ci'], 'す': ['su'], 'せ': ['se', 'ce'], 'そ': ['so'],
+            'た': ['ta'], 'ち': ['ti', 'chi'], 'つ': ['tu', 'tsu'], 'て': ['te'], 'と': ['to'],
+            'な': ['na'], 'に': ['ni'], 'ぬ': ['nu'], 'ね': ['ne'], 'の': ['no'],
+            'は': ['ha'], 'ひ': ['hi'], 'ふ': ['fu', 'hu'], 'へ': ['he'], 'ほ': ['ho'],
+            'ま': ['ma'], 'み': ['mi'], 'む': ['mu'], 'め': ['me'], 'も': ['mo'],
+            'や': ['ya'], 'ゆ': ['yu'], 'よ': ['yo'],
+            'ら': ['ra'], 'り': ['ri'], 'る': ['ru'], 'れ': ['re'], 'ろ': ['ro'],
+            'わ': ['wa'], 'を': ['wo'], 'ん': ['nn', 'xn'], 
+            'が': ['ga'], 'ぎ': ['gi'], 'ぐ': ['gu'], 'げ': ['ge'], 'ご': ['go'],
+            'ざ': ['za'], 'じ': ['zi', 'ji'], 'ず': ['zu'], 'ぜ': ['ze'], 'ぞ': ['zo'],
+            'だ': ['da'], 'ぢ': ['di'], 'づ': ['du'], 'で': ['de'], 'ど': ['do'],
+            'ば': ['ba'], 'び': ['bi'], 'ぶ': ['bu'], 'べ': ['be'], 'ぼ': ['bo'],
+            'ぱ': ['pa'], 'ぴ': ['pi'], 'ぷ': ['pu'], 'ぺ': ['pe'], 'ぽ': ['po'],
+            'きゃ': ['kya', 'kixya'], 'きぃ': ['kyi', 'kixyi'], 'きゅ': ['kyu', 'kixyu'], 'きぇ': ['kye', 'kixye'], 'きょ': ['kyo', 'kixyo'],
+            'しゃ': ['sya', 'sha', 'sixya', 'shixya'], 'しぃ': ['syi', 'sixyi'], 'しゅ': ['syu', 'shu', 'sixyu', 'shixyu'], 'しぇ': ['sye', 'she', 'sixye', 'shixye'], 'しょ': ['syo', 'sho', 'sixyo', 'shixyo'],
+            'ちゃ': ['tya', 'cha', 'tixya', 'chixya'], 'ちぃ': ['tyi', 'tixyi'], 'ちゅ': ['tyu', 'chu', 'tixyu', 'chixyu'], 'ちぇ': ['tye', 'che', 'tixye', 'chixye'], 'ちょ': ['tyo', 'cho', 'tixyo', 'chixyo'],
+            'にゃ': ['nya', 'nixya'], 'にぃ': ['nyi', 'nixyi'], 'にゅ': ['nyu', 'nixyu'], 'にぇ': ['nye', 'nixye'], 'にょ': ['nyo', 'nixyo'],
+            'ひゃ': ['hya', 'hixya'], 'ひぃ': ['hyi', 'hixyi'], 'ひゅ': ['hyu', 'hixyu'], 'ひぇ': ['hye', 'hixye'], 'ひょ': ['hyo', 'hixyo'],
+            'みゃ': ['mya', 'mixya'], 'みぃ': ['myi', 'mixyi'], 'みゅ': ['myu', 'mixyu'], 'みぇ': ['mye', 'mixye'], 'みょ': ['myo', 'mixyo'],
+            'りゃ': ['rya', 'rixya'], 'りぃ': ['ryi', 'rixyi'], 'りゅ': ['ryu', 'rixyu'], 'riぇ': ['rye', 'rixye'], 'りょ': ['ryo', 'rixyo'],
+            'ぎゃ': ['gya', 'gixya'], 'ぎゅ': ['gyu', 'gixyu'], 'ぎょ': ['gyo', 'gixyo'],
+            'じゃ': ['zya', 'ja', 'jya', 'zixya'], 'じゅ': ['zyu', 'ju', 'jyu', 'zixyu'], 'じょ': ['zyo', 'jo', 'jyo', 'zixyo'],
+            'びゃ': ['bya', 'bixya'], 'びゅ': ['byu', 'bixyu'], 'びょ': ['byo', 'bixyo'],
+            'ぱ': ['pa', 'pixya'], 'ぴゅ': ['pyu', 'pixyu'], 'ぴょ': ['pyo', 'pixyo'],
+            'ふぁ': ['fa', 'fuxa'], 'ふぃ': ['fi', 'fuxi'], 'ふぇ': ['fe', 'fuxe'], 'ふぉ': ['fo', 'fuxo'],
+            'でぃ': ['dyi', 'dixyi'], 'でゅ': ['dyu', 'dixyu'], 'でょ': ['dyo', 'dixyo'],
+            'てぃ': ['tyi', 'tixyi'], 'てゅ': ['tyu', 'tixyu'], 'てょ': ['tyo', 'tixyo'],
+            'うぃ': ['wi', 'uxi'], 'うぇ': ['we', 'uxe'],
+            'ぁ': ['la', 'xa'], 'ぃ': ['li', 'xi'], 'ぅ': ['lu', 'xu'], 'ぇ': ['le', 'xe'], 'ぉ': ['lo', 'xo'],
+            'ゃ': ['lya', 'xya'], 'ゅ': ['lyu', 'xyu'], 'ょ': ['lyo', 'xyo'],
+            'っ': ['ltu', 'xtu'], 
+            'ー': ['-'], '。': ['.'], '、': [','], '！': ['!'], '？': ['?']
+        };
+
+        let activeTheme = 'water'; // water | magma | cosmos
+        let playWords = []; 
+        let currentWordIndex = 0;
+        let isPlaying = false;
+        
+        let hasMissedInCurrentWord = false;
+        let comboCount = 0;
+        let maxCombo = 0;
+
+        let tokens = [];     
+        let tokenIndex = 0;  
+
+        let totalKeysPressed = 0;
+        let totalMissedKeys = 0;
+        let gameStartTime = 0;
+
+        // DOM
+        const gameContainer = document.getElementById('gameContainer');
+        const startScreen = document.getElementById('startScreen');
+        const playScreen = document.getElementById('playScreen');
+        const resultScreen = document.getElementById('resultScreen');
+        const rippleContainer = document.getElementById('rippleContainer');
+        const purifyFlash = document.getElementById('purifyFlash');
+        
+        const startBtn = document.getElementById('startBtn');
+        const restartBtn = document.getElementById('restartBtn');
+        const jpText = document.getElementById('jpText');
+        const romanText = document.getElementById('romanText');
+        const statusMsg = document.getElementById('statusMsg');
+        const comboDisplay = document.getElementById('comboCount');
+        const currentNumDisplay = document.getElementById('currentNum');
+        const waterBg = document.getElementById('waterBg');
+
+        const waterQualityDisplay = document.getElementById('waterQuality');
+        const resultTimeDisplay = document.getElementById('resultTime');
+        const resultAccuracyDisplay = document.getElementById('resultAccuracy');
+        const resultMaxComboDisplay = document.getElementById('resultMaxCombo');
+        const purityRingFill = document.getElementById('purityRingFill');
+        const purityScore = document.getElementById('purityScore');
+
+        const subTitleText = document.getElementById('subTitleText');
+        const descText = document.getElementById('descText');
+
+        // 音響 (Web Audio API)
+        let audioCtx = null;
+        let bgmNode1 = null;
+        let bgmNode2 = null;
+
+        startBtn.addEventListener('click', startGame);
+        restartBtn.addEventListener('click', startGame);
+
+        // --- ホーム画面でのモード切替処理 ---
+        function selectMode(theme) {
+            activeTheme = theme;
+            
+            // bodyクラスとアクティブ表示を切り替え
+            document.body.className = `theme-${theme}`;
+            document.querySelectorAll('.mode-card').forEach(c => c.classList.remove('active'));
+            document.querySelector(`.${theme}-card`).classList.add('active');
+
+            // 背景とテキストの更新
+            if (theme === 'water') {
+                subTitleText.textContent = "清流のガラスの上に浮かぶ心";
+                descText.innerHTML = "流れる水の上に置かれた、ガラスのプレート。<br>日常の言葉に指を滑らせ、穏やかな時間をお楽しみください。";
+                waterBg.style.background = "linear-gradient(135deg, #e0f2fe 0%, #bae6fd 40%, #7dd3fc 70%, #38bdf8 100%)";
+            } else if (theme === 'magma') {
+                subTitleText.textContent = "灼熱の溶岩を調律するガラス";
+                descText.innerHTML = "煮え立つ黒と燃える赤。大地の熱エネルギーが脈打つ空間。<br>ノーミスクリアを重ね、その破壊的な熱を澄み切った黄金へ調和させてください。";
+                waterBg.style.background = "linear-gradient(135deg, #1c1917 0%, #450a0a 40%, #781d00 75%, #9a3412 100%)";
+            } else if (theme === 'cosmos') {
+                subTitleText.textContent = "星雲を流れるSFガラスプレート";
+                descText.innerHTML = "宇宙の静寂と、星屑の光が流れるサイバー空間。<br>タイピングのコンボによって星にエネルギーを送り、星雲に生命の光を宿しましょう。";
+                waterBg.style.background = "linear-gradient(135deg, #020617 0%, #0f172a 40%, #1e1b4b 75%, #311042 100%)";
+            }
+        }
+
+        function startGame() {
+            isPlaying = true;
+            initAudio();
+
+            startScreen.classList.add('hidden');
+            resultScreen.classList.add('hidden');
+            playScreen.classList.remove('hidden');
+
+            // モードに応じたお題の決定
+            let selectedSource = wordsEasy;
+            if (activeTheme === 'magma') selectedSource = wordsNormal;
+            if (activeTheme === 'cosmos') selectedSource = wordsHard;
+
+            playWords = [...selectedSource].sort(() => 0.5 - Math.random()).slice(0, 10);
+
+            currentWordIndex = 0;
+            comboCount = 0;
+            maxCombo = 0;
+            totalKeysPressed = 0;
+            totalMissedKeys = 0;
+            gameStartTime = performance.now();
+
+            updateComboDisplay();
+            updateBackground(false); 
+            loadWord();
+
+            window.addEventListener('keydown', handleKeyDown);
+        }
+
+        // --- Web Audio API の動的音響制御 ---
+        function initAudio() {
+            if (audioCtx) return;
+            try {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                
+                bgmNode1 = audioCtx.createOscillator();
+                bgmNode2 = audioCtx.createOscillator();
+                const gainNode = audioCtx.createGain();
+
+                // モードに応じてドローンBGMの音色（周波数）を変更
+                if (activeTheme === 'water') {
+                    bgmNode1.frequency.setValueAtTime(110, audioCtx.currentTime); // A2
+                    bgmNode2.frequency.setValueAtTime(146.83, audioCtx.currentTime); // D3
+                } else if (activeTheme === 'magma') {
+                    bgmNode1.frequency.setValueAtTime(82.41, audioCtx.currentTime); // E2 (重厚な低音)
+                    bgmNode2.frequency.setValueAtTime(123.47, audioCtx.currentTime); // B2
+                } else {
+                    bgmNode1.frequency.setValueAtTime(130.81, audioCtx.currentTime); // C3 (浮遊感)
+                    bgmNode2.frequency.setValueAtTime(196.00, audioCtx.currentTime); // G3
+                }
+
+                bgmNode1.type = 'sine';
+                bgmNode2.type = 'sine';
+                gainNode.gain.setValueAtTime(0.04, audioCtx.currentTime);
+
+                const filter = audioCtx.createBiquadFilter();
+                filter.type = 'lowpass';
+                filter.frequency.setValueAtTime(activeTheme === 'magma' ? 120 : 200, audioCtx.currentTime);
+
+                bgmNode1.connect(filter);
+                bgmNode2.connect(filter);
+                filter.connect(gainNode);
+                gainNode.connect(audioCtx.destination);
+
+                bgmNode1.start();
+                bgmNode2.start();
+            } catch (e) {
+                console.log("AudioContext not supported", e);
+            }
+        }
+
+        // モード別打鍵音SE
+        function playModeTapSound() {
+            if (!audioCtx) return;
+
+            const osc = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+            const filter = audioCtx.createBiquadFilter();
+
+            if (activeTheme === 'water') {
+                // 水：木製コトコト音
+                osc.type = 'sine'; 
+                const baseFreq = 420 + Math.random() * 40;
+                osc.frequency.setValueAtTime(baseFreq * 2.2, audioCtx.currentTime); 
+                osc.frequency.exponentialRampToValueAtTime(baseFreq, audioCtx.currentTime + 0.01); 
+                gainNode.gain.setValueAtTime(0.18, audioCtx.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.05);
+                filter.type = 'lowpass';
+                filter.frequency.setValueAtTime(1000, audioCtx.currentTime);
+
+            } else if (activeTheme === 'magma') {
+                // 火山：パチパチした火花のクラッシュ（短いノイズと三角波）
+                osc.type = 'triangle';
+                const baseFreq = 800 + Math.random() * 200;
+                osc.frequency.setValueAtTime(baseFreq, audioCtx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(80, audioCtx.currentTime + 0.02);
+                gainNode.gain.setValueAtTime(0.07, audioCtx.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.03);
+                filter.type = 'bandpass';
+                filter.frequency.setValueAtTime(3000, audioCtx.currentTime);
+
+            } else {
+                // 宇宙：透き通る高音シンセに長いコズミックな余韻
+                osc.type = 'sine';
+                const baseFreq = 650 + (comboCount * 30);
+                osc.frequency.setValueAtTime(baseFreq, audioCtx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(baseFreq * 1.5, audioCtx.currentTime + 0.12);
+                gainNode.gain.setValueAtTime(0.05, audioCtx.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.45); // 宇宙特有の長い残響
+                filter.type = 'lowpass';
+                filter.frequency.setValueAtTime(2000, audioCtx.currentTime);
+            }
+
+            osc.connect(filter);
+            filter.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+
+            osc.start();
+            osc.stop(audioCtx.currentTime + (activeTheme === 'cosmos' ? 0.5 : 0.1));
+        }
+
+        function playMutedWood() {
+            if (!audioCtx) return;
+
+            const osc = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(activeTheme === 'magma' ? 120 : 180, audioCtx.currentTime);
+
+            gainNode.gain.setValueAtTime(0.06, audioCtx.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.08);
+
+            osc.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+
+            osc.start();
+            osc.stop(audioCtx.currentTime + 0.1);
+        }
+
+        // モードごとに色合いを変えた、前面波紋エフェクト
+        function createRipple() {
+            const ripple = document.createElement('div');
+            // テーマのクラスを波紋に付加
+            ripple.classList.add('ripple', `${activeTheme}-ripple`);
+            
+            const rect = gameContainer.getBoundingClientRect();
+            const x = rect.left + rect.width / 2 + (Math.random() * 160 - 80);
+            const y = rect.top + rect.height / 2 + (Math.random() * 80 - 40);
+
+            ripple.style.left = `${x}px`;
+            ripple.style.top = `${y}px`;
+
+            rippleContainer.appendChild(ripple);
+            ripple.addEventListener('animationend', () => ripple.remove());
+        }
+
+        // ひらがな➔トークン化
+        function tokenize(kanaStr) {
+            let res = [];
+            let i = 0;
+            while (i < kanaStr.length) {
+                let char2 = kanaStr.substr(i, 2);
+                let char1 = kanaStr.substr(i, 1);
+                
+                if (ROMAJI_MAP[char2]) {
+                    res.push({
+                        kana: char2,
+                        patterns: [...ROMAJI_MAP[char2]],
+                        currentInput: ""
+                    });
+                    i += 2;
+                } else if (ROMAJI_MAP[char1]) {
+                    let patterns = [...ROMAJI_MAP[char1]];
+                    
+                    if (char1 === 'っ') {
+                        let nextChar = kanaStr.substr(i + 1, 1);
+                        let next2 = kanaStr.substr(i + 1, 2);
+                        let nextTarget = ROMAJI_MAP[next2] ? next2 : nextChar;
+                        
+                        if (ROMAJI_MAP[nextTarget]) {
+                            let firstConsonants = ROMAJI_MAP[nextTarget]
+                                .map(r => r.charAt(0))
+                                .filter(c => !['a','i','u','e','o','y','l','x'].includes(c));
+                            
+                            firstConsonants = [...new Set(firstConsonants)];
+                            firstConsonants.forEach(c => {
+                                if (c) patterns.push(c); 
+                            });
+                        }
+                    }
+                    
+                    if (char1 === 'ん') {
+                        let nextChar = kanaStr.substr(i + 1, 1);
+                        let isNnRequired = !nextChar || /[あいうえおやゆよなにぬねのんぁぃぅぇぉゃゅょ]/.test(nextChar);
+                        if (!isNnRequired) {
+                            patterns.push('n');
+                        }
+                    }
+
+                    res.push({
+                        kana: char1,
+                        patterns: patterns,
+                        currentInput: ""
+                    });
+                    i += 1;
+                } else {
+                    res.push({
+                        kana: char1,
+                        patterns: [char1],
+                        currentInput: ""
+                    });
+                    i += 1;
+                }
+            }
+            return res;
+        }
+
+        function loadWord() {
+            const currentData = playWords[currentWordIndex];
+            jpText.textContent = currentData.jp;
+            
+            tokens = tokenize(currentData.kana);
+            tokenIndex = 0;
+            
+            hasMissedInCurrentWord = false;
+            statusMsg.textContent = activeTheme === 'cosmos' ? "星屑の流れを観測して。" : (activeTheme === 'magma' ? "大地のエネルギーと同和して。" : "静かに、キーを紡ぎましょう。");
+            currentNumDisplay.textContent = currentWordIndex + 1;
+            
+            renderRoman();
+        }
+
+        function renderRoman() {
+            let html = "";
+            tokens.forEach((t, idx) => {
+                if (idx < tokenIndex) {
+                    html += `<span class="char-typed">${t.currentInput}</span>`;
+                } else if (idx === tokenIndex) {
+                    let input = t.currentInput;
+                    let matchedPattern = t.patterns.find(p => p.startsWith(input)) || t.patterns[0];
+                    
+                    let typedPart = input;
+                    let untypedPart = matchedPattern.substring(input.length);
+                    
+                    if (untypedPart.length > 0) {
+                        let currentLet = untypedPart.charAt(0);
+                        let remainingLet = untypedPart.substring(1);
+                        
+                        html += `<span class="char-typed">${typedPart}</span><span id="currentChar" class="char-current">${currentLet}</span><span>${remainingLet}</span>`;
+                    } else {
+                        html += `<span class="char-typed">${typedPart}</span>`;
+                    }
+                } else {
+                    html += `<span>${t.patterns[0]}</span>`;
+                }
+            });
+            romanText.innerHTML = html;
+        }
+
+        function normalizeKey(key) {
+            const zenToHan = {
+                'ー': '-', '―': '-', '－': '-', '‐': '-', 
+                '。': '.', '、': ',', '！': '!', '？': '?',
+                'ａ': 'a', 'ｂ': 'b', 'ｃ': 'c', 'ｄ': 'd', 'ｅ': 'e', 'ｆ': 'f', 'ｇ': 'g',
+                'ｈ': 'h', 'ｉ': 'i', 'ｊ': 'j', 'ｋ': 'k', 'ｌ': 'l', 'ｍ': 'm', 'ｎ': 'n',
+                'ｏ': 'o', 'ｐ': 'p', 'ｑ': 'q', 'ｒ': 'r', 'ｓ': 's', 'ｔ': 't', 'ｕ': 'u',
+                'ｖ': 'v', 'ｗ': 'w', 'ｘ': 'x', 'ｙ': 'y', 'ｚ': 'z'
+            };
+            return zenToHan[key] || key.toLowerCase();
+        }
+
+        function handleKeyDown(e) {
+            if (!isPlaying) return;
+            if (e.key.length > 1) return; // 制御キーを無視
+
+            totalKeysPressed++;
+            const activeToken = tokens[tokenIndex];
+            
+            const inputKey = normalizeKey(e.key);
+            const nextInput = activeToken.currentInput + inputKey;
+
+            const isValidPrefix = activeToken.patterns.some(p => p.startsWith(nextInput));
+
+            if (isValidPrefix) {
+                playModeTapSound();
+                createRipple();
+
+                activeToken.currentInput = nextInput;
+
+                const isCompleted = activeToken.patterns.includes(nextInput);
+
+                if (isCompleted) {
+                    tokenIndex++;
+                    
+                    if (tokenIndex >= tokens.length) {
+                        let prevCombo = comboCount;
+                        if (!hasMissedInCurrentWord) {
+                            comboCount++;
+                            if (comboCount > maxCombo) maxCombo = comboCount;
+                            statusMsg.textContent = activeTheme === 'cosmos' ? "美しき超新星の輝き。" : (activeTheme === 'magma' ? "エネルギーの調和に成功。" : "透き通るような正確さです。");
+                        } else {
+                            comboCount = 0;
+                            statusMsg.textContent = "一呼吸おいて、再び始めましょう。";
+                        }
+
+                        updateComboDisplay();
+                        
+                        const hasStateChanged = (comboCount !== prevCombo);
+                        updateBackground(hasStateChanged);
+
+                        currentWordIndex++;
+                        
+                        if (currentWordIndex >= 10) {
+                            isPlaying = false;
+                            setTimeout(showResult, 1000);
+                        } else {
+                            isPlaying = false;
+                            setTimeout(() => {
+                                loadWord();
+                                isPlaying = true;
+                            }, 800);
+                        }
+                    } else {
+                        renderRoman();
+                    }
+                } else {
+                    renderRoman();
+                }
+            } else {
+                playMutedWood();
+                totalMissedKeys++;
+                hasMissedInCurrentWord = true;
+                statusMsg.textContent = activeTheme === 'cosmos' ? "星軌のズレを修正して。" : (activeTheme === 'magma' ? "熱風による乱れです、落ち着いて。" : "一呼吸おいて、落ち着いて。");
+
+                const curCharEl = document.getElementById('currentChar');
+                if (curCharEl) {
+                    curCharEl.classList.add('error-state');
+                    setTimeout(() => curCharEl.classList.remove('error-state'), 400);
+                }
+            }
+        }
+
+        function updateComboDisplay() {
+            comboDisplay.textContent = comboCount;
+        }
+
+        // 水・火山・宇宙それぞれの「グラデーション浄化ロジック」
+        function updateBackground(triggerFlash = false) {
+            if (triggerFlash) {
+                purifyFlash.classList.add('flash-active');
+                purifyFlash.addEventListener('animationend', () => {
+                    purifyFlash.classList.remove('flash-active');
+                }, { once: true });
+            }
+
+            if (activeTheme === 'water') {
+                if (comboCount === 0) {
+                    waterBg.style.background = "linear-gradient(135deg, #e0f2fe 0%, #bae6fd 40%, #7dd3fc 70%, #38bdf8 100%)";
+                } else if (comboCount >= 1 && comboCount < 3) {
+                    waterBg.style.background = "linear-gradient(135deg, #bae6fd 0%, #7dd3fc 30%, #0ea5e9 70%, #0284c7 100%)";
+                } else if (comboCount >= 3 && comboCount < 5) {
+                    waterBg.style.background = "linear-gradient(135deg, #7dd3fc 0%, #0ea5e9 30%, #0284c7 70%, #0369a1 100%)";
+                } else if (comboCount >= 5) {
+                    waterBg.style.background = "linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 20%, #0ea5e9 80%, #0284c7 100%)";
+                }
+            } else if (activeTheme === 'magma') {
+                if (comboCount === 0) {
+                    // 赤黒いドロドロの溶岩
+                    waterBg.style.background = "linear-gradient(135deg, #1c1917 0%, #450a0a 40%, #781d00 75%, #9a3412 100%)";
+                } else if (comboCount >= 1 && comboCount < 3) {
+                    // 燃え盛るクリアなオレンジ
+                    waterBg.style.background = "linear-gradient(135deg, #450a0a 0%, #7c2d12 30%, #ea580c 70%, #f97316 100%)";
+                } else if (comboCount >= 3 && comboCount < 5) {
+                    // 熱が調和された琥珀色
+                    waterBg.style.background = "linear-gradient(135deg, #7c2d12 0%, #d97706 40%, #f59e0b 80%, #fbbf24 100%)";
+                } else if (comboCount >= 5) {
+                    // 完全に澄み渡ったクリスタルゴールドエネルギー
+                    waterBg.style.background = "linear-gradient(135deg, #fffbeb 0%, #fef3c7 20%, #f59e0b 80%, #fbbf24 100%)";
+                }
+            } else if (activeTheme === 'cosmos') {
+                if (comboCount === 0) {
+                    // 暗黒の深宇宙
+                    waterBg.style.background = "linear-gradient(135deg, #020617 0%, #0f172a 40%, #1e1b4b 75%, #311042 100%)";
+                } else if (comboCount >= 1 && comboCount < 3) {
+                    // 紫とマゼンタの星雲
+                    waterBg.style.background = "linear-gradient(135deg, #0f172a 0%, #1e1b4b 30%, #581c87 70%, #701a75 100%)";
+                } else if (comboCount >= 3 && comboCount < 5) {
+                    // サイバーブルーとインディゴの輝き
+                    waterBg.style.background = "linear-gradient(135deg, #1e1b4b 0%, #312e81 30%, #1d4ed8 70%, #0ea5e9 100%)";
+                } else if (comboCount >= 5) {
+                    // まばゆい超新星ホワイト・シアン＆ネオンパープル
+                    waterBg.style.background = "linear-gradient(135deg, #faf5ff 0%, #f3e8ff 20%, #a855f7 70%, #3b82f6 100%)";
+                }
+            }
+        }
+
+        // リザルト画面
+        function showResult() {
+            playScreen.classList.add('hidden');
+            resultScreen.classList.remove('hidden');
+
+            const endTime = performance.now();
+            const elapsedSec = Math.round((endTime - gameStartTime) / 1000);
+            resultTimeDisplay.textContent = `${elapsedSec}秒`;
+
+            const totalHits = totalKeysPressed - totalMissedKeys;
+            const accuracy = totalKeysPressed > 0 ? Math.round((totalHits / totalKeysPressed) * 100) : 0;
+            resultAccuracyDisplay.textContent = `${accuracy}%`;
+            purityScore.textContent = `${accuracy}%`;
+
+            resultMaxComboDisplay.textContent = `${maxCombo}回`;
+
+            const offset = 377 - (377 * (accuracy / 100));
+            purityRingFill.style.strokeDashoffset = offset;
+
+            // テーマごとに称号テキストを分岐
+            if (activeTheme === 'water') {
+                if (maxCombo >= 8 && accuracy >= 95) waterQualityDisplay.textContent = "澄み切ったクリスタル（最高水質）";
+                else if (maxCombo >= 4) waterQualityDisplay.textContent = "湧き出す清流（美しく澄んだ水）";
+                else waterQualityDisplay.textContent = "静かな湖水（穏やかな水面）";
+            } else if (activeTheme === 'magma') {
+                if (maxCombo >= 8 && accuracy >= 95) waterQualityDisplay.textContent = "調律の黄金琥珀（完全調和）";
+                else if (maxCombo >= 4) waterQualityDisplay.textContent = "結晶化するルビー（熱の沈静化）";
+                else waterQualityDisplay.textContent = "燻る火山岩（熱が荒れています）";
+            } else if (activeTheme === 'cosmos') {
+                if (maxCombo >= 8 && accuracy >= 95) waterQualityDisplay.textContent = "輝くアンドロメダ（超新星の星海）";
+                else if (maxCombo >= 4) waterQualityDisplay.textContent = "目覚めるシリウス（青き巨星の光）";
+                else waterQualityDisplay.textContent = "孤独な流星（星屑の漂流）";
+            }
+        }
+    </script>
+</body>
+</html>
