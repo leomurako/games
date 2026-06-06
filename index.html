@@ -17,9 +17,9 @@
         }
     </style>
 </head>
-<body class="bg-slate-950 text-slate-100 h-screen overflow-hidden flex flex-col md:flex-row">
+<body class="bg-black text-slate-100 h-screen w-screen overflow-hidden relative">
 
-    <!-- フローティングトグルボタン (サイドバーが閉じた時に画面に浮くボタン) -->
+    <!-- フローティングトグルボタン (常に最前面 z-50 に配置) -->
     <button id="menu-toggle-btn" onclick="toggleSidebar()" class="fixed top-4 left-4 z-50 bg-slate-900/90 hover:bg-slate-800 border border-slate-700/50 backdrop-blur-md p-3 rounded-xl text-cyan-400 shadow-[0_0_15px_rgba(6,182,212,0.15)] transition-all flex items-center justify-center">
         <!-- ハンバーガーアイコン (初期状態は閉じるアイコンが出ているので隠す) -->
         <svg id="hamburger-icon" class="w-6 h-6 transition-all hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -31,20 +31,19 @@
         </svg>
     </button>
 
-    <!-- サイドバー (ネオン＆ガラスモーフィズムデザイン) -->
-    <aside id="sidebar" class="sidebar-transition fixed md:relative inset-y-0 left-0 z-40 w-72 bg-slate-900/95 border-r border-slate-800/80 backdrop-blur-xl flex flex-col shrink-0 shadow-[10px_0_40px_rgba(0,0,0,0.6)] transform translate-x-0">
+    <!-- サイドバー (ゲーム画面の上に重なるレイヤー z-40 として配置) -->
+    <aside id="sidebar" class="sidebar-transition fixed inset-y-0 left-0 z-40 w-72 bg-slate-900/95 border-r border-slate-800/80 backdrop-blur-xl flex flex-col shrink-0 shadow-[10px_0_40px_rgba(0,0,0,0.6)] transform translate-x-0">
         
         <!-- ロゴエリア（ボタンと被らないように上部余白を確保） -->
         <div class="pt-20 p-6 border-b border-slate-800/60 flex items-center justify-between">
             <div>
-                <h1 class="text-2xl font-black tracking-widest bg-gradient-to-r from-cyan-400 to-blue-500 bg-clip-text text-transparent drop-shadow-[0_0_10px_rgba(6,182,212,0.3)]">ARCADE HUB</h1>
+                <h1 class="text-2xl font-black tracking-widest bg-gradient-to-r from-cyan-400 to-blue-500 bg-clip-text text-transparent drop-shadow-[0_0_10px_rgba(6,182,212,0.3)]">HTML GAME HUB</h1>
                 <p class="text-xs text-slate-400 mt-1 font-mono tracking-wider">SELECT A GAME TO PLAY</p>
             </div>
         </div>
 
         <!-- ゲームリストボタン (メニュー部分) -->
         <nav id="game-list" class="flex-1 p-4 space-y-3 overflow-y-auto">
-            <!-- 各ボタン：ホバー時に少し浮くアニメーションを付与 -->
             <button onclick="loadGame('slot.html', this)" class="game-btn w-full text-left px-4 py-3 rounded-xl transition-all flex items-center gap-4 bg-cyan-950/40 border border-cyan-500 text-cyan-400 shadow-[0_0_15px_rgba(6,182,212,0.15)] font-bold">
                 <span class="text-xl">🎰</span> <span class="tracking-wide">NEO SLOTS</span>
             </button>
@@ -74,11 +73,9 @@
         </div>
     </aside>
 
-    <!-- メインフレームエリア -->
-    <main class="flex-1 h-screen relative bg-black">
-        <div class="w-full h-full">
-            <iframe id="game-frame" src="slot.html" class="w-full h-full" allow="autoplay"></iframe>
-        </div>
+    <!-- メインフレームエリア (常時、画面全体の最背面 z-10 に固定) -->
+    <main class="absolute inset-0 w-full h-full z-10 bg-black">
+        <iframe id="game-frame" src="slot.html" class="w-full h-full animate-fade" allow="autoplay"></iframe>
     </main>
 
     <script>
