@@ -1,598 +1,1497 @@
 <!DOCTYPE html>
 <html lang="ja">
+
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Silent Rhythm - 3つの世界とタイピング</title>
-    <!-- Google Fonts -->
-    <link rel="preconnect" href="https://fonts.gstatic.com">
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500&family=Quicksand:wght@300;400;500;600&display=swap" rel="stylesheet">
-    
-    <style>
-        /* --- 1. 基本リセットとフォント定義 --- */
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Silent Rhythm - 3つの世界とタイピング</title>
+	<!-- Google Fonts -->
+	<link rel="preconnect" href="https://fonts.gstatic.com">
+	<link
+		href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500&family=Quicksand:wght@300;400;500;600&display=swap"
+		rel="stylesheet">
 
-        body {
-            width: 100vw;
-            height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            font-family: 'Quicksand', 'Noto Sans JP', sans-serif;
-            overflow: hidden;
-            background-color: #f0f9ff;
-            user-select: none;
-            transition: background-color 2s ease;
-        }
+	<style>
+		/* --- 基本リセット --- */
+		* {
+			margin: 0;
+			padding: 0;
+			box-sizing: border-box;
+			user-select: none;
+			-webkit-user-select: none;
+			-moz-user-select: none;
+			-ms-user-select: none;
+			outline: none;
+			-webkit-tap-highlight-color: transparent;
+		}
 
-        /* --- 2. 複数の世界を切り替える水面・空間背景（SVG連動） --- */
-        .water-bg {
-            position: absolute;
-            top: -10%;
-            left: -10%;
-            width: 120%;
-            height: 120%;
-            z-index: 1;
-            /* 初期値（水モード） */
-            background: linear-gradient(135deg, #e0f2fe 0%, #bae6fd 40%, #7dd3fc 70%, #38bdf8 100%);
-            filter: url(#water-wave-filter);
-            opacity: 0.9;
-            transition: background 3s cubic-bezier(0.25, 1, 0.5, 1);
-        }
+		body.theme-water {
+			--primary-color: #0369a1;
+			--subtitle-color: #0284c7;
+			--japanese-color: #0f172a;
+			--roman-color: rgba(15, 23, 42, 0.45);
+			--typed-color: #1d4ed8;
+			--caret-color: #475569;
+			--btn-grad-1: #38bdf8;
+			--btn-grad-2: #0284c7;
+			--btn-glow: rgba(2, 132, 199, 0.4);
+			--purity-color: #0284c7;
+			--glass-bg: rgba(255, 255, 255, 0.65);
+			--glass-border: rgba(255, 255, 255, 0.6);
+			--glass-shadow: rgba(2, 132, 199, 0.05);
+			--text-main: #0f172a;
+			--text-sub: #475569;
+		}
 
-        .water-shimmer {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: 2;
-            background: radial-gradient(circle at 50% 10%, rgba(255, 255, 255, 0.4) 0%, transparent 60%);
-            mix-blend-mode: overlay;
-            pointer-events: none;
-        }
+		body.theme-magma {
+			--primary-color: #ea580c;
+			--subtitle-color: #f97316;
+			--japanese-color: #f8fafc;
+			--roman-color: rgba(248, 250, 252, 0.45);
+			--typed-color: #f97316;
+			--caret-color: #ef4444;
+			--btn-grad-1: #f97316;
+			--btn-grad-2: #b91c1c;
+			--btn-glow: rgba(234, 88, 12, 0.5);
+			--purity-color: #ea580c;
+			--glass-bg: rgba(18, 15, 12, 0.72);
+			--glass-border: rgba(239, 68, 68, 0.35);
+			--glass-shadow: rgba(120, 20, 0, 0.15);
+			--text-main: #f8fafc;
+			--text-sub: #cbd5e1;
+		}
 
-        /* 浄化フラッシュ（コンボ遷移時） */
-        .purify-flash {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: 4;
-            background: radial-gradient(circle, rgba(255, 255, 255, 0.75) 0%, transparent 80%);
-            pointer-events: none;
-            mix-blend-mode: overlay;
-            opacity: 0;
-            transition: opacity 0.5s ease;
-        }
+		body.theme-cosmos {
+			--primary-color: #a855f7;
+			--subtitle-color: #c084fc;
+			--japanese-color: #f8fafc;
+			--roman-color: rgba(248, 250, 252, 0.45);
+			--typed-color: #22d3ee;
+			--caret-color: #3b82f6;
+			--btn-grad-1: #c084fc;
+			--btn-grad-2: #3b82f6;
+			--btn-glow: rgba(168, 85, 247, 0.5);
+			--purity-color: #a855f7;
+			--glass-bg: rgba(10, 5, 25, 0.72);
+			--glass-border: rgba(168, 85, 247, 0.35);
+			--glass-shadow: rgba(168, 85, 247, 0.2);
+			--text-main: #f8fafc;
+			--text-sub: #cbd5e1;
+		}
 
-        .flash-active {
-            animation: purifyAnimate 1.5s cubic-bezier(0.1, 0.8, 0.3, 1) forwards;
-        }
+		body.theme-free {
+			--primary-color: #0d9488;
+			--subtitle-color: #14b8a6;
+			--japanese-color: #0f172a;
+			--roman-color: rgba(15, 23, 42, 0.5);
+			--typed-color: #0d9488;
+			--caret-color: #14b8a6;
+			--btn-grad-1: #2dd4bf;
+			--btn-grad-2: #0d9488;
+			--btn-glow: rgba(13, 148, 136, 0.4);
+			--purity-color: #0d9488;
+			--glass-bg: rgba(255, 255, 255, 0.65);
+			--glass-border: rgba(45, 212, 191, 0.5);
+			--glass-shadow: rgba(13, 148, 136, 0.05);
+			--text-main: #0f172a;
+			--text-sub: #475569;
+		}
 
-        @keyframes purifyAnimate {
-            0% { opacity: 0; transform: scale(0.6); }
-            30% { opacity: 1; transform: scale(1.1); }
-            100% { opacity: 0; transform: scale(1.5); }
-        }
+		.japanese-sentence {
+			font-size: var(--jp-font-size, 1.6rem) !important;
+		}
 
-        /* --- 3. 波紋エフェクト（前面） --- */
-        #rippleContainer {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: 15;
-            pointer-events: none;
-            overflow: hidden;
-        }
+		.roman-container {
+			font-size: var(--roman-font-size, 1.25rem) !important;
+		}
 
-        .ripple {
-            position: absolute;
-            width: 60px;
-            height: 60px;
-            border-radius: 50%;
-            transform: translate(-50%, -50%) scale(0);
-            animation: rippleEffect 1.6s cubic-bezier(0.1, 0.8, 0.25, 1) forwards;
-            pointer-events: none;
-        }
+		body {
+			width: 100vw;
+			height: 100vh;
+			display: flex;
+			justify-content: center;
+			align-items: center;
+			font-family: 'Quicksand', 'Noto Sans JP', sans-serif;
+			overflow: hidden;
+			background-color: #e0f2fe;
+			transition: background-color 2s ease;
+		}
 
-        @keyframes rippleEffect {
-            to {
-                transform: translate(-50%, -50%) scale(6.5);
-                opacity: 0;
-                border-color: rgba(255, 255, 255, 0);
-            }
-        }
+		/* --- 背景アニメーション --- */
+		.water-bg {
+			position: absolute;
+			top: -10%;
+			left: -10%;
+			width: 120%;
+			height: 120%;
+			z-index: 1;
+			background: linear-gradient(135deg, #e0f2fe 0%, #bae6fd 40%, #7dd3fc 70%, #38bdf8 100%);
+			filter: url(#water-wave-filter);
+			opacity: 0.9;
+			transition: background 3s cubic-bezier(0.25, 1, 0.5, 1);
+		}
 
-        /* モード別の波紋（CSSで個別に見た目を調整） */
-        .ripple.water-ripple {
-            border: 1px solid rgba(255, 255, 255, 0.75);
-            box-shadow: 0 0 10px rgba(255, 255, 255, 0.15);
-        }
+		.water-shimmer {
+			position: absolute;
+			top: 0;
+			left: 0;
+			width: 100%;
+			height: 100%;
+			z-index: 2;
+			background: radial-gradient(circle at 50% 10%, rgba(255, 255, 255, 0.4) 0%, transparent 60%);
+			mix-blend-mode: overlay;
+			pointer-events: none;
+		}
 
-        .ripple.magma-ripple {
-            border: 1.5px solid rgba(239, 68, 68, 0.8);
-            box-shadow: 0 0 15px rgba(249, 115, 22, 0.5);
-        }
+		.purify-flash {
+			position: absolute;
+			top: 0;
+			left: 0;
+			width: 100%;
+			height: 100%;
+			z-index: 4;
+			background: radial-gradient(circle, rgba(255, 255, 255, 0.75) 0%, transparent 80%);
+			pointer-events: none;
+			mix-blend-mode: overlay;
+			opacity: 0;
+			transition: opacity 0.5s ease;
+		}
 
-        .ripple.cosmos-ripple {
-            border: 1px solid rgba(192, 132, 252, 0.85);
-            box-shadow: 0 0 20px rgba(59, 130, 246, 0.7);
-        }
+		.flash-active {
+			animation: purifyAnimate 1.5s cubic-bezier(0.1, 0.8, 0.3, 1) forwards;
+		}
 
-        /* --- 4. ガラスプレート（グラスモーフィズム） --- */
-        .game-container {
-            position: relative;
-            z-index: 10;
-            width: 95%;
-            max-width: 680px;
-            padding: 55px 45px;
-            border-radius: 32px;
-            /* デフォルト（水モード） */
-            background: rgba(255, 255, 255, 0.25);
-            backdrop-filter: blur(25px);
-            -webkit-backdrop-filter: blur(25px);
-            border: 1px solid rgba(255, 255, 255, 0.45);
-            box-shadow: 
-                0 30px 70px rgba(2, 132, 199, 0.04),
-                inset 0 1px 0 rgba(255, 255, 255, 0.6);
-            text-align: center;
-            transition: all 0.8s cubic-bezier(0.25, 1, 0.5, 1);
-        }
+		@keyframes purifyAnimate {
+			0% {
+				opacity: 0;
+				transform: scale(0.6);
+			}
 
-        .hidden {
-            display: none !important;
-            opacity: 0;
-        }
+			30% {
+				opacity: 1;
+				transform: scale(1.1);
+			}
 
-        /* --- 5. ホーム（スタート）画面の強化 --- */
-        .start-screen {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 24px;
-        }
+			100% {
+				opacity: 0;
+				transform: scale(1.5);
+			}
+		}
 
-        .main-header {
-            margin-bottom: 10px;
-        }
+		/* --- 波紋エフェクト --- */
+		#rippleContainer {
+			position: absolute;
+			top: 0;
+			left: 0;
+			width: 100%;
+			height: 100%;
+			z-index: 15;
+			pointer-events: none;
+			overflow: hidden;
+		}
 
-        .game-title {
-            font-size: 2.4rem;
-            font-weight: 300;
-            color: #0369a1;
-            letter-spacing: 0.2em;
-            margin-bottom: 8px;
-            transition: color 0.8s;
-        }
+		.ripple {
+			position: absolute;
+			width: 60px;
+			height: 60px;
+			border-radius: 50%;
+			transform: translate(-50%, -50%) scale(0);
+			animation: rippleEffect 1.6s cubic-bezier(0.1, 0.8, 0.25, 1) forwards;
+			pointer-events: none;
+		}
 
-        .game-subtitle {
-            font-size: 0.85rem;
-            color: #475569;
-            letter-spacing: 0.1em;
-            text-transform: uppercase;
-            transition: color 0.8s;
-        }
+		@keyframes rippleEffect {
+			to {
+				transform: translate(-50%, -50%) scale(6.5);
+				opacity: 0;
+				border-color: rgba(255, 255, 255, 0);
+			}
+		}
 
-        /* 3つのモード選択カード（プロ級のカードデザイン） */
-        .mode-select-box {
-            display: flex;
-            gap: 15px;
-            width: 100%;
-            justify-content: center;
-            margin: 15px 0 25px 0;
-        }
+		.ripple.water-ripple {
+			border: 1.5px solid rgba(255, 255, 255, 0.8);
+			box-shadow: 0 0 10px rgba(255, 255, 255, 0.2);
+		}
 
-        .mode-card {
-            flex: 1;
-            padding: 24px 15px;
-            border-radius: 20px;
-            background: rgba(255, 255, 255, 0.3);
-            border: 1px solid rgba(255, 255, 255, 0.5);
-            cursor: pointer;
-            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 10px;
-            min-width: 160px;
-        }
+		.ripple.magma-ripple {
+			border: 1.8px solid rgba(239, 68, 68, 0.85);
+			box-shadow: 0 0 15px rgba(249, 115, 22, 0.6);
+		}
 
-        .mode-card:hover {
-            transform: translateY(-5px);
-            background: rgba(255, 255, 255, 0.6);
-            box-shadow: 0 10px 25px rgba(2, 132, 199, 0.08);
-        }
+		.ripple.cosmos-ripple {
+			border: 1.5px solid rgba(192, 132, 252, 0.9);
+			box-shadow: 0 0 20px rgba(59, 130, 246, 0.8);
+		}
 
-        .mode-card.active {
-            background: rgba(255, 255, 255, 0.85);
-            border-color: #0284c7;
-            box-shadow: 0 12px 30px rgba(2, 132, 199, 0.15);
-        }
+		.ripple.free-ripple {
+			border: 1.5px solid rgba(45, 212, 191, 0.9);
+			box-shadow: 0 0 15px rgba(13, 148, 136, 0.6);
+		}
 
-        .mode-card h3 {
-            font-size: 0.95rem;
-            font-weight: 500;
-            color: #1e293b;
-            letter-spacing: 0.05em;
-        }
+		/* --- 手紙ボトル漂うレイヤー --- */
+		#bottleLayer {
+			position: absolute;
+			top: 0;
+			left: 0;
+			width: 100%;
+			height: 100%;
+			z-index: 5;
+			overflow: hidden;
+			pointer-events: auto;
+		}
 
-        .difficulty-badge {
-            font-size: 0.65rem;
-            font-weight: 600;
-            padding: 2px 10px;
-            border-radius: 10px;
-            letter-spacing: 0.1em;
-        }
+		.zen-bottle {
+			position: absolute;
+			display: flex;
+			justify-content: center;
+			align-items: center;
+			width: 50px;
+			height: 50px;
+			border-radius: 50%;
+			background: rgba(255, 255, 255, 0.18);
+			border: 1px solid rgba(255, 255, 255, 0.4);
+			box-shadow: 0 4px 15px rgba(255, 255, 255, 0.1), inset 0 2px 5px rgba(255, 255, 255, 0.2);
+			cursor: help;
+			font-size: 1.4rem;
+			animation: driftBottle 35s linear infinite, wobbleBottle 6s ease-in-out infinite alternate;
+			transition: transform 0.4s cubic-bezier(0.25, 1, 0.5, 1), background 0.4s;
+			z-index: 5;
+		}
 
-        /* 難易度バッジの色分け */
-        .water-card .difficulty-badge { background: #e0f2fe; color: #0369a1; }
-        .magma-card .difficulty-badge { background: #fee2e2; color: #991b1b; }
-        .cosmos-card .difficulty-badge { background: #f3e8ff; color: #6b21a8; }
+		.zen-bottle:hover {
+			transform: scale(1.2);
+			background: rgba(255, 255, 255, 0.45);
+			border-color: rgba(255, 255, 255, 0.8);
+			box-shadow: 0 8px 25px rgba(255, 255, 255, 0.3);
+			z-index: 12;
+		}
 
-        .mode-desc {
-            font-size: 0.75rem;
-            color: #64748b;
-            font-weight: 300;
-            line-height: 1.4;
-        }
+		@keyframes driftBottle {
+			0% {
+				left: 105%;
+			}
 
-        /* --- 6. プレイ画面のスタイル --- */
-        .status-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 40px;
-            padding: 0 5px;
-        }
+			100% {
+				left: -10%;
+			}
+		}
 
-        .progress-indicator, .combo-badge {
-            font-size: 0.8rem;
-            font-weight: 500;
-            letter-spacing: 0.1em;
-            transition: color 0.8s;
-        }
+		@keyframes wobbleBottle {
+			0% {
+				margin-top: -25px;
+			}
 
-        .combo-count {
-            font-size: 1.1rem;
-            font-weight: 500;
-            transition: color 0.8s;
-        }
+			100% {
+				margin-top: 25px;
+			}
+		}
 
-        .japanese-sentence {
-            font-size: 1.6rem;
-            font-weight: 300;
-            margin-bottom: 18px;
-            letter-spacing: 0.06em;
-            transition: color 0.8s;
-        }
+		.bottle-tooltip {
+			position: absolute;
+			bottom: 60px;
+			background: rgba(255, 255, 255, 0.85);
+			backdrop-filter: blur(10px);
+			-webkit-backdrop-filter: blur(10px);
+			border: 1px solid rgba(255, 255, 255, 0.8);
+			padding: 10px 16px;
+			border-radius: 16px;
+			color: #1e293b;
+			font-size: 0.8rem;
+			max-width: 220px;
+			white-space: normal;
+			word-wrap: break-word;
+			opacity: 0;
+			pointer-events: none;
+			box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+			transform: translateY(10px) scale(0.9);
+			transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+			text-align: left;
+			font-weight: 400;
+			line-height: 1.4;
+		}
 
-        .roman-container {
-            font-size: 1.25rem;
-            font-family: 'Quicksand', monospace;
-            font-weight: 400;
-            letter-spacing: 0.12em;
-            margin-bottom: 40px;
-            display: inline-block;
-            transition: color 0.8s;
-        }
+		.bottle-tooltip::after {
+			content: '';
+			position: absolute;
+			bottom: -8px;
+			left: 50%;
+			transform: translateX(-50%);
+			width: 8px;
+			height: 8px;
+			background: rgba(255, 255, 255, 0.85);
+			border-right: 1px solid rgba(255, 255, 255, 0.8);
+			border-bottom: 1px solid rgba(255, 255, 255, 0.8);
+			border-radius: 50%;
+		}
 
-        /* 現在位置の呼吸キャレット */
-        .char-current {
-            border-bottom: 1.5px solid rgba(71, 85, 105, 0.4);
-            display: inline-block;
-            animation: breathBlink 2s infinite ease-in-out;
-        }
+		.zen-bottle:hover .bottle-tooltip {
+			opacity: 1;
+			transform: translateY(0) scale(1);
+		}
 
-        @keyframes breathBlink {
-            0%, 100% { border-bottom-color: rgba(71, 85, 105, 0.4); }
-            50% { border-bottom-color: rgba(71, 85, 105, 0.05); }
-        }
+		/* --- ガラスプレート --- */
+		.game-container {
+			position: relative;
+			z-index: 10;
+			width: 95%;
+			max-width: 680px;
+			padding: 55px 45px;
+			border-radius: 32px;
+			backdrop-filter: blur(25px);
+			-webkit-backdrop-filter: blur(25px);
+			background: var(--glass-bg);
+			border: 1px solid var(--glass-border);
+			box-shadow:
+				0 30px 70px var(--glass-shadow),
+				inset 0 1px 0 rgba(255, 255, 255, 0.5);
+			text-align: center;
+			transition: background 0.8s, border 0.8s, box-shadow 0.8s;
+		}
 
-        /* --- 7. 美しく刷新したリザルト画面 --- */
-        .result-screen {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 25px;
-            animation: resultFadeIn 1s cubic-bezier(0.25, 1, 0.5, 1) forwards;
-        }
+		.hidden {
+			display: none !important;
+			opacity: 0;
+		}
 
-        @keyframes resultFadeIn {
-            from { opacity: 0; transform: translateY(15px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
+		/* --- ホーム画面 --- */
+		.start-screen {
+			position: relative;
+			display: flex;
+			flex-direction: column;
+			align-items: center;
+			gap: 24px;
+		}
 
-        .result-title {
-            font-size: 1.6rem;
-            font-weight: 300;
-            letter-spacing: 0.2em;
-            transition: color 0.8s;
-        }
+		.header-controls {
+			position: absolute;
+			top: -25px;
+			right: -15px;
+			display: flex;
+			gap: 10px;
+			z-index: 12;
+		}
 
-        /* 円形の進捗サークル */
-        .purity-ring-box {
-            position: relative;
-            width: 140px;
-            height: 140px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
+		.lib-btn,
+		.settings-trigger-btn {
+			padding: 8px 16px;
+			font-size: 0.8rem;
+			font-weight: 500;
+			color: var(--primary-color);
+			background: rgba(255, 255, 255, 0.4);
+			border: 1px solid rgba(255, 255, 255, 0.6);
+			border-radius: 20px;
+			cursor: pointer;
+			outline: none;
+			transition: all 0.3s ease, color 0.8s;
+			display: flex;
+			align-items: center;
+			gap: 6px;
+			letter-spacing: 0.05em;
+		}
 
-        .purity-ring-svg { transform: rotate(-90deg); }
+		.lib-btn:hover,
+		.settings-trigger-btn:hover {
+			background: rgba(255, 255, 255, 0.8);
+			transform: scale(1.03);
+		}
 
-        .purity-ring-bg {
-            fill: none;
-            stroke: rgba(0, 0, 0, 0.05);
-            stroke-width: 6;
-        }
+		.main-header {
+			margin-bottom: 5px;
+		}
 
-        .purity-ring-fill {
-            fill: none;
-            stroke-width: 6;
-            stroke-dasharray: 377;
-            stroke-dashoffset: 377;
-            stroke-linecap: round;
-            transition: stroke-dashoffset 2s cubic-bezier(0.1, 0.8, 0.3, 1), stroke 0.8s;
-        }
+		.game-title {
+			font-size: 2.4rem;
+			font-weight: 300;
+			color: var(--primary-color);
+			letter-spacing: 0.2em;
+			margin-bottom: 8px;
+			transition: color 0.8s, text-shadow 0.8s;
+		}
 
-        .water-quality-title {
-            font-size: 1.3rem;
-            font-weight: 400;
-            letter-spacing: 0.05em;
-            transition: color 0.8s;
-        }
+		.game-subtitle {
+			font-size: 0.85rem;
+			color: var(--subtitle-color);
+			letter-spacing: 0.1em;
+			text-transform: uppercase;
+			transition: color 0.8s;
+		}
 
-        .result-stats {
-            width: 100%;
-            max-width: 340px;
-            display: flex;
-            justify-content: space-around;
-            gap: 20px;
-            margin: 15px 0 20px 0;
-            padding: 15px 10px;
-            border-radius: 16px;
-            transition: background 0.8s, border-color 0.8s;
-        }
+		.equipped-display-area {
+			font-size: 0.8rem;
+			font-weight: 400;
+			color: var(--purity-color);
+			margin-top: 5px;
+			min-height: 18px;
+			letter-spacing: 0.08em;
+			text-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
+			transition: color 0.8s;
+		}
 
-        .stat-col {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 8px;
-        }
+		.game-desc {
+			font-size: 0.9rem;
+			color: var(--text-sub);
+			line-height: 1.8;
+			margin-bottom: 10px;
+			font-weight: 300;
+			letter-spacing: 0.05em;
+			transition: opacity 0.3s ease, color 0.8s;
+		}
 
-        .stat-label {
-            font-size: 0.75rem;
-            font-weight: 300;
-            letter-spacing: 0.05em;
-            transition: color 0.8s;
-        }
+		/* レベル選択カード */
+		.mode-select-box {
+			display: flex;
+			gap: 10px;
+			width: 100%;
+			justify-content: center;
+			margin: 15px 0 25px 0;
+			flex-wrap: wrap;
+		}
 
-        .stat-value {
-            font-size: 1.3rem;
-            font-weight: 400;
-            transition: color 0.8s;
-        }
+		.mode-card {
+			position: relative;
+			flex: 1;
+			border-radius: 20px;
+			background: rgba(255, 255, 255, 0.15);
+			border: 1px solid rgba(255, 255, 255, 0.25);
+			cursor: pointer;
+			overflow: hidden;
+			transition: all 0.5s cubic-bezier(0.25, 1, 0.5, 1);
+			display: flex;
+			flex-direction: column;
+			min-width: 135px;
+			backdrop-filter: blur(10px);
+			-webkit-backdrop-filter: blur(10px);
+		}
 
-        /* ====================================================
-           8. モード別カラーテーマ切り替え（CSS子孫セレクタで管理）
-           ==================================================== */
-        
-        /* ── 水モード (Water) ── */
-        body.theme-water .game-title, body.theme-water .result-title { color: #0369a1; }
-        body.theme-water .game-subtitle { color: #0284c7; }
-        body.theme-water .progress-indicator, body.theme-water .combo-badge { color: #0369a1; }
-        body.theme-water .combo-count { color: #0284c7; }
-        body.theme-water .japanese-sentence { color: #1e293b; }
-        body.theme-water .roman-container { color: rgba(15, 23, 42, 0.25); }
-        body.theme-water .char-typed { color: #0284c7; }
-        body.theme-water .water-quality-title { color: #0284c7; }
-        body.theme-water .result-stats { background: rgba(255, 255, 255, 0.15); border: 1px solid rgba(255, 255, 255, 0.3); }
-        body.theme-water .stat-label { color: #475569; }
-        body.theme-water .stat-value { color: #0f172a; }
-        body.theme-water .purity-ring-fill { stroke: #0284c7; }
+		.card-content {
+			position: relative;
+			z-index: 3;
+			display: flex;
+			flex-direction: column;
+			align-items: center;
+			gap: 8px;
+			width: 100%;
+			height: 100%;
+			padding: 20px 10px;
+		}
 
-        /* ── 火山モード (Magma) ── */
-        body.theme-magma .game-container {
-            background: rgba(28, 25, 23, 0.45); /* ダークな焦げ茶色ガラス */
-            border: 1px solid rgba(239, 68, 68, 0.3);
-            box-shadow: 
-                0 30px 70px rgba(120, 20, 0, 0.1),
-                inset 0 1px 0 rgba(255, 255, 255, 0.15);
-        }
-        body.theme-magma .game-title, body.theme-magma .result-title { color: #ea580c; text-shadow: 0 0 15px rgba(234, 88, 12, 0.2); }
-        body.theme-magma .game-subtitle { color: #f97316; }
-        body.theme-magma .progress-indicator, body.theme-magma .combo-badge { color: #ea580c; }
-        body.theme-magma .combo-count { color: #f97316; text-shadow: 0 0 10px rgba(249, 115, 22, 0.3); }
-        body.theme-magma .japanese-sentence { color: #f8fafc; }
-        body.theme-magma .roman-container { color: rgba(248, 250, 252, 0.25); }
-        body.theme-magma .char-typed { color: #f97316; text-shadow: 0 0 10px rgba(249, 115, 22, 0.4); }
-        body.theme-magma .char-current { color: #ef4444; border-bottom-color: rgba(239, 68, 68, 0.6); }
-        body.theme-magma .water-quality-title { color: #f59e0b; }
-        body.theme-magma .result-stats { background: rgba(0, 0, 0, 0.25); border: 1px solid rgba(239, 68, 68, 0.15); }
-        body.theme-magma .stat-label { color: #94a3b8; }
-        body.theme-magma .stat-value { color: #f1f5f9; }
-        body.theme-magma .purity-ring-fill { stroke: #ea580c; }
-        body.theme-magma .start-btn, body.theme-magma .restart-btn {
-            color: #f97316;
-            background: rgba(255, 255, 255, 0.08);
-            border: 1px solid rgba(249, 115, 22, 0.4);
-            box-shadow: 0 4px 15px rgba(249, 115, 22, 0.05);
-        }
-        body.theme-magma .start-btn:hover, body.theme-magma .restart-btn:hover {
-            background: rgba(249, 115, 22, 0.2);
-            color: #fdba74;
-            border-color: rgba(249, 115, 22, 0.8);
-        }
-        body.theme-magma .mode-card {
-            background: rgba(0, 0, 0, 0.15);
-            border-color: rgba(255, 255, 255, 0.08);
-        }
-        body.theme-magma .mode-card h3 { color: #e2e8f0; }
-        body.theme-magma .mode-card:hover { background: rgba(249, 115, 22, 0.08); }
-        body.theme-magma .mode-card.active { background: rgba(28, 25, 23, 0.8); border-color: #f97316; box-shadow: 0 12px 30px rgba(249, 115, 22, 0.15); }
+		.card-glow-orb {
+			position: absolute;
+			top: 50%;
+			left: 50%;
+			width: 100px;
+			height: 100px;
+			border-radius: 50%;
+			transform: translate(-50%, -50%) scale(0.6);
+			filter: blur(20px);
+			opacity: 0.15;
+			z-index: 1;
+			transition: all 0.6s cubic-bezier(0.25, 1, 0.5, 1);
+		}
 
-        /* ── 宇宙モード (Cosmos) ── */
-        body.theme-cosmos .game-container {
-            background: rgba(15, 10, 30, 0.45); /* サイバーネオン紺色ガラス */
-            border: 1px solid rgba(168, 85, 247, 0.3);
-            box-shadow: 
-                0 30px 70px rgba(168, 85, 247, 0.15),
-                inset 0 1px 0 rgba(255, 255, 255, 0.15);
-        }
-        body.theme-cosmos .game-title, body.theme-cosmos .result-title { color: #a855f7; text-shadow: 0 0 15px rgba(168, 85, 247, 0.3); }
-        body.theme-cosmos .game-subtitle { color: #c084fc; }
-        body.theme-cosmos .progress-indicator, body.theme-cosmos .combo-badge { color: #a855f7; }
-        body.theme-cosmos .combo-count { color: #3b82f6; text-shadow: 0 0 10px rgba(59, 130, 246, 0.4); }
-        body.theme-cosmos .japanese-sentence { color: #f8fafc; }
-        body.theme-cosmos .roman-container { color: rgba(248, 250, 252, 0.25); }
-        body.theme-cosmos .char-typed { color: #a855f7; text-shadow: 0 0 10px rgba(168, 85, 247, 0.5), 0 0 20px rgba(59, 130, 246, 0.3); }
-        body.theme-cosmos .char-current { color: #3b82f6; border-bottom-color: rgba(59, 130, 246, 0.6); }
-        body.theme-cosmos .water-quality-title { color: #c084fc; }
-        body.theme-cosmos .result-stats { background: rgba(0, 0, 0, 0.3); border: 1px solid rgba(168, 85, 247, 0.2); }
-        body.theme-cosmos .stat-label { color: #94a3b8; }
-        body.theme-cosmos .stat-value { color: #f1f5f9; }
-        body.theme-cosmos .purity-ring-fill { stroke: #a855f7; }
-        body.theme-cosmos .start-btn, body.theme-cosmos .restart-btn {
-            color: #a855f7;
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(168, 85, 247, 0.4);
-            box-shadow: 0 4px 15px rgba(168, 85, 247, 0.05);
-        }
-        body.theme-cosmos .start-btn:hover, body.theme-cosmos .restart-btn:hover {
-            background: rgba(168, 85, 247, 0.15);
-            color: #e9d5ff;
-            border-color: rgba(168, 85, 247, 0.8);
-        }
-        body.theme-cosmos .mode-card {
-            background: rgba(0, 0, 0, 0.2);
-            border-color: rgba(255, 255, 255, 0.05);
-        }
-        body.theme-cosmos .mode-card h3 { color: #e2e8f0; }
-        body.theme-cosmos .mode-card:hover { background: rgba(168, 85, 247, 0.08); }
-        body.theme-cosmos .mode-card.active { background: rgba(15, 10, 30, 0.85); border-color: #a855f7; box-shadow: 0 12px 30px rgba(168, 85, 247, 0.2); }
-    </style>
+		.water-card .card-glow-orb {
+			background: radial-gradient(circle, #38bdf8, #0284c7);
+		}
+
+		.magma-card .card-glow-orb {
+			background: radial-gradient(circle, #f97316, #b91c1c);
+		}
+
+		.cosmos-card .card-glow-orb {
+			background: radial-gradient(circle, #c084fc, #3b82f6);
+		}
+
+		.free-card .card-glow-orb {
+			background: radial-gradient(circle, #2dd4bf, #0d9488);
+		}
+
+		.mode-card:hover {
+			transform: translateY(-5px);
+			border-color: rgba(255, 255, 255, 0.5);
+			background: rgba(255, 255, 255, 0.25);
+			box-shadow:
+				0 15px 30px rgba(0, 0, 0, 0.08),
+				inset 0 1px 0 rgba(255, 255, 255, 0.4);
+		}
+
+		.mode-card:hover .card-glow-orb {
+			transform: translate(-50%, -50%) scale(1.15);
+			opacity: 0.4;
+		}
+
+		.mode-card.active {
+			background: rgba(255, 255, 255, 0.4);
+			border-width: 1.5px;
+		}
+
+		.water-card.active {
+			border-color: #0284c7;
+			box-shadow: 0 0 25px rgba(2, 132, 199, 0.25);
+		}
+
+		.magma-card.active {
+			border-color: #ea580c;
+			box-shadow: 0 0 25px rgba(234, 88, 12, 0.35);
+		}
+
+		.cosmos-card.active {
+			border-color: #a855f7;
+			box-shadow: 0 0 25px rgba(168, 85, 247, 0.4);
+		}
+
+		.free-card.active {
+			border-color: #0d9488;
+			box-shadow: 0 0 25px rgba(13, 148, 136, 0.4);
+		}
+
+		.mode-card.active .card-glow-orb {
+			transform: translate(-50%, -50%) scale(1.35);
+			opacity: 0.65;
+		}
+
+		.mode-card h3 {
+			font-size: 0.85rem;
+			font-weight: 500;
+			color: var(--text-main);
+			letter-spacing: 0.05em;
+			transition: color 0.5s;
+		}
+
+		.difficulty-badge {
+			font-size: 0.65rem;
+			font-weight: 500;
+			padding: 3px 12px;
+			border-radius: 12px;
+			letter-spacing: 0.1em;
+			background: transparent !important;
+			border: 1px solid currentColor;
+			opacity: 0.8;
+			transition: border-color 0.5s, color 0.5s;
+		}
+
+		.mode-desc {
+			font-size: 0.7rem;
+			color: var(--text-sub);
+			font-weight: 300;
+			line-height: 1.4;
+			transition: color 0.5s;
+		}
+
+		/* --- ボタン --- */
+		.start-btn,
+		.restart-btn,
+		.library-back-btn,
+		.danger-btn,
+		.pause-action-btn {
+			position: relative;
+			padding: 16px 48px;
+			font-family: inherit;
+			font-size: 0.95rem;
+			font-weight: 500;
+			color: var(--primary-color);
+			background: rgba(255, 255, 255, 0.08);
+			border: 1px solid rgba(255, 255, 255, 0.45);
+			border-radius: 40px;
+			cursor: pointer;
+			outline: none;
+			overflow: hidden;
+			z-index: 1;
+			box-shadow:
+				0 4px 15px rgba(0, 0, 0, 0.03),
+				inset 0 1px 0 rgba(255, 255, 255, 0.3);
+			transition: all 0.4s cubic-bezier(0.25, 1, 0.5, 1), color 0.8s, border-color 0.8s;
+		}
+
+		.start-btn::before,
+		.restart-btn::before,
+		.library-back-btn::before,
+		.danger-btn::before,
+		.pause-action-btn::before {
+			content: '';
+			position: absolute;
+			top: 0;
+			left: 0;
+			width: 100%;
+			height: 100%;
+			background: linear-gradient(135deg, var(--btn-grad-1), var(--btn-grad-2));
+			opacity: 0;
+			z-index: -1;
+			transition: opacity 0.4s ease;
+		}
+
+		.start-btn:hover,
+		.restart-btn:hover,
+		.library-back-btn:hover,
+		.danger-btn:hover,
+		.pause-action-btn:hover {
+			transform: translateY(-2px);
+			color: #ffffff;
+			border-color: rgba(255, 255, 255, 0.8);
+			box-shadow:
+				0 10px 25px var(--btn-glow),
+				inset 0 1px 0 rgba(255, 255, 255, 0.5);
+		}
+
+		.start-btn:hover::before,
+		.restart-btn:hover::before,
+		.library-back-btn:hover::before,
+		.danger-btn::before,
+		.pause-action-btn::before {
+			opacity: 1;
+		}
+
+		.start-btn:active,
+		.restart-btn:active,
+		.library-back-btn:active,
+		.danger-btn:active,
+		.pause-action-btn:active {
+			transform: translateY(1px);
+			box-shadow: 0 4px 12px var(--btn-glow);
+		}
+
+		.danger-btn {
+			border-color: rgba(239, 68, 68, 0.4);
+			color: #ef4444;
+		}
+
+		/* --- プレイ画面 --- */
+		.status-header {
+			display: flex;
+			justify-content: space-between;
+			align-items: center;
+			margin-bottom: 40px;
+			padding: 0 5px;
+		}
+
+		.pause-trigger-btn {
+			font-size: 1.1rem;
+			color: var(--primary-color);
+			background: none;
+			border: none;
+			cursor: pointer;
+			padding: 4px;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			opacity: 0.7;
+			transition: opacity 0.3s, transform 0.3s, color 0.8s;
+		}
+
+		.pause-trigger-btn:hover {
+			opacity: 1;
+			transform: scale(1.15);
+		}
+
+		.progress-indicator,
+		.combo-badge {
+			font-size: 0.8rem;
+			font-weight: 500;
+			letter-spacing: 0.1em;
+			color: var(--primary-color);
+			transition: color 0.8s;
+		}
+
+		.combo-count {
+			font-size: 1.1rem;
+			font-weight: 500;
+			color: var(--subtitle-color);
+			transition: color 0.8s;
+		}
+
+		.japanese-word-box {
+			display: flex;
+			flex-direction: column;
+			align-items: center;
+			gap: 4px;
+			margin-bottom: 18px;
+		}
+
+		.furigana-text {
+			font-size: 0.85rem;
+			font-weight: 400;
+			color: var(--subtitle-color);
+			letter-spacing: 0.15em;
+			opacity: 0.85;
+			min-height: 14px;
+			transition: color 0.8s;
+		}
+
+		.japanese-sentence {
+			font-size: 1.6rem;
+			font-weight: 300;
+			letter-spacing: 0.06em;
+			color: var(--japanese-color);
+			transition: color 0.8s;
+		}
+
+		.roman-container {
+			font-size: 1.25rem;
+			font-family: 'Quicksand', monospace;
+			font-weight: 400;
+			letter-spacing: 0.12em;
+			margin-bottom: 40px;
+			display: inline-block;
+			color: var(--roman-color);
+			transition: color 0.8s;
+		}
+
+		.char-typed {
+			color: var(--typed-color);
+			transition: color 0.25s ease;
+		}
+
+		.char-current {
+			color: var(--caret-color);
+			border-bottom: 1.5px solid rgba(71, 85, 105, 0.4);
+			display: inline-block;
+			animation: breathBlink 2s infinite ease-in-out;
+			transition: color 0.8s, border-bottom-color 0.8s;
+		}
+
+		@keyframes breathBlink {
+
+			0%,
+			100% {
+				border-bottom-color: rgba(71, 85, 105, 0.4);
+			}
+
+			50% {
+				border-bottom-color: rgba(71, 85, 105, 0.05);
+			}
+		}
+
+		.char-current.error-state {
+			border-bottom-color: #94a3b8 !important;
+			color: #64748b;
+		}
+
+		.status-message {
+			min-height: 24px;
+			font-size: 0.8rem;
+			color: var(--text-sub);
+			font-weight: 400;
+			letter-spacing: 0.05em;
+			opacity: 0.75;
+		}
+
+		/* --- リザルト画面 --- */
+		.result-screen {
+			display: flex;
+			flex-direction: column;
+			align-items: center;
+			gap: 25px;
+			animation: resultFadeIn 1s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+		}
+
+		@keyframes resultFadeIn {
+			from {
+				opacity: 0;
+				transform: translateY(15px);
+			}
+
+			to {
+				opacity: 1;
+				transform: translateY(0);
+			}
+		}
+
+		.result-title {
+			font-size: 1.6rem;
+			font-weight: 300;
+			letter-spacing: 0.2em;
+			color: var(--primary-color);
+			transition: color 0.8s;
+		}
+
+		.purity-ring-box {
+			position: relative;
+			width: 140px;
+			height: 140px;
+			display: flex;
+			justify-content: center;
+			align-items: center;
+		}
+
+		.purity-ring-svg {
+			transform: rotate(-90deg);
+		}
+
+		.purity-ring-bg {
+			fill: none;
+			stroke: rgba(0, 0, 0, 0.05);
+			stroke-width: 6;
+		}
+
+		.purity-ring-fill {
+			fill: none;
+			stroke-width: 6;
+			stroke-dasharray: 377;
+			stroke-dashoffset: 377;
+			stroke-linecap: round;
+			transition: stroke-dashoffset 2s cubic-bezier(0.1, 0.8, 0.3, 1), stroke 0.8s;
+			stroke: var(--purity-color);
+		}
+
+		.title-container {
+			display: flex;
+			flex-direction: column;
+			align-items: center;
+			gap: 6px;
+			margin-top: 10px;
+		}
+
+		.title-label {
+			font-size: 0.7rem;
+			color: var(--text-sub);
+			letter-spacing: 0.15em;
+			text-transform: uppercase;
+		}
+
+		.water-quality-title {
+			font-size: 1.35rem;
+			font-weight: 400;
+			letter-spacing: 0.05em;
+			padding: 8px 24px;
+			border-radius: 20px;
+			transition: all 0.8s;
+		}
+
+		.result-stats {
+			width: 100%;
+			max-width: 360px;
+			display: flex;
+			justify-content: space-around;
+			gap: 12px;
+			margin: 15px 0 20px 0;
+			padding: 15px 8px;
+			border-radius: 16px;
+			transition: background 0.8s, border-color 0.8s;
+		}
+
+		.stat-col {
+			display: flex;
+			flex-direction: column;
+			align-items: center;
+			gap: 8px;
+			flex: 1;
+		}
+
+		.stat-label {
+			font-size: 0.7rem;
+			font-weight: 300;
+			letter-spacing: 0.05em;
+			color: var(--text-sub);
+			transition: color 0.8s;
+		}
+
+		.stat-value {
+			font-size: 1.15rem;
+			font-weight: 400;
+			color: var(--text-main);
+			transition: color 0.8s;
+			white-space: nowrap;
+		}
+
+		/* --- コレクションライブラリ画面 --- */
+		.library-screen {
+			display: flex;
+			flex-direction: column;
+			align-items: center;
+			gap: 20px;
+			width: 100%;
+			animation: resultFadeIn 0.8s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+		}
+
+		.tab-box {
+			display: flex;
+			position: relative;
+			background: rgba(0, 0, 0, 0.04);
+			border-radius: 25px;
+			padding: 4px;
+			width: 420px;
+			border: 1px solid rgba(255, 255, 255, 0.3);
+		}
+
+		.tab-btn {
+			flex: 1;
+			padding: 10px 0;
+			font-size: 0.8rem;
+			font-weight: 500;
+			color: var(--text-sub);
+			text-align: center;
+			cursor: pointer;
+			border-radius: 20px;
+			z-index: 2;
+			transition: all 0.3s cubic-bezier(0.25, 1, 0.5, 1);
+			letter-spacing: 0.05em;
+		}
+
+		.tab-btn.active {
+			background: rgba(255, 255, 255, 0.9);
+			color: var(--purity-color);
+			box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+		}
+
+		.library-content-scroll {
+			width: 100%;
+			max-height: 250px;
+			overflow-y: auto;
+			display: flex;
+			flex-direction: column;
+			gap: 12px;
+			padding: 5px 15px;
+			margin-bottom: 5px;
+		}
+
+		.library-content-scroll::-webkit-scrollbar {
+			width: 4px;
+		}
+
+		.library-content-scroll::-webkit-scrollbar-track {
+			background: rgba(0, 0, 0, 0.02);
+			border-radius: 10px;
+		}
+
+		.library-content-scroll::-webkit-scrollbar-thumb {
+			background: rgba(0, 0, 0, 0.12);
+			border-radius: 10px;
+		}
+
+		.title-card,
+		.achievement-card,
+		.bottle-card {
+			width: 100%;
+			border-radius: 16px;
+			background: rgba(255, 255, 255, 0.15);
+			border: 1px solid rgba(255, 255, 255, 0.25);
+			display: flex;
+			justify-content: space-between;
+			align-items: center;
+			transition: all 0.3s ease;
+		}
+
+		.title-card,
+		.bottle-card {
+			padding: 12px 18px;
+		}
+
+		.achievement-card {
+			padding: 14px 18px;
+			display: grid;
+			grid-template-columns: 42px 1fr auto;
+			gap: 15px;
+			text-align: left;
+		}
+
+		.title-card.locked,
+		.achievement-card.locked {
+			opacity: 0.4;
+			background: rgba(0, 0, 0, 0.02);
+			cursor: default !important;
+		}
+
+		.title-card:not(.locked),
+		.achievement-card:not(.locked) {
+			cursor: pointer;
+		}
+
+		.title-card:not(.locked):hover,
+		.achievement-card:not(.locked):hover {
+			transform: translateY(-2px);
+			background: rgba(255, 255, 255, 0.3);
+			border-color: rgba(255, 255, 255, 0.6);
+			box-shadow: 0 4px 12px rgba(255, 255, 255, 0.1);
+		}
+
+		.equipped-status-badge {
+			font-size: 0.65rem;
+			font-weight: 600;
+			color: #ffffff;
+			background: linear-gradient(135deg, var(--btn-grad-1), var(--btn-grad-2));
+			padding: 3px 8px;
+			border-radius: 10px;
+			letter-spacing: 0.05em;
+			box-shadow: 0 0 10px var(--btn-glow);
+			animation: pulseBadge 1.5s infinite ease-in-out;
+		}
+
+		@keyframes pulseBadge {
+			50% {
+				opacity: 0.7;
+			}
+		}
+
+		.title-info {
+			display: flex;
+			flex-direction: column;
+			align-items: flex-start;
+			gap: 4px;
+		}
+
+		.title-name {
+			font-size: 0.95rem;
+			font-weight: 500;
+			color: var(--text-main);
+			letter-spacing: 0.05em;
+		}
+
+		.title-origin {
+			font-size: 0.7rem;
+			color: var(--text-sub);
+		}
+
+		.lock-icon {
+			font-size: 0.95rem;
+			color: #94a3b8;
+		}
+
+		.ach-icon-box {
+			width: 42px;
+			height: 42px;
+			border-radius: 50%;
+			background: rgba(255, 255, 255, 0.4);
+			display: flex;
+			justify-content: center;
+			align-items: center;
+			border: 1px solid rgba(255, 255, 255, 0.6);
+			font-size: 1.1rem;
+			transition: all 0.4s;
+		}
+
+		.achievement-card.unlocked .ach-icon-box {
+			background: linear-gradient(135deg, var(--btn-grad-1), var(--btn-grad-2));
+			color: #ffffff;
+			border-color: rgba(255, 255, 255, 0.8);
+			box-shadow: 0 0 10px var(--btn-glow);
+		}
+
+		.ach-details h4 {
+			font-size: 0.95rem;
+			font-weight: 500;
+			color: var(--text-main);
+			letter-spacing: 0.02em;
+			margin-bottom: 4px;
+		}
+
+		.ach-details p {
+			font-size: 0.75rem;
+			color: var(--text-sub);
+			font-weight: 300;
+			line-height: 1.3;
+		}
+
+		.achievement-card.locked .ach-details h4 {
+			color: var(--text-sub);
+		}
+
+		.achievement-card.locked .ach-details p {
+			color: var(--text-sub);
+			opacity: 0.7;
+		}
+
+		.library-actions {
+			display: flex;
+			justify-content: space-between;
+			align-items: center;
+			width: 100%;
+			padding: 0 15px;
+			gap: 15px;
+		}
+
+		.bottle-card {
+			text-align: left;
+			display: flex;
+			flex-direction: column;
+			align-items: flex-start;
+			gap: 6px;
+		}
+
+		.bottle-card .bottle-text {
+			font-size: 0.9rem;
+			color: var(--text-main);
+			font-weight: 400;
+			line-height: 1.4;
+		}
+
+		.bottle-card .bottle-date {
+			font-size: 0.7rem;
+			color: var(--text-sub);
+			font-weight: 300;
+		}
+
+		/* --- ポーズメニュー & 設定画面 --- */
+		.pause-screen,
+		.settings-screen {
+			display: flex;
+			flex-direction: column;
+			align-items: center;
+			gap: 25px;
+			animation: resultFadeIn 0.8s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+		}
+
+		.pause-btn-group {
+			display: flex;
+			flex-direction: column;
+			gap: 15px;
+			width: 100%;
+			max-width: 280px;
+		}
+
+		.settings-container {
+			width: 100%;
+			max-width: 440px;
+			display: flex;
+			flex-direction: column;
+			gap: 16px;
+			margin-bottom: 5px;
+		}
+
+		.setting-row {
+			display: flex;
+			justify-content: space-between;
+			align-items: center;
+			padding: 12px 18px;
+			background: rgba(255, 255, 255, 0.12);
+			border: 1px solid rgba(255, 255, 255, 0.2);
+			border-radius: 18px;
+			transition: border-color 0.8s;
+		}
+
+		.setting-info {
+			text-align: left;
+			display: flex;
+			flex-direction: column;
+			gap: 4px;
+		}
+
+		.setting-label {
+			font-size: 0.9rem;
+			font-weight: 500;
+			color: var(--text-main);
+			letter-spacing: 0.05em;
+			transition: color 0.8s;
+		}
+
+		.setting-desc {
+			font-size: 0.7rem;
+			color: var(--text-sub);
+			font-weight: 300;
+		}
+
+		.setting-options {
+			display: flex;
+			background: rgba(0, 0, 0, 0.04);
+			border-radius: 15px;
+			padding: 2px;
+			border: 1px solid rgba(255, 255, 255, 0.2);
+		}
+
+		.setting-opt-btn {
+			padding: 6px 14px;
+			font-size: 0.75rem;
+			font-weight: 500;
+			color: var(--text-sub);
+			cursor: pointer;
+			border-radius: 12px;
+			transition: all 0.3s cubic-bezier(0.25, 1, 0.5, 1);
+			letter-spacing: 0.05em;
+		}
+
+		.setting-opt-btn.active {
+			background: rgba(255, 255, 255, 0.95);
+			color: var(--purity-color);
+			box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+			border: 1px solid var(--purity-color);
+		}
+
+		.setting-row.disabled {
+			opacity: 0.35;
+			pointer-events: none;
+		}
+	</style>
 </head>
-<body class="theme-water"> <!-- 初期テーマは水 -->
 
-    <div id="waterBg" class="water-bg"></div>
-    <div class="water-shimmer"></div>
-    <div id="purifyFlash" class="purify-flash"></div>
-    <div id="rippleContainer"></div>
+<body class="theme-water">
 
-    <div id="gameContainer" class="game-container">
-        
-        <!-- A. 強化したホーム画面 -->
-        <div id="startScreen" class="start-screen">
-            <div class="main-header">
-                <h1 class="game-title">Silent Rhythm</h1>
-                <div class="game-subtitle" id="subTitleText">清流のガラスの上に浮かぶ心</div>
-            </div>
-            
-            <p class="game-desc" id="descText">
-                流れる水の上に置かれた、ガラスのプレート。<br>
+	<div id="waterBg" class="water-bg"></div>
+	<div class="water-shimmer"></div>
+	<div id="purifyFlash" class="purify-flash"></div>
+
+	<!-- 漂うボトル背景 -->
+	<div id="bottleLayer"></div>
+
+	<div id="rippleContainer"></div>
+
+	<div id="gameContainer" class="game-container">
+
+		<!-- A. ホーム画面 -->
+		<div id="startScreen" class="start-screen">
+			<div class="header-controls">
+				<button class="lib-btn" onclick="openLibrary()">🏆 コレクション</button>
+				<button class="settings-trigger-btn" onclick="openSettings('home')">⚙️ 設定</button>
+			</div>
+
+			<div class="main-header">
+				<h1 class="game-title">Silent Rhythm</h1>
+				<div class="game-subtitle" id="subTitleText">清流のガラスの上に浮かぶ心</div>
+				<div id="equippedBadgeDisplay" class="equipped-display-area"></div>
+			</div>
+
+			<p class="game-desc" id="descText">
+				流れる水の上に置かれた、ガラスのプレート。<br>
                 日常の言葉に指を滑らせ、穏やかな時間をお楽しみください。
             </p>
 
-            <!-- 3つのモード選択カード -->
-            <div class="mode-select-box">
-                <!-- 水モード -->
-                <div class="mode-card water-card active" onclick="selectMode('water')">
-                    <h3>水流のガラス</h3>
-                    <span class="difficulty-badge">EASY</span>
-                    <p class="mode-desc">穏やかで短い<br>日常の言葉</p>
-                </div>
-                <!-- 火山モード -->
-                <div class="mode-card magma-card" onclick="selectMode('magma')">
-                    <h3>灼熱の溶岩</h3>
-                    <span class="difficulty-badge">NORMAL</span>
-                    <p class="mode-desc">少し長さのある<br>丁寧な対話文</p>
-                </div>
-                <!-- 宇宙モード -->
-                <div class="mode-card cosmos-card" onclick="selectMode('cosmos')">
-                    <h3>星雲の星海</h3>
-                    <span class="difficulty-badge">HARD</span>
-                    <p class="mode-desc">拗音やハイフンを含む<br>難解な用語</p>
-                </div>
-            </div>
+				<div class="mode-select-box">
+					<!-- 水モード -->
+					<div class="mode-card water-card active" onclick="selectMode('water')">
+						<div class="card-glow-orb"></div>
+						<div class="card-content">
+							<h3>水流のガラス</h3>
+							<span class="difficulty-badge">EASY</span>
+							<p class="mode-desc">穏やかで短い日常語</p>
+						</div>
+					</div>
+					<!-- 火山モード -->
+					<div class="mode-card magma-card" onclick="selectMode('magma')">
+						<div class="card-glow-orb"></div>
+						<div class="card-content">
+							<h3>灼熱の溶岩</h3>
+							<span class="difficulty-badge">NORMAL</span>
+							<p class="mode-desc">丁寧な実用対話文</p>
+						</div>
+					</div>
+					<!-- 宇宙モード -->
+					<div class="mode-card cosmos-card" onclick="selectMode('cosmos')">
+						<div class="card-glow-orb"></div>
+						<div class="card-content">
+							<h3>星雲の星海</h3>
+							<span class="difficulty-badge">HARD</span>
+							<p class="mode-desc">拗音・ハイフンの難解語</p>
+						</div>
+					</div>
+					<!-- フリーモード -->
+					<div class="mode-card free-card" onclick="selectMode('free')">
+						<div class="card-glow-orb"></div>
+						<div class="card-content">
+							<h3>自由の静水</h3>
+							<span class="difficulty-badge">FREE</span>
+							<p class="mode-desc">お題なし・自由な綴り</p>
+						</div>
+					</div>
+				</div>
 
-            <button id="startBtn" class="start-btn">はじめる</button>
-        </div>
+				<button id="startBtn" class="start-btn">はじめる</button>
+		</div>
 
-        <!-- B. プレイ画面 -->
-        <div id="playScreen" class="play-screen hidden">
-            <div class="status-header">
-                <div class="progress-indicator">
-                    PROGRESS: <span id="currentNum">1</span> / 10
-                </div>
-                <div class="combo-badge">
-                    STREAK: <span class="combo-count" id="comboCount">0</span>
-                </div>
-            </div>
+		<!-- B. プレイ画面 -->
+		<div id="playScreen" class="play-screen hidden">
+			<div class="status-header">
+				<div style="display: flex; align-items: center; gap: 15px;">
+					<!-- ⏸ポーズボタン -->
+					<button id="pauseTriggerBtn" class="pause-trigger-btn" onclick="triggerPause()">⏸</button>
+					<div class="progress-indicator" id="progressArea">
+						PROGRESS: <span id="currentNum">1</span> / 10
+					</div>
+				</div>
+				<div class="combo-badge" id="streakArea">
+					STREAK: <span class="combo-count" id="comboCount">0</span>
+				</div>
+			</div>
 
-            <div class="japanese-sentence" id="jpText">--</div>
-            <div class="roman-container" id="romanText"></div>
-            <div class="status-message" id="statusMsg"></div>
-        </div>
+			<!-- フリガナ表示エリア -->
+			<div class="japanese-word-box">
+				<div id="furiganaText" class="furigana-text"></div>
+				<div class="japanese-sentence" id="jpText">--</div>
+			</div>
 
-        <!-- C. リザルト画面 -->
-        <div id="resultScreen" class="result-screen hidden">
-            <h2 class="result-title">水質の測定結果</h2>
-            
-            <div class="purity-ring-box">
-                <svg class="purity-ring-svg" width="130" height="130">
-                    <circle class="purity-ring-bg" cx="65" cy="65" r="58"></circle>
-                    <circle id="purityRingFill" class="purity-ring-fill" cx="65" cy="65" r="58"></circle>
-                </svg>
-                <div style="position: absolute; display: flex; flex-direction: column; align-items: center;">
-                    <span style="font-size: 0.7rem; color: #475569; font-weight: 300; letter-spacing: 0.05em;">ACCURACY</span>
-                    <span id="purityScore" class="combo-count" style="font-size: 1.5rem; font-weight: 500;">0%</span>
-                </div>
-            </div>
+			<div class="roman-container" id="romanText"></div>
+			<div class="status-message" id="statusMsg"></div>
+		</div>
 
-            <div class="water-quality-title" id="waterQuality">澄み切ったクリスタル</div>
+		<!-- C. リザルト画面 -->
+		<div id="resultScreen" class="result-screen hidden">
+			<h2 class="result-title">測定結果</h2>
 
-            <div class="result-stats">
-                <div class="stat-col">
-                    <span class="stat-label">経過時間</span>
-                    <span class="stat-value" id="resultTime">0秒</span>
-                </div>
-                <div class="stat-col">
-                    <span class="stat-label">正確性</span>
-                    <span class="stat-value" id="resultAccuracy">0%</span>
-                </div>
-                <div class="stat-col">
-                    <span class="stat-label">最大ストリーク</span>
-                    <span class="stat-value" id="resultMaxCombo">0</span>
-                </div>
-            </div>
+			<div class="purity-ring-box" id="resultRingBox">
+				<svg class="purity-ring-svg" width="130" height="130">
+					<circle class="purity-ring-bg" cx="65" cy="65" r="58"></circle>
+					<circle id="purityRingFill" class="purity-ring-fill" cx="65" cy="65" r="58"></circle>
+				</svg>
+				<div style="position: absolute; display: flex; flex-direction: column; align-items: center;">
+					<span style="font-size: 0.7rem; color: var(--text-sub); font-weight: 300; letter-spacing: 0.05em;">ACCURACY</span>
+					<span id="purityScore" class="combo-count" style="font-size: 1.5rem; font-weight: 500;">0%</span>
+				</div>
+			</div>
 
-            <button id="restartBtn" class="restart-btn">もう一度</button>
-        </div>
+			<!-- 称号ネオンバッジ -->
+			<div class="title-container" id="resultTitleContainer">
+				<span class="title-label">TITLE</span>
+				<div class="water-quality-title" id="waterQuality">澄み切ったクリスタル</div>
+			</div>
 
-    </div>
+			<div class="result-stats" id="statsContainer">
+				<div class="stat-col">
+					<span class="stat-label">時間</span>
+					<span class="stat-value" id="resultTime">0秒</span>
+				</div>
+				<div class="stat-col">
+					<span class="stat-label">正確性</span>
+					<span class="stat-value" id="resultAccuracy">0%</span>
+				</div>
+				<div class="stat-col">
+					<span class="stat-label">速度</span>
+					<span class="stat-value" id="resultKps">0.00 /s</span>
+				</div>
+				<div class="stat-col">
+					<span class="stat-label">最大連続</span>
+					<span class="stat-value" id="resultMaxCombo">0</span>
+				</div>
+			</div>
 
-    <!-- SVGフィルター -->
-    <svg style="position: absolute; width: 0; height: 0;">
-        <filter id="water-wave-filter">
-            <feTurbulence type="fractalNoise" baseFrequency="0.007" numOctaves="3" result="wave">
-                <animate attributeName="baseFrequency" dur="35s" keyTimes="0;0.5;1" values="0.007;0.011;0.007" repeatCount="indefinite" />
-            </feTurbulence>
-            <feDisplacementMap in="SourceGraphic" in2="wave" scale="15" xChannelSelector="R" yChannelSelector="G" />
-        </filter>
-    </svg>
+			<div style="display: flex; gap: 15px;">
+				<button id="restartBtn" class="restart-btn">もう一度</button>
+				<button id="homeBtn" class="restart-btn">ホームに戻る</button>
+			</div>
+		</div>
 
-    <script>
-        // --- 難易度別お題リストの定義 ---
+		<!-- D. コレクションライブラリ画面 -->
+		<div id="libraryScreen" class="library-screen hidden">
+			<h2 class="library-title">コレクション</h2>
+
+			<div class="tab-box">
+				<div id="tabTitles" class="tab-btn active" onclick="switchLibraryTab('titles')">称号一覧</div>
+				<div id="tabAchievements" class="tab-btn" onclick="switchLibraryTab('achievements')">実績一覧</div>
+				<div id="tabBottles" class="tab-btn" onclick="switchLibraryTab('bottles')">手紙ボトル</div>
+			</div>
+
+			<div id="libraryScroll" class="library-content-scroll"></div>
+
+			<div class="library-actions">
+				<button class="library-back-btn" onclick="closeLibrary()">ホームに戻る</button>
+				<button class="danger-btn" onclick="confirmResetData()">データ削除</button>
+			</div>
+		</div>
+
+		<!-- E. 一時停止（ポーズ）メニュー画面 -->
+		<div id="pauseScreen" class="pause-screen hidden">
+			<h2 class="result-title">一時停止中</h2>
+			<p class="game-desc">静かに、呼吸を整えましょう。</p>
+
+			<div class="pause-btn-group">
+				<button class="pause-action-btn" onclick="resumeGame()">ゲームに戻る</button>
+				<button class="pause-action-btn" onclick="openSettings('pause')">環境設定</button>
+				<button class="pause-action-btn danger-btn" onclick="quitToHome()">ホームに戻る</button>
+			</div>
+		</div>
+
+		<!-- F. 環境設定（Settings）画面 -->
+		<div id="settingsScreen" class="settings-screen hidden">
+			<h2 class="result-title">環境設定</h2>
+
+			<div class="settings-container">
+				<!-- ローマ字サイズ -->
+				<div class="setting-row">
+					<div class="setting-info">
+						<span class="setting-label">ローマ字の大きさ</span>
+						<span class="setting-desc">タイピング英字のフォントサイズ</span>
+					</div>
+					<div class="setting-options">
+						<div id="opt-rom-small" class="setting-opt-btn" onclick="setRomanSize('small')">小</div>
+						<div id="opt-rom-medium" class="setting-opt-btn" onclick="setRomanSize('medium')">中</div>
+						<div id="opt-rom-large" class="setting-opt-btn" onclick="setRomanSize('large')">大</div>
+					</div>
+				</div>
+
+				<!-- お題サイズ -->
+				<div class="setting-row">
+					<div class="setting-info">
+						<span class="setting-label">お題の大きさ</span>
+						<span class="setting-desc">表示される日本語文のフォントサイズ</span>
+					</div>
+					<div class="setting-options">
+						<div id="opt-jp-small" class="setting-opt-btn" onclick="setJpSize('small')">小</div>
+						<div id="opt-jp-medium" class="setting-opt-btn" onclick="setJpSize('medium')">中</div>
+						<div id="opt-jp-large" class="setting-opt-btn" onclick="setJpSize('large')">大</div>
+					</div>
+				</div>
+
+				<!-- 音響 -->
+				<div class="setting-row">
+					<div class="setting-info">
+						<span class="setting-label">音響効果</span>
+						<span class="setting-desc">コトコトSE、および環境BGM</span>
+					</div>
+					<div class="setting-options">
+						<div id="opt-sound-on" class="setting-opt-btn" onclick="setSoundEnabled(true)">あり</div>
+						<div id="opt-sound-off" class="setting-opt-btn" onclick="setSoundEnabled(false)">なし</div>
+					</div>
+				</div>
+
+				<!-- フリガナ -->
+				<div class="setting-row">
+					<div class="setting-info">
+						<span class="setting-label">ふりがな表示</span>
+						<span class="setting-desc">漢字お題の上のガイド</span>
+					</div>
+					<div class="setting-options">
+						<div id="opt-furi-on" class="setting-opt-btn" onclick="setFuriganaEnabled(true)">表示</div>
+						<div id="opt-furi-off" class="setting-opt-btn" onclick="setFuriganaEnabled(false)">非表示</div>
+					</div>
+				</div>
+
+				<!-- 手紙ボトル（ホーム限定） -->
+				<div id="floatBottleRow" class="setting-row">
+					<div class="setting-info">
+						<span class="setting-label">手紙ボトルを流す</span>
+						<span class="setting-desc">ホーム背景の手紙ボトルの浮遊（ホーム限定）</span>
+					</div>
+					<div class="setting-options">
+						<div id="opt-bottle-on" class="setting-opt-btn" onclick="setFloatBottlesEnabled(true)">流す</div>
+						<div id="opt-bottle-off" class="setting-opt-btn" onclick="setFloatBottlesEnabled(false)">流さない
+						</div>
+					</div>
+				</div>
+			</div>
+
+			<button class="library-back-btn" onclick="closeSettings()">戻る</button>
+		</div>
+
+	</div>
+
+	<!-- SVGフィルター -->
+	<svg style="position: absolute; width: 0; height: 0;">
+		<filter id="water-wave-filter">
+			<feTurbulence type="fractalNoise" baseFrequency="0.007" numOctaves="3" result="wave">
+				<animate attributeName="baseFrequency" dur="35s" keyTimes="0;0.5;1" values="0.007;0.011;0.007"
+					repeatCount="indefinite" />
+			</feTurbulence>
+			<feDisplacementMap in="SourceGraphic" in2="wave" scale="15" xChannelSelector="R" yChannelSelector="G" />
+		</filter>
+	</svg>
+
+	<!-- JavaScript -->
+	<script>
+		// --- 1. グローバル変数・セーブデータ定義 ---
+        let playerStats = {
+            totalPlays: 0,
+            totalKeys: 0,
+            playTime: 0,
+            maxStreakGlobal: 0,
+            cumulativeCombos: 0,
+            themesCleared: [], 
+            unlockedTitles: [], 
+            unlockedAchievements: [],
+            equippedTitleId: "",        
+            equippedAchievementId: "",
+            zenBottles: [],
+            romanSize: "medium",
+            jpSize: "medium",
+            soundEnabled: true,
+            furiganaEnabled: true,
+            floatBottlesEnabled: true
+        };
+
         const wordsEasy = [
             { jp: "お疲れ様でした。", kana: "おつかれさまでした。" },
             { jp: "お腹が空いてきました。", kana: "おなかがすいてきました。" },
@@ -616,7 +1515,7 @@
             { jp: "近くの公園を散策する。", kana: "ちかくのこうえんをさんさくする。" },
             { jp: "駅前のパン屋に寄る。", kana: "えきまえのぱんやによる。" },
             { jp: "明日の準備を済ませる。", kana: "あしたのじゅんびをすませる。" },
-            { jp: "穏やかな日常を大切にする。", kana: "おだやかなにちじょうをたいせつにする。" }
+            { jp: "穏やかな日常を大切にする。", kana: "おだやかなにchじょうをたいせつにする。" }
         ];
 
         const wordsHard = [
@@ -632,7 +1531,58 @@
             { jp: "セキュリティの設定を見直す。", kana: "せきゅりてぃのせっていをみなおす。" }
         ];
 
-        // --- ローマ字解析マップ ---
+        // 称号データベース
+        const ALL_TITLES_DB = {
+            'water': [
+                { id: "w_t1", name: "万物の源泉（太古の聖水）", desc: "ストリーク10、かつ正確性98%以上で水モードをクリア" },
+                { id: "w_t2", name: "澄み切ったクリスタル", desc: "ストリーク8以上、かつ正確性95%以上で水モードをクリア" },
+                { id: "w_t3", name: "湧き出す清流", desc: "ストリーク5以上、かつ正確性90%以上で水モードをクリア" },
+                { id: "w_t4", name: "穏やかな湖水", desc: "ストリーク3以上、かつ正確性80%以上で水モードをクリア" },
+                { id: "w_t5", name: "静かな雨流", desc: "ストリーク1以上で水モードをクリア" },
+                { id: "w_t6", name: "未開の浅瀬", desc: "ストリーク0で水モードをクリア" }
+            ],
+            'magma': [
+                { id: "m_t1", name: "森羅のコア（創成 of 炎）", desc: "ストリーク10、かつ正確性98%以上で火山モードをクリア" },
+                { id: "m_t2", name: "調律の黄金琥珀", desc: "ストリーク8以上、かつ正確性95%以上で火山モードをクリア" },
+                { id: "m_t3", name: "結晶化するルビー", desc: "ストリーク5以上、かつ正確性90%以上で火山モードをクリア" },
+                { id: "m_t4", name: "流れる火の鳥", desc: "ストリーク3以上、かつ正確性80%以上で火山モードをクリア" },
+                { id: "m_t5", name: "熱を帯びる溶岩", desc: "ストリーク1以上で火山モードをクリア" },
+                { id: "m_t6", name: "燻る火山岩", desc: "ストリーク0で火山モードをクリア" }
+            ],
+            'cosmos': [
+                { id: "c_t1", name: "創生の大爆発（ビッグバン）", desc: "ストリーク10、かつ正確性98%以上で宇宙モードをクリア" },
+                { id: "c_t2", name: "輝くアンドロメダ", desc: "ストリーク8以上、かつ正確性95%以上で宇宙モードをクリア" },
+                { id: "c_t3", name: "目覚めるシリウス", desc: "ストリーク5以上、かつ正確性90%以上で宇宙モードをクリア" },
+                { id: "c_t4", name: "流星の軌道", desc: "ストリーク3以上、かつ正確性80%以上で宇宙モードをクリア" },
+                { id: "c_t5", name: "星屑のささやき", desc: "ストリーク1以上で宇宙モードをクリア" },
+                { id: "c_t6", name: "孤独な流星", desc: "ストリーク0で宇宙モードをクリア" }
+            ]
+        };
+
+        // 実績データベース
+        const ACHIEVEMENTS_DB = [
+            { id: "first_drop", title: "最初の雫", desc: "タイピングを初めて完走する", icon: "💧" },
+            { id: "perfect_water", title: "水流のマスター", desc: "水モードで10ストリークを達成する（パーフェクト）", icon: "🌊" },
+            { id: "perfect_magma", title: "マグマの調律師", desc: "火山モードで10ストリークを達成する（パーフェクト）", icon: "🔥" },
+            { id: "perfect_cosmos", title: "宇宙のビッグバン", desc: "宇宙モードで10ストリークを達成する（パーフェクト）", icon: "🌌" },
+            { id: "pure_mind", title: "澄み切った心", desc: "正確性100%でいずれかのモードを完走する", icon: "🤍" },
+            { id: "unyielding_will", title: "不屈の熱意", desc: "正確性が80%未満だが最後までやり遂げる", icon: "✊" },
+            { id: "god_speed", title: "神速の指先", desc: "入力スピード（KPS）が5.00/秒以上を記録する", icon: "⚡" },
+            { id: "rhythm_keeper", title: "リズムキーパー", desc: "KPS 3.0以上、かつ正確性95%以上を両立（穏やかで正確）", icon: "⏳" },
+            { id: "keys_1000", title: "流れに乗る者", desc: "累計の入力キー数が1,000キーに達する", icon: "⌨️" },
+            { id: "keys_5000", title: "流星群", desc: "累計の入力キー数が5,000キーに達する", icon: "☄️" },
+            { id: "deep_meditation", title: "深い瞑想", desc: "累計プレイ回数が10回に到達する", icon: "🧘" },
+            { id: "time_traveler", title: "時を超える旅人", desc: "累計のプレイ時間が10分（600秒）に達する", icon: "🧭" },
+            { id: "silent_abyss", title: "深海の静寂", desc: "水、火山、宇宙すべてのテーマを1回以上クリアする", icon: "🧿" },
+            { id: "star_count", title: "星の数ほど", desc: "これまでの累計獲得コンボ数が50に到達する", icon: "🌟" },
+            { id: "collector_dawn", title: "コレクターの夜明け", desc: "累計で5種類以上の称号を獲得する", icon: "🔖" },
+            { id: "silence_realm", title: "静寂の境地", desc: "経過時間45秒未満で10問をクリアする", icon: "🕊️" },
+            { id: "water_gem", title: "水底の宝石", desc: "水モードで5ストリーク以上を達成する", icon: "💎" },
+            { id: "ruby_shine", title: "ルビーの輝き", desc: "火山モードで5ストリーク以上を達成する", icon: "🔴" },
+            { id: "sirius_light", title: "シリウスの光芒", desc: "宇宙モードで5ストリーク以上を達成する", icon: "🌠" },
+            { id: "flawless_abyss", title: "無傷の深淵", desc: "正確性98%以上で水モードを完走する", icon: "🔱" }
+        ];
+
         const ROMAJI_MAP = {
             'あ': ['a'], 'い': ['i', 'yi'], 'う': ['u', 'wu'], 'え': ['e', 'ye'], 'お': ['o'],
             'か': ['ka', 'ca'], 'き': ['ki'], 'く': ['ku', 'cu', 'qu'], 'け': ['ke'], 'こ': ['ko', 'co'],
@@ -670,136 +1620,518 @@
             'ー': ['-'], '。': ['.'], '、': [','], '！': ['!'], '？': ['?']
         };
 
-        let activeTheme = 'water'; // water | magma | cosmos
+        // DOMのポインタ宣言
+        let gameContainer, startScreen, playScreen, resultScreen, libraryScreen, rippleContainer, purifyFlash, pauseScreen, settingsScreen;
+        let startBtn, restartBtn, homeBtn, jpText, romanText, statusMsg, comboDisplay, currentNumDisplay, waterBg;
+        let waterQualityDisplay, resultTimeDisplay, resultAccuracyDisplay, resultKpsDisplay, resultMaxComboDisplay, purityRingFill, purityScore;
+        let subTitleText, descText, libraryScroll, equippedBadgeDisplay, furiganaText;
+
+        // ゲームステート
         let playWords = []; 
         let currentWordIndex = 0;
         let isPlaying = false;
-        
         let hasMissedInCurrentWord = false;
         let comboCount = 0;
         let maxCombo = 0;
-
         let tokens = [];     
         let tokenIndex = 0;  
-
         let totalKeysPressed = 0;
         let totalMissedKeys = 0;
         let gameStartTime = 0;
+        let libraryActiveTab = 'titles'; 
+        let freeModeText = "";
 
-        // DOM
-        const gameContainer = document.getElementById('gameContainer');
-        const startScreen = document.getElementById('startScreen');
-        const playScreen = document.getElementById('playScreen');
-        const resultScreen = document.getElementById('resultScreen');
-        const rippleContainer = document.getElementById('rippleContainer');
-        const purifyFlash = document.getElementById('purifyFlash');
-        
-        const startBtn = document.getElementById('startBtn');
-        const restartBtn = document.getElementById('restartBtn');
-        const jpText = document.getElementById('jpText');
-        const romanText = document.getElementById('romanText');
-        const statusMsg = document.getElementById('statusMsg');
-        const comboDisplay = document.getElementById('comboCount');
-        const currentNumDisplay = document.getElementById('currentNum');
-        const waterBg = document.getElementById('waterBg');
+        // 一時停止・設定
+        let isPaused = false;
+        let settingsOrigin = 'home'; 
+        let pauseStartTime = 0;
+        let totalPausedTime = 0;
 
-        const waterQualityDisplay = document.getElementById('waterQuality');
-        const resultTimeDisplay = document.getElementById('resultTime');
-        const resultAccuracyDisplay = document.getElementById('resultAccuracy');
-        const resultMaxComboDisplay = document.getElementById('resultMaxCombo');
-        const purityRingFill = document.getElementById('purityRingFill');
-        const purityScore = document.getElementById('purityScore');
-
-        const subTitleText = document.getElementById('subTitleText');
-        const descText = document.getElementById('descText');
-
-        // 音響 (Web Audio API)
+        // 音響
         let audioCtx = null;
         let bgmNode1 = null;
         let bgmNode2 = null;
+        let bgmGainNode = null; 
 
-        startBtn.addEventListener('click', startGame);
-        restartBtn.addEventListener('click', startGame);
+        // --- 2. 各種メソッド定義 ---
+        
+        // セーブ・ロード
+        function loadPlayerData() {
+            const data = localStorage.getItem('silent_rhythm_save');
+            if (data) {
+                try {
+                    playerStats = { ...playerStats, ...JSON.parse(data) };
+                } catch(e) {
+                    console.log("セーブデータ展開失敗", e);
+                }
+            }
+            updateEquippedDisplay(); 
+            applyVisualSettings(); 
+            spawnAllStoredBottles(); 
+        }
 
-        // --- ホーム画面でのモード切替処理 ---
+        function savePlayerData() {
+            localStorage.setItem('silent_rhythm_save', JSON.stringify(playerStats));
+            updateEquippedDisplay();
+        }
+
+        function updateEquippedDisplay() {
+            if (!equippedBadgeDisplay) return;
+            let titleText = "";
+            let achText = "";
+
+            if (playerStats.equippedTitleId) {
+                for (const cat in ALL_TITLES_DB) {
+                    const match = ALL_TITLES_DB[cat].find(t => t.id === playerStats.equippedTitleId);
+                    if (match) {
+                        titleText = `【${match.name}】`;
+                        break;
+                    }
+                }
+            }
+
+            if (playerStats.equippedAchievementId) {
+                const match = ACHIEVEMENTS_DB.find(a => a.id === playerStats.equippedAchievementId);
+                if (match) {
+                    achText = `${match.icon} ${match.title}`;
+                }
+            }
+
+            equippedBadgeDisplay.textContent = `${titleText} ${achText}`.trim();
+        }
+
+        // 環境設定画面
+        function openSettings(origin) {
+            settingsOrigin = origin;
+            
+            if (origin === 'home') {
+                startScreen.classList.add('hidden');
+                document.getElementById('floatBottleRow').classList.remove('disabled'); 
+            } else {
+                pauseScreen.classList.add('hidden');
+                document.getElementById('floatBottleRow').classList.add('disabled'); 
+            }
+            
+            settingsScreen.classList.remove('hidden');
+            document.getElementById('bottleLayer').style.zIndex = "3"; 
+
+            updateSettingsUI();
+        }
+
+        function closeSettings() {
+            settingsScreen.classList.add('hidden');
+            savePlayerData(); 
+            
+            if (settingsOrigin === 'home') {
+                startScreen.classList.remove('hidden');
+                document.getElementById('bottleLayer').style.zIndex = "5";
+            } else {
+                pauseScreen.classList.remove('hidden');
+            }
+        }
+
+        function updateSettingsUI() {
+            document.querySelectorAll('#settingsScreen .setting-row:nth-child(1) .setting-opt-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById(`opt-rom-${playerStats.romanSize}`).classList.add('active');
+
+            document.querySelectorAll('#settingsScreen .setting-row:nth-child(2) .setting-opt-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById(`opt-jp-${playerStats.jpSize}`).classList.add('active');
+
+            document.getElementById('opt-sound-on').classList.toggle('active', playerStats.soundEnabled);
+            document.getElementById('opt-sound-off').classList.toggle('active', !playerStats.soundEnabled);
+
+            document.getElementById('opt-furi-on').classList.toggle('active', playerStats.furiganaEnabled);
+            document.getElementById('opt-furi-off').classList.toggle('active', !playerStats.furiganaEnabled);
+
+            document.getElementById('opt-bottle-on').classList.toggle('active', playerStats.floatBottlesEnabled);
+            document.getElementById('opt-bottle-off').classList.toggle('active', !playerStats.floatBottlesEnabled);
+        }
+
+        function applyVisualSettings() {
+            let rSize = '1.25rem';
+            if (playerStats.romanSize === 'small') rSize = '1rem';
+            if (playerStats.romanSize === 'large') rSize = '1.5rem';
+            document.documentElement.style.setProperty('--roman-font-size', rSize);
+
+            let jSize = '1.6rem';
+            if (playerStats.jpSize === 'small') jSize = '1.3rem';
+            if (playerStats.jpSize === 'large') jSize = '1.9rem';
+            document.documentElement.style.setProperty('--jp-font-size', jSize);
+
+            if (furiganaText) {
+                furiganaText.style.display = playerStats.furiganaEnabled ? 'block' : 'none';
+            }
+
+            const layer = document.getElementById('bottleLayer');
+            if (layer) {
+                layer.style.display = playerStats.floatBottlesEnabled ? 'block' : 'none';
+            }
+
+            if (bgmGainNode) {
+                bgmGainNode.gain.setValueAtTime(playerStats.soundEnabled ? 0.04 : 0.00, audioCtx.currentTime);
+            }
+        }
+
+        function setRomanSize(size) { playerStats.romanSize = size; updateSettingsUI(); applyVisualSettings(); }
+        function setJpSize(size) { playerStats.jpSize = size; updateSettingsUI(); applyVisualSettings(); }
+        function setSoundEnabled(enable) { playerStats.soundEnabled = enable; updateSettingsUI(); applyVisualSettings(); }
+        function setFuriganaEnabled(enable) { playerStats.furiganaEnabled = enable; updateSettingsUI(); applyVisualSettings(); }
+        function setFloatBottlesEnabled(enable) { 
+            playerStats.floatBottlesEnabled = enable; 
+            updateSettingsUI(); 
+            applyVisualSettings(); 
+            spawnAllStoredBottles(); 
+        }
+
+        // 一時停止
+        function triggerPause() {
+            if (!isPlaying || isPaused) return;
+            isPaused = true;
+            isPlaying = false; 
+
+            pauseStartTime = performance.now();
+
+            if (bgmGainNode) {
+                bgmGainNode.gain.setValueAtTime(0, audioCtx.currentTime);
+            }
+
+            playScreen.classList.add('hidden');
+            pauseScreen.classList.remove('hidden');
+        }
+
+        function resumeGame() {
+            if (!isPaused) return;
+            isPaused = false;
+
+            totalPausedTime += (performance.now() - pauseStartTime);
+
+            if (bgmGainNode && playerStats.soundEnabled) {
+                bgmGainNode.gain.setValueAtTime(0.04, audioCtx.currentTime);
+            }
+
+            pauseScreen.classList.add('hidden');
+            playScreen.classList.remove('hidden');
+            isPlaying = true; 
+        }
+
+        function quitToHome() {
+            isPaused = false;
+            isPlaying = false;
+            pauseScreen.classList.add('hidden');
+            startScreen.classList.remove('hidden');
+            document.getElementById('bottleLayer').style.zIndex = "5"; 
+            selectMode(activeTheme);
+        }
+
+        // 手紙ボトル
+        function spawnBottle(text, dateStr = "") {
+            const bottleLayer = document.getElementById('bottleLayer');
+            if (!bottleLayer || !playerStats.floatBottlesEnabled) return; 
+
+            const bottle = document.createElement('div');
+            bottle.className = 'zen-bottle';
+            bottle.innerHTML = `
+                🍾
+                <div class="bottle-tooltip">
+                    <strong>${dateStr || "いつかの言葉"}</strong><br>${text}
+                </div>
+            `;
+
+            const topPercent = 15 + Math.random() * 70;
+            bottle.style.top = `${topPercent}%`;
+
+            const duration = 20 + Math.random() * 25;
+            bottle.style.animationDuration = `${duration}s, 5s`;
+
+            const delay = -1 * (Math.random() * duration);
+            bottle.style.animationDelay = `${delay}s, 0s`;
+
+            bottleLayer.appendChild(bottle);
+        }
+
+        function spawnAllStoredBottles() {
+            const bottleLayer = document.getElementById('bottleLayer');
+            if (!bottleLayer) return;
+            bottleLayer.innerHTML = ""; 
+            
+            if (playerStats.floatBottlesEnabled && playerStats.zenBottles && playerStats.zenBottles.length > 0) {
+                playerStats.zenBottles.forEach(b => {
+                    spawnBottle(b.text, b.date);
+                });
+            }
+        }
+
+        function confirmResetData() {
+            const firstCheck = confirm("これまでのゲーム進行状況、解除した称号や実績、すべての手紙ボトルが完全に消去されます。本当に削除してもよろしいですか？");
+            if (firstCheck) {
+                const secondCheck = confirm("この操作は取り消せません。本当に、完全に削除して初期化してもよろしいですか？");
+                if (secondCheck) {
+                    localStorage.removeItem('silent_rhythm_save');
+                    alert("すべてのデータを初期化しました。ページを再読み込みします。");
+                    location.reload();
+                }
+            }
+        }
+
+        function backToHome() {
+            resultScreen.classList.add('hidden');
+            startScreen.classList.remove('hidden');
+            document.getElementById('bottleLayer').style.zIndex = "5"; 
+            selectMode(activeTheme); 
+        }
+
+        function openLibrary() {
+            startScreen.classList.add('hidden');
+            libraryScreen.classList.remove('hidden');
+            document.getElementById('bottleLayer').style.zIndex = "3"; 
+            switchLibraryTab('titles'); 
+        }
+
+        function closeLibrary() {
+            libraryScreen.classList.add('hidden');
+            startScreen.classList.remove('hidden');
+            document.getElementById('bottleLayer').style.zIndex = "5";
+            selectMode(activeTheme);
+        }
+
+        function switchLibraryTab(tab) {
+            libraryActiveTab = tab;
+            document.getElementById('tabTitles').classList.remove('active');
+            document.getElementById('tabAchievements').classList.remove('active');
+            document.getElementById('tabBottles').classList.remove('active');
+            
+            if (tab === 'titles') {
+                document.getElementById('tabTitles').classList.add('active');
+                renderTitlesInLibrary();
+            } else if (tab === 'achievements') {
+                document.getElementById('tabAchievements').classList.add('active');
+                renderAchievementsInLibrary();
+            } else {
+                document.getElementById('tabBottles').classList.add('active');
+                renderBottlesInLibrary(); 
+            }
+        }
+
+        function renderTitlesInLibrary() {
+            libraryScroll.innerHTML = "";
+            let categories = ['water', 'magma', 'cosmos'];
+            let categoryNames = { 'water': '水流のガラス', 'magma': '灼熱の溶岩', 'cosmos': '星雲の星海' };
+
+            categories.forEach(cat => {
+                const header = document.createElement('div');
+                header.style.fontSize = '0.75rem';
+                header.style.color = 'var(--purity-color)';
+                header.style.fontWeight = '500';
+                header.style.letterSpacing = '0.1em';
+                header.style.textAlign = 'left';
+                header.style.marginTop = '10px';
+                header.style.marginBottom = '4px';
+                header.textContent = categoryNames[cat].toUpperCase();
+                libraryScroll.appendChild(header);
+
+                ALL_TITLES_DB[cat].forEach(t => {
+                    const isUnlocked = playerStats.unlockedTitles.includes(t.id);
+                    const isEquipped = playerStats.equippedTitleId === t.id;
+                    const card = document.createElement('div');
+                    card.className = `title-card ${isUnlocked ? '' : 'locked'}`;
+
+                    card.innerHTML = `
+                        <div class="title-info">
+                            <span class="title-name">${isUnlocked ? t.name : '？？？？？'}</span>
+                            <span class="title-origin">${t.desc}</span>
+                        </div>
+                        ${isUnlocked ? (isEquipped ? '<span class="equipped-status-badge">EQUIPPED</span>' : '') : '<span class="lock-icon">🔒</span>'}
+                    `;
+
+                    if (isUnlocked) {
+                        card.addEventListener('click', () => {
+                            if (isEquipped) {
+                                playerStats.equippedTitleId = ""; 
+                            } else {
+                                playerStats.equippedTitleId = t.id; 
+                            }
+                            savePlayerData();
+                            renderTitlesInLibrary(); 
+                        });
+                    }
+
+                    libraryScroll.appendChild(card);
+                });
+            });
+        }
+
+        function renderAchievementsInLibrary() {
+            libraryScroll.innerHTML = "";
+
+            ACHIEVEMENTS_DB.forEach(ach => {
+                const isUnlocked = playerStats.unlockedAchievements.includes(ach.id);
+                const isEquipped = playerStats.equippedAchievementId === ach.id;
+                const card = document.createElement('div');
+                card.className = `achievement-card ${isUnlocked ? 'unlocked' : 'locked'}`;
+
+                card.innerHTML = `
+                    <div class="ach-icon-box">
+                        ${isUnlocked ? ach.icon : '🔒'}
+                    </div>
+                    <div class="ach-details">
+                        <h4>${ach.title}</h4>
+                        <p>${ach.desc}</p>
+                    </div>
+                    ${isUnlocked ? (isEquipped ? '<span class="equipped-status-badge">EQUIPPED</span>' : '') : ''}
+                `;
+
+                if (isUnlocked) {
+                    card.addEventListener('click', () => {
+                        if (isEquipped) {
+                            playerStats.equippedAchievementId = ""; 
+                        } else {
+                            playerStats.equippedAchievementId = ach.id; 
+                        }
+                        savePlayerData();
+                        renderAchievementsInLibrary();
+                    });
+                }
+
+                libraryScroll.appendChild(card);
+            });
+        }
+
+        function renderBottlesInLibrary() {
+            libraryScroll.innerHTML = "";
+
+            if (!playerStats.zenBottles || playerStats.zenBottles.length === 0) {
+                const emptyMsg = document.createElement('div');
+                emptyMsg.style.fontSize = '0.85rem';
+                emptyMsg.style.color = '#64748b';
+                emptyMsg.style.padding = '40px 0';
+                emptyMsg.textContent = "流した手紙ボトルはまだありません。";
+                libraryScroll.appendChild(emptyMsg);
+                return;
+            }
+
+            [...playerStats.zenBottles].reverse().forEach(b => {
+                const card = document.createElement('div');
+                card.className = 'bottle-card';
+                card.innerHTML = `
+                    <span class="bottle-text">“ ${b.text} ”</span>
+                    <span class="bottle-date">流した日: ${b.date}</span>
+                `;
+                libraryScroll.appendChild(card);
+            });
+        }
+
         function selectMode(theme) {
             activeTheme = theme;
             
-            // bodyクラスとアクティブ表示を切り替え
             document.body.className = `theme-${theme}`;
             document.querySelectorAll('.mode-card').forEach(c => c.classList.remove('active'));
             document.querySelector(`.${theme}-card`).classList.add('active');
 
-            // 背景とテキストの更新
-            if (theme === 'water') {
-                subTitleText.textContent = "清流のガラスの上に浮かぶ心";
-                descText.innerHTML = "流れる水の上に置かれた、ガラスのプレート。<br>日常の言葉に指を滑らせ、穏やかな時間をお楽しみください。";
-                waterBg.style.background = "linear-gradient(135deg, #e0f2fe 0%, #bae6fd 40%, #7dd3fc 70%, #38bdf8 100%)";
-            } else if (theme === 'magma') {
-                subTitleText.textContent = "灼熱の溶岩を調律するガラス";
-                descText.innerHTML = "煮え立つ黒と燃える赤。大地の熱エネルギーが脈打つ空間。<br>ノーミスクリアを重ね、その破壊的な熱を澄み切った黄金へ調和させてください。";
-                waterBg.style.background = "linear-gradient(135deg, #1c1917 0%, #450a0a 40%, #781d00 75%, #9a3412 100%)";
-            } else if (theme === 'cosmos') {
-                subTitleText.textContent = "星雲を流れるSFガラスプレート";
-                descText.innerHTML = "宇宙の静寂と、星屑の光が流れるサイバー空間。<br>タイピングのコンボによって星にエネルギーを送り、星雲に生命の光を宿しましょう。";
-                waterBg.style.background = "linear-gradient(135deg, #020617 0%, #0f172a 40%, #1e1b4b 75%, #311042 100%)";
-            }
+            descText.style.opacity = '0';
+            subTitleText.style.opacity = '0';
+
+            setTimeout(() => {
+                if (theme === 'water') {
+                    subTitleText.textContent = "清流のガラスの上に浮かぶ心";
+                    descText.innerHTML = "流れる水の上に置かれた、ガラスのプレート。<br>日常の言葉に指を滑らせ、穏やかな時間をお楽しみください。";
+                    waterBg.style.background = "linear-gradient(135deg, #e0f2fe 0%, #bae6fd 40%, #7dd3fc 70%, #38bdf8 100%)";
+                } else if (theme === 'magma') {
+                    subTitleText.textContent = "灼熱の溶岩を調律するガラス";
+                    descText.innerHTML = "煮え立つ黒と燃える赤。大地の熱エネルギーが脈打つ空間。<br>ノーミスクリアを重ね、その破壊的な熱を澄み切った黄金へ調和させてください。";
+                    waterBg.style.background = "linear-gradient(135deg, #1c1917 0%, #450a0a 40%, #781d00 75%, #9a3412 100%)";
+                } else if (theme === 'cosmos') {
+                    subTitleText.textContent = "星雲を流れるSFガラスプレート";
+                    descText.innerHTML = "宇宙の静寂と、星屑の光が流れるサイバー空間。<br>タイピングのコンボによって星にエネルギーを送り、星雲に生命の光を宿しましょう。";
+                    waterBg.style.background = "linear-gradient(135deg, #020617 0%, #0f172a 40%, #1e1b4b 75%, #311042 100%)";
+                } else if (theme === 'free') {
+                    subTitleText.textContent = "無心の静水（自由綴り）";
+                    descText.innerHTML = "お題はありません。今あなたの心に浮かび上がる言葉、<br>またはただ指が紡ぐ文字を自由に綴ってください。ことことが静寂を奏でます。";
+                    waterBg.style.background = "linear-gradient(135deg, #ccfbf1 0%, #99f6e4 40%, #5eead4 70%, #0d9488 100%)";
+                }
+                
+                descText.style.opacity = '1';
+                subTitleText.style.opacity = '1';
+            }, 300); 
         }
 
         function startGame() {
             isPlaying = true;
+            isPaused = false;
+            totalPausedTime = 0; 
             initAudio();
 
             startScreen.classList.add('hidden');
             resultScreen.classList.add('hidden');
             playScreen.classList.remove('hidden');
+            document.getElementById('bottleLayer').style.zIndex = "3"; 
 
-            // モードに応じたお題の決定
-            let selectedSource = wordsEasy;
-            if (activeTheme === 'magma') selectedSource = wordsNormal;
-            if (activeTheme === 'cosmos') selectedSource = wordsHard;
-
-            playWords = [...selectedSource].sort(() => 0.5 - Math.random()).slice(0, 10);
-
-            currentWordIndex = 0;
-            comboCount = 0;
-            maxCombo = 0;
             totalKeysPressed = 0;
             totalMissedKeys = 0;
             gameStartTime = performance.now();
+            comboCount = 0;
+            maxCombo = 0;
 
-            updateComboDisplay();
-            updateBackground(false); 
-            loadWord();
+            if (activeTheme === 'free') {
+                document.getElementById('progressArea').classList.add('hidden');
+                document.getElementById('streakArea').classList.remove('hidden');
+                document.querySelector('#streakArea span').textContent = "SENTENCES"; 
+                comboDisplay.textContent = "0";
+
+                furiganaText.textContent = ""; 
+                jpText.textContent = "心に浮かぶまま、言葉を綴ってください。";
+                romanText.innerHTML = `<span class="char-current">&nbsp;</span>`;
+                statusMsg.textContent = "Enterキーを押すと、綴った文が水流に溶けて流れ去ります。";
+                freeModeText = "";
+            } else {
+                document.getElementById('progressArea').classList.remove('hidden');
+                document.getElementById('streakArea').classList.remove('hidden');
+                document.querySelector('#streakArea span').textContent = "STREAK";
+                updateComboDisplay();
+
+                let selectedSource = wordsEasy;
+                if (activeTheme === 'magma') selectedSource = wordsNormal;
+                if (activeTheme === 'cosmos') selectedSource = wordsHard;
+
+                playWords = [...selectedSource].sort(() => 0.5 - Math.random()).slice(0, 10);
+
+                currentWordIndex = 0;
+                updateBackground(false); 
+                loadWord();
+            }
 
             window.addEventListener('keydown', handleKeyDown);
         }
 
-        // --- Web Audio API の動的音響制御 ---
         function initAudio() {
-            if (audioCtx) return;
+            if (audioCtx) {
+                applyVisualSettings();
+                return;
+            }
             try {
                 audioCtx = new (window.AudioContext || window.webkitAudioContext)();
                 
                 bgmNode1 = audioCtx.createOscillator();
                 bgmNode2 = audioCtx.createOscillator();
-                const gainNode = audioCtx.createGain();
+                bgmGainNode = audioCtx.createGain(); 
 
-                // モードに応じてドローンBGMの音色（周波数）を変更
                 if (activeTheme === 'water') {
-                    bgmNode1.frequency.setValueAtTime(110, audioCtx.currentTime); // A2
-                    bgmNode2.frequency.setValueAtTime(146.83, audioCtx.currentTime); // D3
+                    bgmNode1.frequency.setValueAtTime(110, audioCtx.currentTime); 
+                    bgmNode2.frequency.setValueAtTime(146.83, audioCtx.currentTime); 
                 } else if (activeTheme === 'magma') {
-                    bgmNode1.frequency.setValueAtTime(82.41, audioCtx.currentTime); // E2 (重厚な低音)
-                    bgmNode2.frequency.setValueAtTime(123.47, audioCtx.currentTime); // B2
+                    bgmNode1.frequency.setValueAtTime(82.41, audioCtx.currentTime); 
+                    bgmNode2.frequency.setValueAtTime(123.47, audioCtx.currentTime); 
+                } else if (activeTheme === 'cosmos') {
+                    bgmNode1.frequency.setValueAtTime(130.81, audioCtx.currentTime); 
+                    bgmNode2.frequency.setValueAtTime(196.00, audioCtx.currentTime); 
                 } else {
-                    bgmNode1.frequency.setValueAtTime(130.81, audioCtx.currentTime); // C3 (浮遊感)
-                    bgmNode2.frequency.setValueAtTime(196.00, audioCtx.currentTime); // G3
+                    bgmNode1.frequency.setValueAtTime(98.00, audioCtx.currentTime); 
+                    bgmNode2.frequency.setValueAtTime(146.83, audioCtx.currentTime); 
                 }
 
                 bgmNode1.type = 'sine';
                 bgmNode2.type = 'sine';
-                gainNode.gain.setValueAtTime(0.04, audioCtx.currentTime);
+                
+                bgmGainNode.gain.setValueAtTime(playerStats.soundEnabled ? 0.04 : 0.00, audioCtx.currentTime);
 
                 const filter = audioCtx.createBiquadFilter();
                 filter.type = 'lowpass';
@@ -807,8 +2139,8 @@
 
                 bgmNode1.connect(filter);
                 bgmNode2.connect(filter);
-                filter.connect(gainNode);
-                gainNode.connect(audioCtx.destination);
+                filter.connect(bgmGainNode);
+                bgmGainNode.connect(audioCtx.destination);
 
                 bgmNode1.start();
                 bgmNode2.start();
@@ -817,58 +2149,69 @@
             }
         }
 
-        // モード別打鍵音SE
         function playModeTapSound() {
-            if (!audioCtx) return;
+            if (!audioCtx || !playerStats.soundEnabled) return; 
 
-            const osc = audioCtx.createOscillator();
-            const gainNode = audioCtx.createGain();
+            const osc1 = audioCtx.createOscillator();
+            const gain1 = audioCtx.createGain();
             const filter = audioCtx.createBiquadFilter();
 
-            if (activeTheme === 'water') {
-                // 水：木製コトコト音
-                osc.type = 'sine'; 
-                const baseFreq = 420 + Math.random() * 40;
-                osc.frequency.setValueAtTime(baseFreq * 2.2, audioCtx.currentTime); 
-                osc.frequency.exponentialRampToValueAtTime(baseFreq, audioCtx.currentTime + 0.01); 
-                gainNode.gain.setValueAtTime(0.18, audioCtx.currentTime);
-                gainNode.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.05);
+            if (activeTheme === 'water' || activeTheme === 'free') {
+                osc1.type = 'sine'; 
+                const baseFreq = 340 + Math.random() * 20;
+                
+                osc1.frequency.setValueAtTime(baseFreq * 2.1, audioCtx.currentTime);
+                osc1.frequency.exponentialRampToValueAtTime(baseFreq, audioCtx.currentTime + 0.012);
+
+                gain1.gain.setValueAtTime(0.2, audioCtx.currentTime);
+                gain1.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.035); 
+
                 filter.type = 'lowpass';
-                filter.frequency.setValueAtTime(1000, audioCtx.currentTime);
+                filter.frequency.setValueAtTime(750, audioCtx.currentTime); 
+
+                const osc2 = audioCtx.createOscillator();
+                const gain2 = audioCtx.createGain();
+                osc2.type = 'sine';
+                osc2.frequency.setValueAtTime(baseFreq * 2, audioCtx.currentTime + 0.005); 
+                gain2.gain.setValueAtTime(0.02, audioCtx.currentTime);
+                gain2.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.025);
+
+                osc2.connect(gain2);
+                gain2.connect(audioCtx.destination);
+                osc2.start();
+                osc2.stop(audioCtx.currentTime + 0.04);
 
             } else if (activeTheme === 'magma') {
-                // 火山：パチパチした火花のクラッシュ（短いノイズと三角波）
-                osc.type = 'triangle';
+                osc1.type = 'triangle';
                 const baseFreq = 800 + Math.random() * 200;
-                osc.frequency.setValueAtTime(baseFreq, audioCtx.currentTime);
-                osc.frequency.exponentialRampToValueAtTime(80, audioCtx.currentTime + 0.02);
-                gainNode.gain.setValueAtTime(0.07, audioCtx.currentTime);
-                gainNode.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.03);
+                osc1.frequency.setValueAtTime(baseFreq, audioCtx.currentTime);
+                osc1.frequency.exponentialRampToValueAtTime(80, audioCtx.currentTime + 0.02);
+                gain1.gain.setValueAtTime(0.07, audioCtx.currentTime);
+                gain1.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.03);
                 filter.type = 'bandpass';
                 filter.frequency.setValueAtTime(3000, audioCtx.currentTime);
 
             } else {
-                // 宇宙：透き通る高音シンセに長いコズミックな余韻
-                osc.type = 'sine';
+                osc1.type = 'sine';
                 const baseFreq = 650 + (comboCount * 30);
-                osc.frequency.setValueAtTime(baseFreq, audioCtx.currentTime);
-                osc.frequency.exponentialRampToValueAtTime(baseFreq * 1.5, audioCtx.currentTime + 0.12);
-                gainNode.gain.setValueAtTime(0.05, audioCtx.currentTime);
-                gainNode.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.45); // 宇宙特有の長い残響
+                osc1.frequency.setValueAtTime(baseFreq, audioCtx.currentTime);
+                osc1.frequency.exponentialRampToValueAtTime(baseFreq * 1.5, audioCtx.currentTime + 0.12);
+                gain1.gain.setValueAtTime(0.05, audioCtx.currentTime);
+                gain1.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.45);
                 filter.type = 'lowpass';
                 filter.frequency.setValueAtTime(2000, audioCtx.currentTime);
             }
 
-            osc.connect(filter);
-            filter.connect(gainNode);
-            gainNode.connect(audioCtx.destination);
+            osc1.connect(filter);
+            filter.connect(gain1);
+            gain1.connect(audioCtx.destination);
 
-            osc.start();
-            osc.stop(audioCtx.currentTime + (activeTheme === 'cosmos' ? 0.5 : 0.1));
+            osc1.start();
+            osc1.stop(audioCtx.currentTime + (activeTheme === 'cosmos' ? 0.5 : 0.1));
         }
 
         function playMutedWood() {
-            if (!audioCtx) return;
+            if (!audioCtx || !playerStats.soundEnabled) return;
 
             const osc = audioCtx.createOscillator();
             const gainNode = audioCtx.createGain();
@@ -886,10 +2229,8 @@
             osc.stop(audioCtx.currentTime + 0.1);
         }
 
-        // モードごとに色合いを変えた、前面波紋エフェクト
         function createRipple() {
             const ripple = document.createElement('div');
-            // テーマのクラスを波紋に付加
             ripple.classList.add('ripple', `${activeTheme}-ripple`);
             
             const rect = gameContainer.getBoundingClientRect();
@@ -903,7 +2244,6 @@
             ripple.addEventListener('animationend', () => ripple.remove());
         }
 
-        // ひらがな➔トークン化
         function tokenize(kanaStr) {
             let res = [];
             let i = 0;
@@ -938,14 +2278,6 @@
                         }
                     }
                     
-                    if (char1 === 'ん') {
-                        let nextChar = kanaStr.substr(i + 1, 1);
-                        let isNnRequired = !nextChar || /[あいうえおやゆよなにぬねのんぁぃぅぇぉゃゅょ]/.test(nextChar);
-                        if (!isNnRequired) {
-                            patterns.push('n');
-                        }
-                    }
-
                     res.push({
                         kana: char1,
                         patterns: patterns,
@@ -966,6 +2298,13 @@
 
         function loadWord() {
             const currentData = playWords[currentWordIndex];
+            
+            if (playerStats.furiganaEnabled) {
+                furiganaText.textContent = currentData.kana;
+            } else {
+                furiganaText.textContent = "";
+            }
+
             jpText.textContent = currentData.jp;
             
             tokens = tokenize(currentData.kana);
@@ -1018,12 +2357,67 @@
         }
 
         function handleKeyDown(e) {
-            if (!isPlaying) return;
-            if (e.key.length > 1) return; // 制御キーを無視
+            if (!isPlaying || isPaused) return;
+
+            if (activeTheme === 'free') {
+                if (e.key === 'Escape') {
+                    isPlaying = false;
+                    setTimeout(showResult, 800);
+                    return;
+                }
+
+                if (e.key === 'Backspace') {
+                    e.preventDefault();
+                    if (freeModeText.length > 0) {
+                        freeModeText = freeModeText.slice(0, -1);
+                        renderFreeModeText();
+                        playMutedWood();
+                    }
+                    return;
+                }
+
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    if (freeModeText.trim().length > 0) {
+                        comboCount++;
+                        if (comboCount > maxCombo) maxCombo = comboCount;
+                        comboDisplay.textContent = comboCount;
+
+                        updateBackground(true); 
+                        playModeTapSound();
+
+                        totalKeysPressed += freeModeText.length;
+                        
+                        const today = new Date().toLocaleDateString('ja-JP');
+                        playerStats.zenBottles.push({ text: freeModeText, date: today });
+                        
+                        if (playerStats.zenBottles.length > 20) {
+                            playerStats.zenBottles.shift();
+                        }
+                        savePlayerData();
+
+                        spawnBottle(freeModeText, today);
+
+                        freeModeText = "";
+                        renderFreeModeText();
+                        statusMsg.textContent = "流れる水に溶け去りました。次の言葉をどうぞ。";
+                    }
+                    return;
+                }
+
+                if (e.key.length === 1) {
+                    freeModeText += e.key;
+                    renderFreeModeText();
+                    playModeTapSound();
+                    createRipple();
+                }
+                return;
+            }
+
+            if (e.key.length > 1) return; 
 
             totalKeysPressed++;
             const activeToken = tokens[tokenIndex];
-            
             const inputKey = normalizeKey(e.key);
             const nextInput = activeToken.currentInput + inputKey;
 
@@ -1045,7 +2439,7 @@
                         if (!hasMissedInCurrentWord) {
                             comboCount++;
                             if (comboCount > maxCombo) maxCombo = comboCount;
-                            statusMsg.textContent = activeTheme === 'cosmos' ? "美しき超新星の輝き。" : (activeTheme === 'magma' ? "エネルギーの調和に成功。" : "透き通るような正確さです。");
+                            statusMsg.textContent = "透き通るような正確さです。";
                         } else {
                             comboCount = 0;
                             statusMsg.textContent = "一呼吸おいて、再び始めましょう。";
@@ -1088,11 +2482,18 @@
             }
         }
 
+        function renderFreeModeText() {
+            if (freeModeText.length === 0) {
+                romanText.innerHTML = `<span class="char-current">&nbsp;</span>`;
+            } else {
+                romanText.innerHTML = `<span class="char-typed">${freeModeText}</span><span class="char-current">&nbsp;</span>`;
+            }
+        }
+
         function updateComboDisplay() {
             comboDisplay.textContent = comboCount;
         }
 
-        // 水・火山・宇宙それぞれの「グラデーション浄化ロジック」
         function updateBackground(triggerFlash = false) {
             if (triggerFlash) {
                 purifyFlash.classList.add('flash-active');
@@ -1109,73 +2510,225 @@
                 } else if (comboCount >= 3 && comboCount < 5) {
                     waterBg.style.background = "linear-gradient(135deg, #7dd3fc 0%, #0ea5e9 30%, #0284c7 70%, #0369a1 100%)";
                 } else if (comboCount >= 5) {
-                    waterBg.style.background = "linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 20%, #0ea5e9 80%, #0284c7 100%)";
+                    waterBg.style.background = "linear-gradient(135deg, #fffbeb 0%, #e0f2fe 20%, #0ea5e9 80%, #0284c7 100%)";
                 }
             } else if (activeTheme === 'magma') {
                 if (comboCount === 0) {
-                    // 赤黒いドロドロの溶岩
                     waterBg.style.background = "linear-gradient(135deg, #1c1917 0%, #450a0a 40%, #781d00 75%, #9a3412 100%)";
                 } else if (comboCount >= 1 && comboCount < 3) {
-                    // 燃え盛るクリアなオレンジ
                     waterBg.style.background = "linear-gradient(135deg, #450a0a 0%, #7c2d12 30%, #ea580c 70%, #f97316 100%)";
                 } else if (comboCount >= 3 && comboCount < 5) {
-                    // 熱が調和された琥珀色
                     waterBg.style.background = "linear-gradient(135deg, #7c2d12 0%, #d97706 40%, #f59e0b 80%, #fbbf24 100%)";
                 } else if (comboCount >= 5) {
-                    // 完全に澄み渡ったクリスタルゴールドエネルギー
                     waterBg.style.background = "linear-gradient(135deg, #fffbeb 0%, #fef3c7 20%, #f59e0b 80%, #fbbf24 100%)";
                 }
             } else if (activeTheme === 'cosmos') {
                 if (comboCount === 0) {
-                    // 暗黒の深宇宙
                     waterBg.style.background = "linear-gradient(135deg, #020617 0%, #0f172a 40%, #1e1b4b 75%, #311042 100%)";
                 } else if (comboCount >= 1 && comboCount < 3) {
-                    // 紫とマゼンタの星雲
                     waterBg.style.background = "linear-gradient(135deg, #0f172a 0%, #1e1b4b 30%, #581c87 70%, #701a75 100%)";
                 } else if (comboCount >= 3 && comboCount < 5) {
-                    // サイバーブルーとインディゴの輝き
                     waterBg.style.background = "linear-gradient(135deg, #1e1b4b 0%, #312e81 30%, #1d4ed8 70%, #0ea5e9 100%)";
                 } else if (comboCount >= 5) {
-                    // まばゆい超新星ホワイト・シアン＆ネオンパープル
                     waterBg.style.background = "linear-gradient(135deg, #faf5ff 0%, #f3e8ff 20%, #a855f7 70%, #3b82f6 100%)";
+                }
+            } else if (activeTheme === 'free') {
+                if (comboCount === 0) {
+                    waterBg.style.background = "linear-gradient(135deg, #ccfbf1 0%, #99f6e4 40%, #5eead4 70%, #0d9488 100%)";
+                } else if (comboCount >= 1 && comboCount < 3) {
+                    waterBg.style.background = "linear-gradient(135deg, #99f6e4 0%, #5eead4 30%, #0d9488 70%, #115e59 100%)";
+                } else if (comboCount >= 3) {
+                    waterBg.style.background = "linear-gradient(135deg, #f0fdfa 0%, #ccfbf1 20%, #0d9488 80%, #115e59 100%)";
                 }
             }
         }
 
-        // リザルト画面
         function showResult() {
             playScreen.classList.add('hidden');
             resultScreen.classList.remove('hidden');
 
             const endTime = performance.now();
-            const elapsedSec = Math.round((endTime - gameStartTime) / 1000);
+            const elapsedSec = Math.max(1, Math.round((endTime - gameStartTime - totalPausedTime) / 1000));
             resultTimeDisplay.textContent = `${elapsedSec}秒`;
 
             const totalHits = totalKeysPressed - totalMissedKeys;
             const accuracy = totalKeysPressed > 0 ? Math.round((totalHits / totalKeysPressed) * 100) : 0;
+
+            if (activeTheme === 'free') {
+                document.getElementById('resultRingBox').classList.add('hidden');
+                document.getElementById('resultTitleContainer').classList.add('hidden');
+                document.getElementById('statsContainer').classList.add('hidden');
+
+                let freeStats = document.getElementById('freeStats');
+                if (!freeStats) {
+                    freeStats = document.createElement('div');
+                    freeStats.id = "freeStats";
+                    freeStats.className = "result-stats";
+                    document.getElementById('resultScreen').insertBefore(freeStats, document.getElementById('resultScreen').lastElementChild);
+                }
+                freeStats.classList.remove('hidden');
+                freeStats.innerHTML = `
+                    <div class="stat-col">
+                        <span class="stat-label">綴った文</span>
+                        <span class="stat-value">${comboCount}文</span>
+                    </div>
+                    <div class="stat-col">
+                        <span class="stat-label">総タイプ数</span>
+                        <span class="stat-value">${totalKeysPressed}文字</span>
+                    </div>
+                    <div class="stat-col">
+                        <span class="stat-label">速度</span>
+                        <span class="stat-value">${(totalKeysPressed / elapsedSec).toFixed(1)} /s</span>
+                    </div>
+                `;
+
+                playerStats.totalPlays += 1;
+                playerStats.totalKeys += totalKeysPressed;
+                playerStats.playTime += elapsedSec;
+                savePlayerData();
+                return;
+            }
+
+            document.getElementById('resultRingBox').classList.remove('hidden');
+            document.getElementById('resultTitleContainer').classList.remove('hidden');
+            document.getElementById('statsContainer').classList.remove('hidden');
+            if (document.getElementById('freeStats')) {
+                document.getElementById('freeStats').classList.add('hidden');
+            }
+
             resultAccuracyDisplay.textContent = `${accuracy}%`;
             purityScore.textContent = `${accuracy}%`;
+
+            const kps = (totalKeysPressed / elapsedSec).toFixed(2);
+            resultKpsDisplay.textContent = `${kps} /s`;
 
             resultMaxComboDisplay.textContent = `${maxCombo}回`;
 
             const offset = 377 - (377 * (accuracy / 100));
             purityRingFill.style.strokeDashoffset = offset;
 
-            // テーマごとに称号テキストを分岐
+            let obtainedTitle = "";
+            let obtainedTitleId = "";
             if (activeTheme === 'water') {
-                if (maxCombo >= 8 && accuracy >= 95) waterQualityDisplay.textContent = "澄み切ったクリスタル（最高水質）";
-                else if (maxCombo >= 4) waterQualityDisplay.textContent = "湧き出す清流（美しく澄んだ水）";
-                else waterQualityDisplay.textContent = "静かな湖水（穏やかな水面）";
+                if (maxCombo === 10 && accuracy >= 98) { obtainedTitle = "万物の源泉（太古の聖水）"; obtainedTitleId = "w_t1"; }
+                else if (maxCombo >= 8 && accuracy >= 95) { obtainedTitle = "澄み切ったクリスタル"; obtainedTitleId = "w_t2"; }
+                else if (maxCombo >= 5 && accuracy >= 90) { obtainedTitle = "湧き出す清流"; obtainedTitleId = "w_t3"; }
+                else if (maxCombo >= 3 && accuracy >= 80) { obtainedTitle = "穏やかな湖水"; obtainedTitleId = "w_t4"; }
+                else if (maxCombo >= 1) { obtainedTitle = "静かな雨流"; obtainedTitleId = "w_t5"; }
+                else { obtainedTitle = "未開の浅瀬"; obtainedTitleId = "w_t6"; }
             } else if (activeTheme === 'magma') {
-                if (maxCombo >= 8 && accuracy >= 95) waterQualityDisplay.textContent = "調律の黄金琥珀（完全調和）";
-                else if (maxCombo >= 4) waterQualityDisplay.textContent = "結晶化するルビー（熱の沈静化）";
-                else waterQualityDisplay.textContent = "燻る火山岩（熱が荒れています）";
+                if (maxCombo === 10 && accuracy >= 98) { obtainedTitle = "森羅のコア（創成 of 炎）"; obtainedTitleId = "m_t1"; }
+                else if (maxCombo >= 8 && accuracy >= 95) { obtainedTitle = "調律の黄金琥珀"; obtainedTitleId = "m_t2"; }
+                else if (maxCombo >= 5 && accuracy >= 90) { obtainedTitle = "結晶化するルビー"; obtainedTitleId = "m_t3"; }
+                else if (maxCombo >= 3 && accuracy >= 80) { obtainedTitle = "流れる火の鳥"; obtainedTitleId = "m_t4"; }
+                else if (maxCombo >= 1) { obtainedTitle = "熱を帯びる溶岩"; obtainedTitleId = "m_t5"; }
+                else { obtainedTitle = "燻る火山岩"; obtainedTitleId = "m_t6"; }
             } else if (activeTheme === 'cosmos') {
-                if (maxCombo >= 8 && accuracy >= 95) waterQualityDisplay.textContent = "輝くアンドロメダ（超新星の星海）";
-                else if (maxCombo >= 4) waterQualityDisplay.textContent = "目覚めるシリウス（青き巨星の光）";
-                else waterQualityDisplay.textContent = "孤独な流星（星屑の漂流）";
+                if (maxCombo === 10 && accuracy >= 98) { obtainedTitle = "創生の大爆発（ビッグバン）"; obtainedTitleId = "c_t1"; }
+                else if (maxCombo >= 8 && accuracy >= 95) { obtainedTitle = "輝くアンドロメダ"; obtainedTitleId = "c_t2"; }
+                else if (maxCombo >= 5 && accuracy >= 90) { obtainedTitle = "目覚めるシリウス"; obtainedTitleId = "c_t3"; }
+                else if (maxCombo >= 3 && accuracy >= 80) { obtainedTitle = "流星の軌道"; obtainedTitleId = "c_t4"; }
+                else if (maxCombo >= 1) { obtainedTitle = "星屑のささやき"; obtainedTitleId = "c_t5"; }
+                else { obtainedTitle = "孤独な流星"; obtainedTitleId = "c_t6"; }
             }
+            waterQualityDisplay.textContent = obtainedTitle;
+
+            playerStats.totalPlays += 1;
+            playerStats.totalKeys += totalKeysPressed;
+            playerStats.playTime += elapsedSec;
+            playerStats.cumulativeCombos += maxCombo;
+            if (maxCombo > playerStats.maxStreakGlobal) playerStats.maxStreakGlobal = maxCombo;
+            if (!playerStats.themesCleared.includes(activeTheme)) playerStats.themesCleared.push(activeTheme);
+            if (!playerStats.unlockedTitles.includes(obtainedTitleId)) playerStats.unlockedTitles.push(obtainedTitleId);
+
+            checkAndUnlockAchievements(accuracy, kps, elapsedSec);
+            savePlayerData();
         }
-    </script>
+
+        function checkAndUnlockAchievements(accuracy, kps, elapsedSec) {
+            const unlock = (id) => {
+                if (!playerStats.unlockedAchievements.includes(id)) {
+                    playerStats.unlockedAchievements.push(id);
+                }
+            };
+
+            unlock("first_drop");
+
+            if (maxCombo === 10) {
+                if (activeTheme === 'water') unlock("perfect_water");
+                if (activeTheme === 'magma') unlock("perfect_magma");
+                if (activeTheme === 'cosmos') unlock("perfect_cosmos");
+            }
+
+            if (accuracy === 100) unlock("pure_mind");
+            if (accuracy < 80) unlock("unyielding_will");
+            if (parseFloat(kps) >= 5.0) unlock("god_speed");
+            if (parseFloat(kps) >= 3.0 && accuracy >= 95) unlock("rhythm_keeper");
+            if (playerStats.totalKeys >= 1000) unlock("keys_1000");
+            if (playerStats.totalKeys >= 5000) unlock("keys_5000");
+            if (playerStats.totalPlays >= 10) unlock("deep_meditation");
+            if (playerStats.playTime >= 600) unlock("time_traveler");
+            if (playerStats.themesCleared.length === 3) unlock("silent_abyss");
+            if (playerStats.cumulativeCombos >= 50) unlock("star_count");
+            if (playerStats.unlockedTitles.length >= 5) unlock("collector_dawn");
+            if (elapsedSec < 45) unlock("silence_realm");
+
+            if (maxCombo >= 5) {
+                if (activeTheme === 'water') unlock("water_gem");
+                if (activeTheme === 'magma') unlock("ruby_shine");
+                if (activeTheme === 'cosmos') unlock("sirius_light");
+            }
+
+            if (accuracy >= 98 && activeTheme === 'water') unlock("flawless_abyss");
+        }
+
+        // --- 3. DOMロード完了後の初期化バインド ---
+        document.addEventListener('DOMContentLoaded', () => {
+            gameContainer = document.getElementById('gameContainer');
+            startScreen = document.getElementById('startScreen');
+            playScreen = document.getElementById('playScreen');
+            resultScreen = document.getElementById('resultScreen');
+            libraryScreen = document.getElementById('libraryScreen');
+            rippleContainer = document.getElementById('rippleContainer');
+            purifyFlash = document.getElementById('purifyFlash');
+            pauseScreen = document.getElementById('pauseScreen'); 
+            settingsScreen = document.getElementById('settingsScreen'); 
+            
+            startBtn = document.getElementById('startBtn');
+            restartBtn = document.getElementById('restartBtn');
+            homeBtn = document.getElementById('homeBtn'); 
+            jpText = document.getElementById('jpText');
+            romanText = document.getElementById('romanText');
+            statusMsg = document.getElementById('statusMsg');
+            comboDisplay = document.getElementById('comboCount');
+            currentNumDisplay = document.getElementById('currentNum');
+            waterBg = document.getElementById('waterBg');
+            furiganaText = document.getElementById('furiganaText'); 
+
+            waterQualityDisplay = document.getElementById('waterQuality');
+            resultTimeDisplay = document.getElementById('resultTime');
+            resultAccuracyDisplay = document.getElementById('resultAccuracy');
+            resultKpsDisplay = document.getElementById('resultKps'); 
+            resultMaxComboDisplay = document.getElementById('resultMaxCombo');
+            purityRingFill = document.getElementById('purityRingFill');
+            purityScore = document.getElementById('purityScore');
+
+            subTitleText = document.getElementById('subTitleText');
+            descText = document.getElementById('descText');
+            libraryScroll = document.getElementById('libraryScroll');
+            equippedBadgeDisplay = document.getElementById('equippedBadgeDisplay');
+
+            // データの展開とテーマ初期化
+            loadPlayerData(); 
+            applyVisualSettings(); 
+            selectMode('water'); 
+
+            // 各種ボタンのイベントバインド
+            startBtn.addEventListener('click', startGame);
+            restartBtn.addEventListener('click', startGame);
+            homeBtn.addEventListener('click', backToHome);
+        });
+	</script>
 </body>
+
 </html>
