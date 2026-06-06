@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Unbrock HTML games Hub</title>
+    <title>Unbrock HTML Game Hub</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
@@ -11,70 +11,116 @@
             border: none;
             background: #000;
         }
+        /* スライドトランジション */
+        .sidebar-transition {
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
     </style>
 </head>
-<body class="bg-slate-950 text-slate-100 flex flex-col md:flex-row h-screen overflow-hidden">
+<body class="bg-slate-950 text-slate-100 h-screen overflow-hidden flex flex-col md:flex-row">
 
-    <!-- サイドバー / メニューエリア -->
-    <aside class="w-full md:w-64 bg-slate-900 border-b md:border-b-0 md:border-r border-slate-800 flex flex-col shrink-0">
-        <!-- ロゴ・タイトル -->
-        <div class="p-6 border-b border-slate-800">
-            <h1 class="text-xl font-bold tracking-wider text-cyan-400">GAME HUB</h1>
-            <p class="text-xs text-slate-400 mt-1">unbrock HTML games Hub byMurakoshi</p>
+    <!-- フローティングトグルボタン (サイドバーが閉じた時に画面に浮くボタン) -->
+    <button id="menu-toggle-btn" onclick="toggleSidebar()" class="fixed top-4 left-4 z-50 bg-slate-900/90 hover:bg-slate-800 border border-slate-700/50 backdrop-blur-md p-3 rounded-xl text-cyan-400 shadow-[0_0_15px_rgba(6,182,212,0.15)] transition-all flex items-center justify-center">
+        <!-- ハンバーガーアイコン (初期状態は閉じるアイコンが出ているので隠す) -->
+        <svg id="hamburger-icon" class="w-6 h-6 transition-all hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 6h16M4 12h16M4 18h16"></path>
+        </svg>
+        <!-- 閉じる(✕)アイコン -->
+        <svg id="close-icon" class="w-6 h-6 transition-all" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"></path>
+        </svg>
+    </button>
+
+    <!-- サイドバー (ネオン＆ガラスモーフィズムデザイン) -->
+    <aside id="sidebar" class="sidebar-transition fixed md:relative inset-y-0 left-0 z-40 w-72 bg-slate-900/95 border-r border-slate-800/80 backdrop-blur-xl flex flex-col shrink-0 shadow-[10px_0_40px_rgba(0,0,0,0.6)] transform translate-x-0">
+        
+        <!-- ロゴエリア（ボタンと被らないように上部余白を確保） -->
+        <div class="pt-20 p-6 border-b border-slate-800/60 flex items-center justify-between">
+            <div>
+                <h1 class="text-2xl font-black tracking-widest bg-gradient-to-r from-cyan-400 to-blue-500 bg-clip-text text-transparent drop-shadow-[0_0_10px_rgba(6,182,212,0.3)]">ARCADE HUB</h1>
+                <p class="text-xs text-slate-400 mt-1 font-mono tracking-wider">SELECT A GAME TO PLAY</p>
+            </div>
         </div>
 
-        <!-- ゲームリストボタン (パスを修正しました) -->
-        <nav class="flex-1 p-4 space-y-2 overflow-y-auto">
-            <button onclick="loadGame('slot.html', this)" class="game-btn w-full text-left px-4 py-3 rounded-xl hover:bg-slate-800 transition-colors flex items-center gap-3 bg-slate-800 border border-cyan-500/30 text-cyan-400">
-                <span>🎰</span> <span class="font-medium">NEO SLOTS</span>
+        <!-- ゲームリストボタン (メニュー部分) -->
+        <nav id="game-list" class="flex-1 p-4 space-y-3 overflow-y-auto">
+            <!-- 各ボタン：ホバー時に少し浮くアニメーションを付与 -->
+            <button onclick="loadGame('slot.html', this)" class="game-btn w-full text-left px-4 py-3 rounded-xl transition-all flex items-center gap-4 bg-cyan-950/40 border border-cyan-500 text-cyan-400 shadow-[0_0_15px_rgba(6,182,212,0.15)] font-bold">
+                <span class="text-xl">🎰</span> <span class="tracking-wide">NEO SLOTS</span>
             </button>
-            <button onclick="loadGame('longcat.html', this)" class="game-btn w-full text-left px-4 py-3 rounded-xl hover:bg-slate-800 transition-colors flex items-center gap-3 text-slate-300">
-                <span>🐱</span> <span class="font-medium">LONGCAT PUZZLE</span>
+            <button onclick="loadGame('longcat.html', this)" class="game-btn w-full text-left px-4 py-3 rounded-xl transition-all flex items-center gap-4 text-slate-300 border border-transparent hover:border-slate-800 hover:bg-slate-800/50 hover:scale-[1.02]">
+                <span class="text-xl">🐱</span> <span class="tracking-wide">LONGCAT PUZZLE</span>
             </button>
-            <button onclick="loadGame('suika.html', this)" class="game-btn w-full text-left px-4 py-3 rounded-xl hover:bg-slate-800 transition-colors flex items-center gap-3 text-slate-300">
-                <span>🍉</span> <span class="font-medium">PLANET DROP</span>
+            <button onclick="loadGame('suika.html', this)" class="game-btn w-full text-left px-4 py-3 rounded-xl transition-all flex items-center gap-4 text-slate-300 border border-transparent hover:border-slate-800 hover:bg-slate-800/50 hover:scale-[1.02]">
+                <span class="text-xl">🍉</span> <span class="tracking-wide">PLANET DROP</span>
             </button>
-            <button onclick="loadGame('traffic.html', this)" class="game-btn w-full text-left px-4 py-3 rounded-xl hover:bg-slate-800 transition-colors flex items-center gap-3 text-slate-300">
-                <span>🚗</span> <span class="font-medium">TRAFFIC ESCAPE</span>
+            <button onclick="loadGame('traffic.html', this)" class="game-btn w-full text-left px-4 py-3 rounded-xl transition-all flex items-center gap-4 text-slate-300 border border-transparent hover:border-slate-800 hover:bg-slate-800/50 hover:scale-[1.02]">
+                <span class="text-xl">🚗</span> <span class="tracking-wide">TRAFFIC ESCAPE</span>
             </button>
-            <button onclick="loadGame('sputnika.html', this)" class="game-btn w-full text-left px-4 py-3 rounded-xl hover:bg-slate-800 transition-colors flex items-center gap-3 text-slate-300">
-                <span>🚀</span> <span class="font-medium">SPUTNIKA GAME</span>
+            <button onclick="loadGame('sputnika.html', this)" class="game-btn w-full text-left px-4 py-3 rounded-xl transition-all flex items-center gap-4 text-slate-300 border border-transparent hover:border-slate-800 hover:bg-slate-800/50 hover:scale-[1.02]">
+                <span class="text-xl">🚀</span> <span class="tracking-wide">SPUTNIKA GAME</span>
             </button>
-            <button onclick="loadGame('paper.html', this)" class="game-btn w-full text-left px-4 py-3 rounded-xl hover:bg-slate-800 transition-colors flex items-center gap-3 text-slate-300">
-                <span>📄</span> <span class="font-medium">PAPER.IO CLONE</span>
+            <button onclick="loadGame('paper.html', this)" class="game-btn w-full text-left px-4 py-3 rounded-xl transition-all flex items-center gap-4 text-slate-300 border border-transparent hover:border-slate-800 hover:bg-slate-800/50 hover:scale-[1.02]">
+                <span class="text-xl">📄</span> <span class="tracking-wide">PAPER.IO CLONE</span>
             </button>
-            <button onclick="loadGame('stack.html', this)" class="game-btn w-full text-left px-4 py-3 rounded-xl hover:bg-slate-800 transition-colors flex items-center gap-3 text-slate-300">
-                <span>🧱</span> <span class="font-medium">LUMINA DROP (STACK)</span>
+            <button onclick="loadGame('stack.html', this)" class="game-btn w-full text-left px-4 py-3 rounded-xl transition-all flex items-center gap-4 text-slate-300 border border-transparent hover:border-slate-800 hover:bg-slate-800/50 hover:scale-[1.02]">
+                <span class="text-xl">🧱</span> <span class="tracking-wide">LUMINA DROP</span>
             </button>
         </nav>
 
-        <!-- フッター情報 -->
-        <div class="p-4 border-t border-slate-800 text-center text-xs text-slate-500">
-            &copy; 2026 Arcade Hub
+        <!-- フッター -->
+        <div class="p-4 border-t border-slate-800/40 text-center text-[10px] text-slate-500 tracking-wider font-mono">
+            SYSTEM ONLINE
         </div>
     </aside>
 
-    <!-- メインコンテンツエリア (iframe) -->
-    <main class="flex-1 flex flex-col relative bg-black">
-        <div class="flex-1 w-full h-full relative">
-            <!-- 初期表示するゲームのパスも修正しました -->
-            <iframe id="game-frame" src="slot.html" class="absolute inset-0 w-full h-full" allow="autoplay"></iframe>
+    <!-- メインフレームエリア -->
+    <main class="flex-1 h-screen relative bg-black">
+        <div class="w-full h-full">
+            <iframe id="game-frame" src="slot.html" class="w-full h-full" allow="autoplay"></iframe>
         </div>
     </main>
 
     <script>
+        let isSidebarOpen = true; // 初期状態はメニュー「表示（オープン）」
+
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const hamburger = document.getElementById('hamburger-icon');
+            const close = document.getElementById('close-icon');
+
+            isSidebarOpen = !isSidebarOpen;
+
+            if (isSidebarOpen) {
+                // サイドバーを表示する
+                sidebar.classList.remove('-translate-x-full');
+                hamburger.classList.add('hidden');
+                close.classList.remove('hidden');
+            } else {
+                // サイドバーを非表示にする
+                sidebar.classList.add('-translate-x-full');
+                hamburger.classList.remove('hidden');
+                close.classList.add('hidden');
+            }
+        }
+
         function loadGame(url, buttonEl) {
             const frame = document.getElementById('game-frame');
             frame.src = url;
 
+            // すべてのボタンのデザインを一旦「未選択状態」にリセット
             const buttons = document.querySelectorAll('.game-btn');
             buttons.forEach(btn => {
-                btn.classList.remove('bg-slate-800', 'border', 'border-cyan-500/30', 'text-cyan-400');
-                btn.classList.add('text-slate-300');
+                btn.className = "game-btn w-full text-left px-4 py-3 rounded-xl transition-all flex items-center gap-4 text-slate-300 border border-transparent hover:border-slate-800 hover:bg-slate-800/50 hover:scale-[1.02]";
             });
 
-            buttonEl.classList.remove('text-slate-300');
-            buttonEl.classList.add('bg-slate-800', 'border', 'border-cyan-500/30', 'text-cyan-400');
+            // クリックされたボタンのみを「アクティブ（ネオンブルー）」にする
+            buttonEl.className = "game-btn w-full text-left px-4 py-3 rounded-xl transition-all flex items-center gap-4 bg-cyan-950/40 border border-cyan-500 text-cyan-400 shadow-[0_0_15px_rgba(6,182,212,0.15)] font-bold";
+
+            // スマートフォンなどの狭い画面幅（768px未満）のときは、ゲームを選択したら自動でメニューを閉じる
+            if (window.innerWidth < 768) {
+                toggleSidebar();
+            }
         }
     </script>
 </body>
