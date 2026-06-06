@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Traffic Escape! 50 Levels</title>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #eef2f5;
+            --board-bg: #ffffff;
+            --cell-bg: #f0f3f5;
+            --text-main: #2c3e50;
+            --text-sub: #7f8c8d;
+        }
+
+        body {
+            margin: 0; padding: 0;
+            background: var(--bg-color);
+            font-family: 'Nunito', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            color: var(--text-main);
+            overflow: hidden;
+            touch-action: none;
+        }
+
+        #game-container {
+            display: flex; flex-direction: column;
+            align-items: center; gap: 20px;
+            /* 画面サイズに応じた自動縮小の基準点 */
+            transform-origin: center center; 
+            transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+        }
+
+        .header { text-align: center; }
+        .header h1 {
+            margin: 0; font-size: 34px; color: var(--text-main);
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+        }
+        .level-info {
+            font-size: 18px; color: var(--text-sub); font-weight: bold;
+            margin-top: 5px; background: rgba(0,0,0,0.05);
+            display: inline-block; padding: 6px 20px; border-radius: 20px;
+        }
+
+        #board-wrapper {
+            position: relative; background: var(--board-bg);
+            padding: var(--gap); border-radius: 24px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.1), 0 5px 15px rgba(0,0,0,0.05);
+        }
+
+        #grid-bg {
+            display: grid;
+            grid-template-columns: repeat(var(--grid-size), var(--cell-size));
+            grid-template-rows: repeat(var(--grid-size), var(--cell-size));
+            gap: var(--gap);
+        }
+
+        .grid-cell {
+            background: var(--cell-bg);
+            border-radius: 12px;
+            box-shadow: inset 0 2px 5px rgba(0,0,0,0.05);
+        }
+
+        #cars-container {
+            position: absolute; top: var(--gap); left: var(--gap);
+            width: calc(100% - var(--gap) * 2); height: calc(100% - var(--gap) * 2);
+            pointer-events: none;
+        }
+
+        /* --- 車のスタイリング --- */
+        .car {
+            position: absolute; top: 0; left: 0;
+            width: var(--cell-size); height: var(--cell-size);
+            pointer-events: auto;
+            transform: translate(var(--x), var(--y));
+            transition: transform 0.8s cubic-bezier(0.4, -0.3, 0.2, 1), opacity 0.6s ease;
+            cursor: pointer; z-index: 10;
+            display: flex; justify-content: center; align-items: center;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .car-inner {
+            width: 80%; height: 95%;
+            background: var(--color); border-radius: 14px;
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            box-shadow: 0 6px 0 var(--color-dark), 0 10px 15px rgba(0,0,0,0.2);
+            transform: rotate(var(--rot)) scale(var(--scale, 1));
+            transition: transform 0.1s ease, box-shadow 0.1s ease;
+            position: relative;
+        }
+
+        .car-window {
+            position: absolute; top: 12%; width: 70%; height: 22%;
+            background: rgba(255, 255, 255, 0.35); border-radius: 4px;
+        }
+
+        .car-inner::after {
+            content: '▲'; color: rgba(255, 255, 255, 0.95);
+            font-size: 22px; margin-top: 14px; text-shadow: 0 2px 2px rgba(0,0,0,0.2);
+        }
+
+        .car:active .car-inner {
+            --scale: 0.92;
+            box-shadow: 0 2px 0 var(--color-dark), 0 4px 8px rgba(0,0,0,0.2);
+            transform: rotate(var(--rot)) scale(var(--scale)) translateY(4px);
+        }
+
+        /* ぶつかるときのリアルな揺れ */
+        @keyframes bump {
+            0%, 100% { transform: rotate(var(--rot)) scale(var(--scale, 1)) translateY(0); }
+            20% { transform: rotate(var(--rot)) scale(var(--scale, 1)) translateY(-12px); }
+            45% { transform: rotate(var(--rot)) scale(var(--scale, 1)) translateY(6px); }
+            70% { transform: rotate(var(--rot)) scale(var(--scale, 1)) translateY(-4px); }
+            85% { transform: rotate(var(--rot)) scale(var(--scale, 1)) translateY(2px); }
+        }
+
+        .car.bump .car-inner {
+            animation: bump 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+        }
+
+        /* --- 煙（排気ガス）エフェクト --- */
+        .smoke-particle {
+            position: absolute;
+            width: 16px; height: 16px;
+            background: #bdc3c7;
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 5;
+            opacity: 0.8;
+            filter: blur(2px);
+            animation: smokeAnim 0.6s ease-out forwards;
+        }
+
+        @keyframes smokeAnim {
+            0% { transform: scale(0.5) translate(0, 0); opacity: 0.8; }
+            100% { transform: scale(2.5) var(--smoke-end); opacity: 0; }
+        }
+
+        /* UIボタン・モーダル */
+        #reset-btn {
+            background: #ffffff; border: none; padding: 14px 28px;
+            font-size: 16px; font-weight: 900; color: var(--text-main);
+            border-radius: 30px; cursor: pointer;
+            box-shadow: 0 4px 0 #dfe6e9, 0 8px 15px rgba(0,0,0,0.05);
+            transition: all 0.1s ease; display: flex; align-items: center; gap: 8px;
+            font-family: 'Nunito', sans-serif;
+        }
+        #reset-btn:active { transform: translateY(4px); box-shadow: 0 0px 0 #dfe6e9; }
+
+        .modal {
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.4); display: flex; justify-content: center; align-items: center;
+            z-index: 100; opacity: 1; transition: opacity 0.3s ease; backdrop-filter: blur(4px);
+        }
+        .modal.hidden { opacity: 0; pointer-events: none; }
+        .modal-content {
+            background: white; padding: 40px 50px; border-radius: 28px; text-align: center;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.2); transform: scale(1);
+            transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        .modal.hidden .modal-content { transform: scale(0.8); }
+        .modal-content h2 { margin: 0 0 25px 0; color: var(--text-main); font-size: 32px; }
+
+        #modal-btn {
+            background: #2ed573; border: none; padding: 16px 36px;
+            font-size: 20px; font-weight: 900; color: white; border-radius: 40px;
+            cursor: pointer; box-shadow: 0 6px 0 #21b960, 0 10px 20px rgba(46, 213, 115, 0.3);
+            transition: all 0.1s ease; font-family: 'Nunito', sans-serif;
+        }
+        #modal-btn:active { transform: translateY(6px); box-shadow: 0 0px 0 #21b960; }
+    </style>
+</head>
+<body>
+
+    <div id="game-container">
+        <div class="header">
+            <h1>Traffic Escape!</h1>
+            <div class="level-info">Level <span id="level-display">1</span> / 50</div>
+        </div>
+        
+        <div id="board-wrapper">
+            <div id="grid-bg"></div>
+            <div id="cars-container"></div>
+        </div>
+        
+        <button id="reset-btn">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.59-9.5l5.8 5.8"/></svg>
+            Restart
+        </button>
+    </div>
+
+    <div id="modal" class="modal hidden">
+        <div class="modal-content">
+            <h2 id="modal-title">Level Cleared! 🎉</h2>
+            <button id="modal-btn">Next Level</button>
+        </div>
+    </div>
+
+    <script>
+        const MAX_LEVEL = 50;
+        const CELL_SIZE = 65;
+        const GAP = 10;
+
+        const colors = {
+            red: { main: '#ff4757', dark: '#d63031' },
+            blue: { main: '#1e90ff', dark: '#0984e3' },
+            green: { main: '#2ed573', dark: '#21b960' },
+            orange: { main: '#ffa502', dark: '#e67e22' },
+            purple: { main: '#9b59b6', dark: '#8e44ad' },
+            cyan: { main: '#00cec9', dark: '#00b894' },
+            pink: { main: '#fd79a8', dark: '#e84393' }
+        };
+
+        // 100%確実に解ける盤面を生成するアルゴリズム（手動配置を撤廃し、全レベルに適用）
+        function generateLevelData(levelIndex) {
+            // レベルに応じて盤面サイズ（4x4 〜 8x8）と車の密度を調整
+            const size = Math.min(8, 4 + Math.floor(levelIndex / 10)); 
+            const maxCars = Math.floor(size * size * 0.7);
+            const targetCars = Math.min(maxCars, 3 + Math.floor(levelIndex * 1.2));
+
+            let grid = Array(size).fill(0).map(() => Array(size).fill(null));
+            let cars = [];
+            let carId = 1;
+            const dirs = ['up', 'down', 'left', 'right'];
+            const colorKeys = Object.keys(colors);
+
+            // 外側からバックで車を入れる（=逆再生すれば必ず外に出られる）ことでデッドロックを完全に防ぐ
+            for (let i = 0; i < targetCars; i++) {
+                let placed = false;
+                let attempts = 0;
+                
+                while (!placed && attempts < 100) {
+                    attempts++;
+                    let outDir = dirs[Math.floor(Math.random() * dirs.length)];
+                    let line = Math.floor(Math.random() * size);
+                    
+                    let possibleCells = [];
+                    for (let j = 0; j < size; j++) {
+                        let x = (outDir === 'up' || outDir === 'down') ? line : j;
+                        let y = (outDir === 'left' || outDir === 'right') ? line : j;
+                        
+                        if (grid[y][x] !== null) continue;
+                        
+                        // 画面外までのルート上に「既に配置済みの車」がいないか確認
+                        let canReachOutside = true;
+                        if (outDir === 'up') { for (let cy = y - 1; cy >= 0; cy--) if (grid[cy][x]) canReachOutside = false; }
+                        else if (outDir === 'down') { for (let cy = y + 1; cy < size; cy++) if (grid[cy][x]) canReachOutside = false; }
+                        else if (outDir === 'left') { for (let cx = x - 1; cx >= 0; cx--) if (grid[y][cx]) canReachOutside = false; }
+                        else if (outDir === 'right') { for (let cx = x + 1; cx < size; cx++) if (grid[y][cx]) canReachOutside = false; }
+                        
+                        if (canReachOutside) possibleCells.push({x, y});
+                    }
+                    
+                    if (possibleCells.length > 0) {
+                        let cell = possibleCells[Math.floor(Math.random() * possibleCells.length)];
+                        let color = colorKeys[Math.floor(Math.random() * colorKeys.length)];
+                        let car = { id: carId++, x: cell.x, y: cell.y, dir: outDir, color: color };
+                        cars.push(car);
+                        grid[cell.y][cell.x] = car;
+                        placed = true;
+                    }
+                }
+            }
+            return { size, cars };
+        }
+
+        let currentLevelIndex = 0;
+        let gridSize = 5;
+        let activeCars = [];
+        let isAnimating = false; 
+
+        const root = document.documentElement;
+        const gridBg = document.getElementById('grid-bg');
+        const carsContainer = document.getElementById('cars-container');
+        const levelDisplay = document.getElementById('level-display');
+        const modal = document.getElementById('modal');
+
+        function initLevel(index) {
+            currentLevelIndex = index;
+            const level = generateLevelData(index);
+            gridSize = level.size;
+            activeCars = JSON.parse(JSON.stringify(level.cars));
+            isAnimating = false;
+
+            root.style.setProperty('--grid-size', gridSize);
+            root.style.setProperty('--cell-size', `${CELL_SIZE}px`);
+            root.style.setProperty('--gap', `${GAP}px`);
+            levelDisplay.textContent = index + 1;
+
+            renderGrid();
+            renderCars();
+            adjustScale(); // 画面サイズに合わせて拡縮を調整
+        }
+
+        // スマホ画面からはみ出さないように動的に縮小する機能
+        function adjustScale() {
+            const container = document.getElementById('game-container');
+            const boardWidth = (gridSize * CELL_SIZE) + ((gridSize + 1) * GAP);
+            const screenWidth = window.innerWidth;
+            
+            if (boardWidth > screenWidth - 40) {
+                const scale = (screenWidth - 40) / boardWidth;
+                container.style.transform = `scale(${scale})`;
+            } else {
+                container.style.transform = `scale(1)`;
+            }
+        }
+        window.addEventListener('resize', adjustScale);
+
+        function renderGrid() {
+            gridBg.innerHTML = '';
+            for (let i = 0; i < gridSize * gridSize; i++) {
+                const cell = document.createElement('div');
+                cell.className = 'grid-cell';
+                gridBg.appendChild(cell);
+            }
+        }
+
+        function getRotation(dir) {
+            switch(dir) {
+                case 'up': return '0deg';
+                case 'right': return '90deg';
+                case 'down': return '180deg';
+                case 'left': return '-90deg';
+            }
+        }
+
+        function renderCars() {
+            carsContainer.innerHTML = '';
+            activeCars.forEach(car => {
+                const carEl = document.createElement('div');
+                carEl.className = 'car';
+                carEl.id = `car-${car.id}`;
+
+                const xPos = car.x * (CELL_SIZE + GAP);
+                const yPos = car.y * (CELL_SIZE + GAP);
+                carEl.style.setProperty('--x', `${xPos}px`);
+                carEl.style.setProperty('--y', `${yPos}px`);
+
+                const inner = document.createElement('div');
+                inner.className = 'car-inner';
+                inner.style.setProperty('--color', colors[car.color].main);
+                inner.style.setProperty('--color-dark', colors[car.color].dark);
+                inner.style.setProperty('--rot', getRotation(car.dir));
+
+                const windowEl = document.createElement('div');
+                windowEl.className = 'car-window';
+                inner.appendChild(windowEl);
+                carEl.appendChild(inner);
+
+                carEl.addEventListener('click', () => handleCarClick(car, carEl));
+                carsContainer.appendChild(carEl);
+            });
+        }
+
+        function spawnSmoke(carEl, dir) {
+            const xPos = parseFloat(carEl.style.getPropertyValue('--x'));
+            const yPos = parseFloat(carEl.style.getPropertyValue('--y'));
+            
+            for(let i=0; i<4; i++) {
+                const smoke = document.createElement('div');
+                smoke.className = 'smoke-particle';
+                
+                let dx = (Math.random() - 0.5) * 40;
+                let dy = (Math.random() - 0.5) * 40;
+                let startX = xPos + CELL_SIZE/2 - 8; 
+                let startY = yPos + CELL_SIZE/2 - 8;
+                
+                if(dir === 'up') { startY += 25; dy += 45; }
+                if(dir === 'down') { startY -= 25; dy -= 45; }
+                if(dir === 'left') { startX += 25; dx += 45; }
+                if(dir === 'right') { startX -= 25; dx -= 45; }
+                
+                smoke.style.left = `${startX}px`;
+                smoke.style.top = `${startY}px`;
+                smoke.style.setProperty('--smoke-end', `translate(${dx}px, ${dy}px)`);
+                
+                carsContainer.appendChild(smoke);
+                setTimeout(() => smoke.remove(), 600);
+            }
+        }
+
+        function isPathClear(car) {
+            for (let other of activeCars) {
+                if (other.id === car.id) continue;
+                if (car.dir === 'up' && other.x === car.x && other.y < car.y) return false;
+                if (car.dir === 'down' && other.x === car.x && other.y > car.y) return false;
+                if (car.dir === 'left' && other.y === car.y && other.x < car.x) return false;
+                if (car.dir === 'right' && other.y === car.y && other.x > car.x) return false;
+            }
+            return true;
+        }
+
+        function handleCarClick(car, carEl) {
+            if (isAnimating || !activeCars.find(c => c.id === car.id)) return;
+
+            if (isPathClear(car)) {
+                activeCars = activeCars.filter(c => c.id !== car.id);
+                spawnSmoke(carEl, car.dir);
+
+                let targetX = car.x;
+                let targetY = car.y;
+                const distance = gridSize + 5; 
+
+                if (car.dir === 'up') targetY = -distance;
+                if (car.dir === 'down') targetY = distance;
+                if (car.dir === 'left') targetX = -distance;
+                if (car.dir === 'right') targetX = distance;
+
+                carEl.style.setProperty('--x', `${targetX * (CELL_SIZE + GAP)}px`);
+                carEl.style.setProperty('--y', `${targetY * (CELL_SIZE + GAP)}px`);
+                carEl.style.opacity = '0'; 
+
+                if (activeCars.length === 0) {
+                    isAnimating = true;
+                    setTimeout(() => { showModal(); }, 800);
+                }
+
+                setTimeout(() => { carEl.remove(); }, 800);
+
+            } else {
+                carEl.classList.remove('bump');
+                void carEl.offsetWidth; 
+                carEl.classList.add('bump');
+            }
+        }
+
+        function showModal() {
+            modal.classList.remove('hidden');
+            const title = document.getElementById('modal-title');
+            const btn = document.getElementById('modal-btn');
+
+            if (currentLevelIndex < MAX_LEVEL - 1) {
+                title.textContent = "Level Cleared! 🎉";
+                btn.textContent = "Next Level";
+                btn.onclick = () => {
+                    modal.classList.add('hidden');
+                    initLevel(currentLevelIndex + 1);
+                };
+            } else {
+                title.textContent = "All 50 Levels Cleared!! 🏆";
+                btn.textContent = "Play Again";
+                btn.onclick = () => {
+                    modal.classList.add('hidden');
+                    initLevel(0);
+                };
+            }
+        }
+
+        document.getElementById('reset-btn').addEventListener('click', () => {
+            initLevel(currentLevelIndex);
+        });
+
+        initLevel(0);
+    </script>
+</body>
+</html>
+
+
+

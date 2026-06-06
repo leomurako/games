@@ -1,0 +1,687 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Lumina Drop - The Classic Stack (Perfected)</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            background-color: #000;
+            touch-action: none;
+            user-select: none;
+            /* フォントをより細く綺麗に見せる魔法の設定 */
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+        canvas {
+            display: block;
+        }
+        #ui-container {
+            position: absolute;
+            top: 12%;
+            width: 100%;
+            text-align: center;
+            /* Apple製品のUltraLight等が最優先で適用される極細フォント設定 */
+            font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", Helvetica, Arial, sans-serif;
+            pointer-events: none;
+            z-index: 10;
+        }
+        #score-text {
+            color: #ffffff;
+            font-size: 84px;
+            font-weight: 100; /* 極細 */
+            letter-spacing: -2px;
+            text-shadow: 0px 4px 15px rgba(0, 0, 0, 0.15); /* 上品な薄い影 */
+            margin-bottom: 5px;
+        }
+        #best-text {
+            color: rgba(255, 255, 255, 0.5);
+            font-size: 16px;
+            font-weight: 200; /* 極細 */
+            letter-spacing: 2px;
+            margin-bottom: 10px;
+            transition: opacity 0.3s ease;
+            text-shadow: 0px 2px 10px rgba(0, 0, 0, 0.15);
+        }
+        #message-text {
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 20px;
+            font-weight: 300; /* 細字 */
+            letter-spacing: 3px;
+            height: 30px;
+            text-shadow: 0px 2px 10px rgba(0, 0, 0, 0.15);
+        }
+        .perfect {
+            color: #ffffff !important;
+            font-weight: 400 !important;
+            animation: pop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        @keyframes pop {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+            100% { transform: scale(1); }
+        }
+    </style>
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "https://unpkg.com/three@0.158.0/build/three.module.js"
+            }
+        }
+    </script>
+</head>
+<body>
+    <div id="ui-container">
+        <div id="score-text">Tap</div>
+        <div id="best-text">BEST: 0</div>
+        <div id="message-text">TO START</div>
+    </div>
+
+    <script type="module">
+        import * as THREE from 'three';
+
+        // ==========================
+        // 1. サウンド生成 (Wood音とパーフェクト音、巻き戻しクリック音)
+        // ==========================
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+        // 通常時のWood音、またはゲームオーバー音
+        function playSound(isGameOver = false) {
+            if(audioCtx.state === 'suspended') audioCtx.resume();
+            const osc = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+
+            if (isGameOver) {
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(100, audioCtx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(10, audioCtx.currentTime + 0.5);
+                gainNode.gain.setValueAtTime(0.3, audioCtx.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.5);
+                osc.connect(gainNode);
+                gainNode.connect(audioCtx.destination);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.5);
+                return;
+            }
+
+            // Wood（カツッという木の音）
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(800, audioCtx.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(200, audioCtx.currentTime + 0.03);
+
+            gainNode.gain.setValueAtTime(0, audioCtx.currentTime);
+            gainNode.gain.linearRampToValueAtTime(0.6, audioCtx.currentTime + 0.001); 
+            gainNode.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.03); 
+
+            osc.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+            osc.start();
+            osc.stop(audioCtx.currentTime + 0.04);
+        }
+
+        // パーフェクト時の音（一瞬だけ鳴る高くて綺麗なキンッ！という音）
+        function playPerfectSound(combo) {
+            if(audioCtx.state === 'suspended') audioCtx.resume();
+            
+            const gainNode = audioCtx.createGain();
+            gainNode.connect(audioCtx.destination);
+
+            const scale = [0, 2, 4, 7, 9, 12, 14, 16, 19, 21];
+            const noteIndex = Math.min(combo - 1, scale.length - 1);
+            const freq = 1046.5 * Math.pow(Math.pow(2, 1/12), scale[noteIndex]); // C6（かなり高い音）
+
+            const osc1 = audioCtx.createOscillator(); osc1.type = 'sine';
+            const osc2 = audioCtx.createOscillator(); osc2.type = 'sine';
+            const osc3 = audioCtx.createOscillator(); osc3.type = 'triangle'; // 金属的な硬さを出す
+
+            osc1.frequency.value = freq;
+            osc2.frequency.value = freq * 2.756; 
+            osc3.frequency.value = freq * 5.404;
+
+            const g1 = audioCtx.createGain(); g1.gain.value = 0.6;
+            const g2 = audioCtx.createGain(); g2.gain.value = 0.3;
+            const g3 = audioCtx.createGain(); g3.gain.value = 0.15; 
+
+            osc1.connect(g1).connect(gainNode);
+            osc2.connect(g2).connect(gainNode);
+            osc3.connect(g3).connect(gainNode);
+
+            gainNode.gain.setValueAtTime(0, audioCtx.currentTime);
+            gainNode.gain.linearRampToValueAtTime(0.7, audioCtx.currentTime + 0.002); 
+            gainNode.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.15); 
+
+            osc1.start(); osc2.start(); osc3.start();
+            osc1.stop(audioCtx.currentTime + 0.15); 
+            osc2.stop(audioCtx.currentTime + 0.15); 
+            osc3.stop(audioCtx.currentTime + 0.15);
+        }
+
+        // リトライ巻き戻し中の「だらだらだら！」用クリックサウンド
+        function playTickSound() {
+            if(audioCtx.state === 'suspended') audioCtx.resume();
+            const osc = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+            
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(1000, audioCtx.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(300, audioCtx.currentTime + 0.015);
+            
+            gainNode.gain.setValueAtTime(0, audioCtx.currentTime);
+            gainNode.gain.linearRampToValueAtTime(0.2, audioCtx.currentTime + 0.001);
+            gainNode.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.015);
+            
+            osc.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+            osc.start();
+            osc.stop(audioCtx.currentTime + 0.02);
+        }
+
+        // ==========================
+        // 2. Three.js 初期設定
+        // ==========================
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.shadowMap.enabled = true;
+        renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+        renderer.autoClear = false;
+        document.body.appendChild(renderer.domElement);
+
+        // ==========================
+        // 3. 背景専用シーン
+        // ==========================
+        const bgScene = new THREE.Scene();
+        const bgCamera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
+        
+        const bgShader = {
+            uniforms: {
+                color1: { value: new THREE.Color() }, 
+                color2: { value: new THREE.Color() }  
+            },
+            vertexShader: `
+                varying vec2 vUv;
+                void main() {
+                    vUv = uv;
+                    gl_Position = vec4(position, 1.0);
+                }
+            `,
+            fragmentShader: `
+                uniform vec3 color1;
+                uniform vec3 color2;
+                varying vec2 vUv;
+                void main() {
+                    gl_FragColor = vec4(mix(color2, color1, vUv.y), 1.0);
+                }
+            `
+        };
+        const bgMat = new THREE.ShaderMaterial({
+            uniforms: bgShader.uniforms,
+            vertexShader: bgShader.vertexShader,
+            fragmentShader: bgShader.fragmentShader,
+            depthWrite: false
+        });
+        const bgQuad = new THREE.Mesh(new THREE.PlaneGeometry(2, 2), bgMat);
+        bgScene.add(bgQuad);
+
+        // ==========================
+        // 4. メインシーンとカメラ (ブロック一回り大きく表示)
+        // ==========================
+        const scene = new THREE.Scene();
+        
+        let currentD = 3.2; 
+        let targetD = 3.2;  
+        const aspect = window.innerWidth / window.innerHeight;
+        const camera = new THREE.OrthographicCamera(-currentD * aspect, currentD * aspect, currentD, -currentD, 1, 100);
+        camera.position.set(10, 10, 10);
+        camera.lookAt(0, 0, 0);
+
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.7);
+        scene.add(ambientLight);
+        
+        const directionalLight = new THREE.DirectionalLight(0xffffff, 0.6);
+        directionalLight.position.set(15, 25, 10); 
+        directionalLight.castShadow = true;
+        directionalLight.shadow.mapSize.width = 2048;
+        directionalLight.shadow.mapSize.height = 2048;
+        directionalLight.shadow.camera.left = -15;
+        directionalLight.shadow.camera.right = 15;
+        directionalLight.shadow.camera.top = 15;
+        directionalLight.shadow.camera.bottom = -15;
+        scene.add(directionalLight);
+
+        // ==========================
+        // 5. 控えめな空気感パーティクル
+        // ==========================
+        const particleCount = 200;
+        const posArray = new Float32Array(particleCount * 3);
+        for(let i = 0; i < particleCount * 3; i+=3) {
+            posArray[i] = (Math.random() - 0.5) * 60; 
+            posArray[i+1] = Math.random() * 200 - 20; 
+            posArray[i+2] = (Math.random() - 0.5) * 60; 
+        }
+        const particlesGeo = new THREE.BufferGeometry();
+        particlesGeo.setAttribute('position', new THREE.BufferAttribute(posArray, 3));
+        const particlesMat = new THREE.PointsMaterial({
+            size: 0.1,
+            color: 0xffffff,
+            transparent: true,
+            opacity: 0.3, 
+            blending: THREE.AdditiveBlending,
+            depthWrite: false
+        });
+        const particlesMesh = new THREE.Points(particlesGeo, particlesMat);
+        scene.add(particlesMesh);
+
+        // ==========================
+        // 6. ゲーム変数
+        // ==========================
+        let gameStarted = false;
+        let gameOver = false;
+        let resetting = false; 
+        let stack = [];
+        let overhangs = [];
+        let ripples = []; 
+        let currentDirection = 'x';
+        let combo = 0;
+        
+        const blockHeight = 1;
+        const originalWidth = 5;
+        const originalDepth = 5;
+        const perfectTolerance = 0.15;
+
+        // ★ カメラシェイク用の変数
+        let shakeStrength = 0;
+
+        // ★ 影をゆっくり動かすための角度変数
+        let lightAngle = 0;
+
+        let bestScore = parseInt(localStorage.getItem('lumina_best_score')) || 0;
+        const bestText = document.getElementById('best-text');
+        bestText.innerText = `BEST: ${bestScore}`;
+
+        let baseHue = Math.random() * 360; 
+        let currentHue = baseHue;
+        let targetHue = baseHue;
+        let blocksSinceTargetReached = 0; 
+
+        function updateEnvironment(hue) {
+            const h = (hue % 360) / 360;
+            const topColor = new THREE.Color().setHSL(h, 0.4, 0.85);
+            const bottomColor = new THREE.Color().setHSL((h + 0.1) % 1.0, 0.5, 0.75);
+            bgMat.uniforms.color1.value.copy(topColor);
+            bgMat.uniforms.color2.value.copy(bottomColor);
+        }
+
+        // ==========================
+        // 7. ブロック生成
+        // ==========================
+        function createBlock(width, depth, x, y, z) {
+            const geometry = new THREE.BoxGeometry(width, blockHeight, depth);
+            
+            const hue = (currentHue + 20) % 360; 
+            const color = new THREE.Color().setHSL(hue / 360, 0.6, 0.65); 
+            
+            const material = new THREE.MeshLambertMaterial({ color: color });
+            
+            const mesh = new THREE.Mesh(geometry, material);
+            mesh.position.set(x, y, z);
+            mesh.width = width;
+            mesh.depth = depth;
+            
+            mesh.castShadow = true;
+            mesh.receiveShadow = true;
+            
+            scene.add(mesh);
+            return mesh;
+        }
+
+        function createSquareRipple(width, depth, x, y, z) {
+            const geo = new THREE.PlaneGeometry(width, depth);
+            const edges = new THREE.EdgesGeometry(geo);
+            
+            for (let i = 0; i < 3; i++) {
+                const mat = new THREE.LineBasicMaterial({ 
+                    color: 0xffffff, 
+                    transparent: true, 
+                    opacity: 0.8 
+                });
+                const line = new THREE.LineSegments(edges, mat);
+                
+                line.rotation.x = -Math.PI / 2;
+                line.position.set(x, y - blockHeight / 2 + 0.02, z);
+                
+                line.userData = {
+                    scaleSpeed: 0.02 + (i * 0.015),
+                    opacitySpeed: 0.02 + (i * 0.005)
+                };
+                
+                scene.add(line);
+                ripples.push(line);
+            }
+        }
+
+        function startResetAnimation() {
+            resetting = true;
+            gameOver = false;
+
+            overhangs.forEach(b => { scene.remove(b); b.geometry.dispose(); b.material.dispose(); });
+            ripples.forEach(r => { scene.remove(r); r.geometry.dispose(); r.material.dispose(); });
+            overhangs = [];
+            ripples = [];
+
+            document.getElementById('message-text').innerText = "";
+            bestText.style.opacity = "0"; 
+        }
+
+        function finalizeReset() {
+            const oldBase = stack.pop();
+            if (oldBase) {
+                scene.remove(oldBase);
+                oldBase.geometry.dispose();
+                oldBase.material.dispose();
+            }
+
+            gameStarted = false;
+            currentDirection = 'x';
+            combo = 0;
+            
+            baseHue = Math.random() * 360;
+            currentHue = baseHue;
+            targetHue = baseHue;
+            blocksSinceTargetReached = 0;
+            
+            currentD = 3.2;
+            targetD = 3.2;
+
+            camera.position.set(10, 10, 10);
+            camera.lookAt(0, 0, 0);
+            directionalLight.position.y = 25;
+
+            const baseBlock = createBlock(originalWidth, originalDepth, 0, 0, 0);
+            stack.push(baseBlock);
+            updateEnvironment(currentHue);
+
+            document.getElementById('score-text').innerText = "Tap";
+            document.getElementById('best-text').innerText = `BEST: ${bestScore}`;
+            document.getElementById('best-text').style.opacity = "1"; 
+            document.getElementById('message-text').innerText = "TO START";
+            document.getElementById('message-text').className = "";
+        }
+
+        const baseBlock = createBlock(originalWidth, originalDepth, 0, 0, 0);
+        stack.push(baseBlock);
+        updateEnvironment(currentHue);
+
+        function addLayer(width, depth, x, z) {
+            const y = stack.length * blockHeight;
+            
+            if (Math.abs(targetHue - currentHue) < 1) {
+                blocksSinceTargetReached++;
+                if (blocksSinceTargetReached >= 8) {
+                    targetHue = currentHue + 60 + Math.random() * 60; 
+                    blocksSinceTargetReached = 0;
+                }
+            }
+
+            const newLayer = createBlock(width, depth, x, y, z);
+            currentDirection = currentDirection === 'x' ? 'z' : 'x';
+            newLayer.direction = currentDirection;
+            newLayer.speed = 0.16 + (stack.length * 0.003); 
+            newLayer.position[currentDirection] = -12;
+            stack.push(newLayer);
+        }
+
+        // ==========================
+        // 8. タップ時のロジック
+        // ==========================
+        window.addEventListener('pointerdown', () => {
+            if (resetting) return;
+
+            if (gameOver) {
+                startResetAnimation();
+                return;
+            }
+
+            const scoreText = document.getElementById('score-text');
+            const messageText = document.getElementById('message-text');
+
+            if (!gameStarted) {
+                gameStarted = true;
+                scoreText.innerText = `0`;
+                bestText.style.opacity = "0"; 
+                addLayer(originalWidth, originalDepth, 0, 0);
+                return;
+            }
+
+            const topLayer = stack[stack.length - 1];
+            const previousLayer = stack[stack.length - 2];
+            const direction = topLayer.direction;
+            
+            let delta = topLayer.position[direction] - previousLayer.position[direction];
+            let overhangSize = Math.abs(delta);
+            let size = direction === 'x' ? topLayer.width : topLayer.depth;
+            let overlap = size - overhangSize;
+
+            if (overlap <= 0) {
+                gameOver = true;
+                playSound(true); 
+                
+                // ★ ゲームオーバー時にマイルドな画面揺れ（0.25）を発生
+                shakeStrength = 0.25;
+
+                const finalScore = stack.length - 2;
+                scoreText.innerHTML = `${finalScore}`;
+
+                if (finalScore > bestScore) {
+                    bestScore = finalScore;
+                    localStorage.setItem('lumina_best_score', bestScore);
+                    messageText.innerText = "NEW BEST SCORE!";
+                    messageText.className = "perfect"; 
+                } else {
+                    messageText.innerText = "TAP TO RESTART";
+                    messageText.className = "";
+                }
+                
+                bestText.innerText = `BEST: ${bestScore}`;
+                bestText.style.opacity = "1"; 
+                return;
+            }
+
+            if (overhangSize <= perfectTolerance) {
+                combo++;
+                overhangSize = 0; overlap = size; delta = 0;
+                topLayer.position[direction] = previousLayer.position[direction]; 
+                
+                messageText.innerText = "";
+                
+                playPerfectSound(combo); 
+                createSquareRipple(overlap, direction === 'z' ? overlap : topLayer.depth, topLayer.position.x, topLayer.position.y, topLayer.position.z);
+
+            } else {
+                combo = 0;
+                messageText.innerText = "";
+                messageText.className = "";
+                
+                // ★ 削られた時に微小なカメラ揺れを発生（邪魔しない程度）
+                // 削り幅が大きいほど、揺れも少し強くなります
+                shakeStrength = Math.min(0.12, overhangSize * 0.04 + 0.02);
+
+                playSound(); 
+            }
+
+            const newWidth = direction === 'x' ? overlap : topLayer.width;
+            const newDepth = direction === 'z' ? overlap : topLayer.depth;
+            const newX = direction === 'x' ? topLayer.position.x - delta / 2 : topLayer.position.x;
+            const newZ = direction === 'z' ? topLayer.position.z - delta / 2 : topLayer.position.z;
+
+            scene.remove(topLayer);
+            const placedLayer = createBlock(newWidth, newDepth, newX, topLayer.position.y, newZ);
+            stack.pop();
+            stack.push(placedLayer);
+
+            if (overhangSize > 0) {
+                const overhangX = direction === 'x' ? newX + (size / 2 * Math.sign(delta)) : newX;
+                const overhangZ = direction === 'z' ? newZ + (size / 2 * Math.sign(delta)) : newZ;
+                const overhangWidth = direction === 'x' ? overhangSize : topLayer.width;
+                const overhangDepth = direction === 'z' ? overhangSize : topLayer.depth;
+
+                const overhangLayer = createBlock(overhangWidth, overhangDepth, overhangX, topLayer.position.y, overhangZ);
+                overhangs.push(overhangLayer);
+            }
+
+            scoreText.innerText = `${stack.length - 1}`;
+            addLayer(newWidth, newDepth, newX, newZ);
+        });
+
+        // ==========================
+        // 9. アニメーションループ
+        // ==========================
+        function animate() {
+            requestAnimationFrame(animate);
+
+            // 色を一定速度で滑らかに近づける
+            if (currentHue < targetHue) {
+                currentHue += 0.2; 
+                if (currentHue > targetHue) currentHue = targetHue;
+            }
+            updateEnvironment(currentHue);
+
+            // ★ 影をゆっくり動かすための公転処理 (非常に滑らか)
+            lightAngle += 0.0004; 
+            const lightRadius = 18;
+            directionalLight.position.x = Math.cos(lightAngle) * lightRadius;
+            directionalLight.position.z = Math.sin(lightAngle) * lightRadius;
+
+            // カメラのズームアウト制御
+            const maxD = 6.0; 
+            targetD = Math.min(maxD, 3.2 + (stack.length * 0.28));
+            currentD += (targetD - currentD) * 0.05;
+            
+            const aspect = window.innerWidth / window.innerHeight;
+            camera.left = -currentD * aspect;
+            camera.right = currentD * aspect;
+            camera.top = currentD;
+            camera.bottom = -currentD;
+            camera.updateProjectionMatrix();
+
+            // ブロックの往復移動
+            if (gameStarted && !gameOver && !resetting) {
+                const topLayer = stack[stack.length - 1];
+                topLayer.position[topLayer.direction] += topLayer.speed;
+                
+                const limit = 10;
+                if (topLayer.position[topLayer.direction] > limit) {
+                    topLayer.speed = -Math.abs(topLayer.speed);
+                } else if (topLayer.position[topLayer.direction] < -limit) {
+                    topLayer.speed = Math.abs(topLayer.speed);
+                }
+            }
+
+            // リトライ巻き戻しアニメーション
+            if (resetting) {
+                if (stack.length > 1) {
+                    let activeBlock = stack[stack.length - 1];
+                    
+                    if (activeBlock.scale.x === 1) {
+                        playTickSound();
+                    }
+
+                    activeBlock.scale.x -= 0.4;
+                    activeBlock.scale.y -= 0.4;
+                    activeBlock.scale.z -= 0.4;
+
+                    if (activeBlock.scale.x <= 0) {
+                        scene.remove(activeBlock);
+                        activeBlock.geometry.dispose();
+                        activeBlock.material.dispose();
+                        stack.pop();
+                        
+                        document.getElementById('score-text').innerText = stack.length - 1;
+                    }
+                } else {
+                    resetting = false;
+                    finalizeReset();
+                }
+            }
+
+            overhangs = overhangs.filter(block => {
+                block.position.y -= 0.15;
+                if (block.position.y < camera.position.y - 15) {
+                    scene.remove(block);
+                    block.geometry.dispose();
+                    block.material.dispose();
+                    return false;
+                }
+                return true;
+            });
+
+            ripples = ripples.filter(r => {
+                r.scale.x += r.userData.scaleSpeed;
+                r.scale.y += r.userData.scaleSpeed;
+                r.material.opacity -= r.userData.opacitySpeed;
+                if (r.material.opacity <= 0) {
+                    scene.remove(r);
+                    r.geometry.dispose();
+                    r.material.dispose();
+                    return false;
+                }
+                return true;
+            });
+
+            const positions = particlesMesh.geometry.attributes.position.array;
+            for(let i=1; i<particleCount*3; i+=3) {
+                positions[i] += 0.02; 
+                if(positions[i] > camera.position.y + 30) {
+                    positions[i] = camera.position.y - 30; 
+                }
+            }
+            particlesMesh.geometry.attributes.position.needsUpdate = true;
+
+            // カメラの上昇・下降追従
+            if (stack.length > 0) {
+                const targetY = (stack.length - 1) * blockHeight + 10;
+                camera.position.y += (targetY - camera.position.y) * 0.1;
+                camera.lookAt(0, camera.position.y - 10, 0);
+                
+                directionalLight.position.y += (targetY + 25 - directionalLight.position.y) * 0.1;
+            }
+
+            // ★ レンダリング直前にカメラを揺らす処理（邪魔しないマイルドな揺れ）
+            const originalCamPos = camera.position.clone();
+            if (shakeStrength > 0.01) {
+                camera.position.x += (Math.random() - 0.5) * shakeStrength;
+                camera.position.y += (Math.random() - 0.5) * shakeStrength;
+                camera.position.z += (Math.random() - 0.5) * shakeStrength;
+                shakeStrength *= 0.85; // 徐々に減衰
+            } else {
+                shakeStrength = 0;
+            }
+
+            renderer.clear();
+            renderer.render(bgScene, bgCamera);
+            renderer.render(scene, camera);
+
+            // 描画後、カメラ位置を元に戻す
+            camera.position.copy(originalCamPos);
+        }
+        animate();
+
+        window.addEventListener('resize', () => {
+            const aspect = window.innerWidth / window.innerHeight;
+            camera.left = -currentD * aspect;
+            camera.right = currentD * aspect;
+            camera.top = currentD;
+            camera.bottom = -currentD;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+    </script>
+</body>
+</html>
+
+
+
+
+

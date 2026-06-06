@@ -1,0 +1,713 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Sputnika Style Game</title>
+<!-- 物理演算ライブラリ Matter.js を読み込み -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/matter-js/0.19.0/matter.min.js"></script>
+<style>
+  /* リセットと基本スタイル */
+  body, html {
+    margin: 0; padding: 0; width: 100%; height: 100%;
+    overflow: hidden; background-color: #0b0d17;
+    font-family: 'Helvetica Neue', Arial, sans-serif;
+    user-select: none; -webkit-user-select: none; touch-action: none;
+  }
+  
+  /* 宇宙空間の背景 */
+  #bg {
+    position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+    background: radial-gradient(circle at center, #1c1f3a 0%, #050510 100%);
+    z-index: 1;
+  }
+  
+  /* ゲームキャンバス */
+  canvas {
+    position: absolute; top: 0; left: 0; z-index: 2;
+  }
+  
+  /* UIコンテナ */
+  .ui-container {
+    position: absolute; z-index: 3; pointer-events: none;
+    display: flex; justify-content: space-between;
+    width: 100%; padding: 20px; box-sizing: border-box;
+  }
+  .glass-panel {
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 15px;
+    padding: 15px 25px;
+    color: #fff;
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.5);
+  }
+  .score-label, .next-label {
+    font-size: 11px; color: #8fa3b0; letter-spacing: 2px;
+    text-transform: uppercase; margin-bottom: 5px; font-weight: bold;
+  }
+  .score-value {
+    font-size: 28px; font-weight: bold; font-family: monospace;
+    text-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+  }
+  
+  /* NEXT惑星表示エリア */
+  .next-planet-container {
+    width: 50px; height: 50px;
+    display: flex; justify-content: center; align-items: center;
+  }
+  .next-planet {
+    border-radius: 50%;
+    box-shadow: inset -4px -4px 8px rgba(0,0,0,0.6), 0 0 10px rgba(255,255,255,0.2);
+  }
+
+  /* 進化図 (右側に配置) */
+  .evolution-panel {
+    position: absolute;
+    right: 20px;
+    top: 50%;
+    transform: translateY(-50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 15px 10px;
+    z-index: 3;
+    pointer-events: none;
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 20px;
+  }
+  .evo-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  .evo-circle {
+    border-radius: 50%;
+    box-shadow: inset -2px -2px 4px rgba(0,0,0,0.6), 0 0 5px rgba(255,255,255,0.2);
+  }
+  .evo-arrow {
+    color: rgba(255,255,255,0.3);
+    font-size: 10px;
+    margin: 3px 0;
+  }
+
+  /* 操作説明 */
+  #instruction {
+    position: absolute; bottom: 8%; width: 100%;
+    text-align: center; color: rgba(255,255,255,0.6);
+    font-size: 14px; letter-spacing: 2px;
+    z-index: 3; pointer-events: none;
+    animation: pulse 2.5s infinite;
+  }
+  @keyframes pulse { 0% {opacity: 0.2;} 50% {opacity: 1;} 100% {opacity: 0.2;} }
+
+  /* ゲームオーバー画面 */
+  #game-over {
+    position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(5, 5, 16, 0.85); backdrop-filter: blur(5px);
+    z-index: 10; display: flex; flex-direction: column;
+    justify-content: center; align-items: center; color: white;
+    opacity: 0; pointer-events: none; transition: opacity 0.5s;
+  }
+  #game-over.active {
+    opacity: 1; pointer-events: auto;
+  }
+  #game-over h1 {
+    font-size: 48px; letter-spacing: 5px; margin-bottom: 10px;
+    text-shadow: 0 0 20px #ff3366, 0 0 40px #ff3366;
+  }
+  #game-over p {
+    font-size: 24px; margin-bottom: 40px; font-family: monospace;
+  }
+  #restart-btn {
+    background: linear-gradient(135deg, #ff3366, #ff9933);
+    border: none; padding: 15px 50px; border-radius: 30px;
+    color: white; font-size: 18px; font-weight: bold; letter-spacing: 2px;
+    cursor: pointer; box-shadow: 0 5px 20px rgba(255, 51, 102, 0.4);
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+  #restart-btn:hover { transform: scale(1.05); box-shadow: 0 5px 25px rgba(255, 51, 102, 0.6); }
+  #restart-btn:active { transform: scale(0.95); }
+</style>
+</head>
+<body>
+
+<div id="bg"></div>
+
+<!-- UI レイヤー -->
+<div class="ui-container">
+  <div class="glass-panel">
+    <div class="score-label">SCORE</div>
+    <div class="score-value" id="score">0</div>
+  </div>
+  <div class="glass-panel" style="display: flex; flex-direction: column; align-items: center;">
+    <div class="next-label">NEXT</div>
+    <div class="next-planet-container">
+      <div id="next-planet-preview" class="next-planet"></div>
+    </div>
+  </div>
+</div>
+
+<!-- 進化図パネル -->
+<div class="glass-panel evolution-panel" id="evolution-panel"></div>
+
+<div id="instruction">引っ張って軌道に投げ入れる</div>
+
+<div id="game-over">
+  <h1>GAME OVER</h1>
+  <p>SCORE: <span id="final-score">0</span></p>
+  <button id="restart-btn">RESTART MISSION</button>
+</div>
+
+<script>
+// --- 1. 定数とエンジンの初期設定 ---
+const Engine = Matter.Engine,
+      Render = Matter.Render,
+      Runner = Matter.Runner,
+      Bodies = Matter.Bodies,
+      Composite = Matter.Composite,
+      Events = Matter.Events,
+      Body = Matter.Body;
+
+// imgSrc に画像のURLを入れると惑星が画像に変わります。
+const PLANETS = [
+  { level: 0, r: 12, mass: 1,   score: 2,    colors: ['#D9D9D9', '#737373'], imgSrc: '' }, 
+  { level: 1, r: 18, mass: 1.5, score: 4,    colors: ['#A8B8D0', '#425266'], imgSrc: '' }, 
+  { level: 2, r: 26, mass: 2,   score: 8,    colors: ['#FFF0B3', '#CCA300'], imgSrc: '' }, 
+  { level: 3, r: 36, mass: 2.5, score: 16,   colors: ['#A5C8E4', '#345A7A'], imgSrc: '' }, 
+  { level: 4, r: 48, mass: 3,   score: 32,   colors: ['#FF8A66', '#A62B17'], imgSrc: '' }, 
+  { level: 5, r: 62, mass: 4,   score: 64,   colors: ['#F9E79F', '#B28E00'], imgSrc: '' }, 
+  { level: 6, r: 78, mass: 5,   score: 128,  colors: ['#5DADE2', '#1B4F72'], imgSrc: '' }, 
+  { level: 7, r: 96, mass: 6,   score: 256,  colors: ['#48C9B0', '#0E6251'], imgSrc: '' }, 
+  { level: 8, r: 116,mass: 8,   score: 512,  colors: ['#A2D9CE', '#117A65'], imgSrc: '' }, 
+  { level: 9, r: 138,mass: 10,  score: 1024, colors: ['#F5CBA7', '#935116'], imgSrc: '' }, 
+  { level: 10,r: 162,mass: 12,  score: 2048, colors: ['#ff4d4d', '#800000'], imgSrc: '' }  
+];
+
+PLANETS.forEach(p => {
+  if (p.imgSrc) {
+    p.imgObj = new Image();
+    p.imgObj.src = p.imgSrc;
+  }
+});
+
+const BASE_GRAVITY = 0.0006;
+let currentGravity = BASE_GRAVITY;
+let gravityMultiplier = 1.0;
+let gameFrameCount = 0;
+const FORCE_MULTIPLIER = -0.018;
+
+let engine, render, runner;
+let width, height, centerX, centerY, playAreaRadius;
+let coreBody; 
+const CORE_RADIUS = 12;
+
+let score = 0;
+let nextPlanetLevel = 0;
+let currentPlanet = null; 
+let state = 'waiting'; 
+let dragStart = { x: 0, y: 0 };
+let dragCurrent = { x: 0, y: 0 };
+let gameOverTimer = 0;
+let isGameOver = false;
+
+let launchedPlanet = null;
+let isNextReady = true;
+let particles = [];
+
+// --- 2. 初期化と起動 ---
+function init() {
+  width = window.innerWidth;
+  height = window.innerHeight;
+  centerX = width / 2;
+  centerY = height / 2;
+  playAreaRadius = Math.min(width, height) * 0.4;
+
+  engine = Engine.create();
+  engine.world.gravity.x = 0;
+  engine.world.gravity.y = 0;
+
+  render = Render.create({
+    element: document.body,
+    engine: engine,
+    options: {
+      width: width, height: height,
+      wireframes: false, background: 'transparent'
+    }
+  });
+
+  Events.on(render, 'afterRender', customRender);
+
+  runner = Runner.create();
+  Runner.run(runner, engine);
+  Render.run(render);
+
+  coreBody = Bodies.circle(centerX, centerY, CORE_RADIUS, {
+    isStatic: true,
+    restitution: 0.0, 
+    friction: 1.0,    
+    render: { visible: false }
+  });
+  Composite.add(engine.world, coreBody);
+
+  setupInteractions();
+  setupCollisions();
+  createEvolutionTree(); // 進化図の生成
+  
+  Events.on(engine, 'beforeUpdate', applyCentralGravity);
+  Events.on(engine, 'beforeUpdate', checkGameOver);
+
+  window.addEventListener('resize', handleResize);
+
+  resetGame();
+}
+
+// 進化図パネルを生成する関数
+function createEvolutionTree() {
+  const panel = document.getElementById('evolution-panel');
+  panel.innerHTML = ''; // リセット
+  
+  PLANETS.forEach((p, index) => {
+    const item = document.createElement('div');
+    item.className = 'evo-item';
+    
+    const circle = document.createElement('div');
+    circle.className = 'evo-circle';
+    
+    // スケールを調整して表示（最小10px〜最大25px）
+    const size = 10 + (index * 1.5); 
+    circle.style.width = size + 'px';
+    circle.style.height = size + 'px';
+    
+    if (p.imgSrc) {
+      circle.style.background = `url('${p.imgSrc}') center/cover no-repeat`;
+    } else {
+      circle.style.background = `radial-gradient(circle at 30% 30%, ${p.colors[0]}, ${p.colors[1]})`;
+    }
+    
+    item.appendChild(circle);
+    panel.appendChild(item);
+    
+    if (index < PLANETS.length - 1) {
+      const arrow = document.createElement('div');
+      arrow.className = 'evo-arrow';
+      arrow.innerText = '▼';
+      panel.appendChild(arrow);
+    }
+  });
+}
+
+// --- 3. 描画ロジック ---
+function customRender() {
+  const ctx = render.context;
+  
+  ctx.beginPath();
+  ctx.arc(centerX, centerY, playAreaRadius, 0, 2 * Math.PI);
+  ctx.strokeStyle = 'rgba(255, 255, 255, 0.05)';
+  ctx.lineWidth = 2;
+  ctx.setLineDash([8, 12]);
+  ctx.stroke();
+  ctx.setLineDash([]);
+  
+  ctx.beginPath();
+  ctx.arc(centerX, centerY, CORE_RADIUS, 0, 2 * Math.PI);
+  ctx.fillStyle = '#ffffff';
+  ctx.shadowBlur = 15;
+  ctx.shadowColor = '#e0f7fa';
+  ctx.fill();
+  ctx.shadowBlur = 0;
+
+  const bodies = Composite.allBodies(engine.world);
+  bodies.forEach(body => {
+    if (body.level !== undefined && !body.isMerging) {
+      const p = PLANETS[body.level];
+      ctx.save();
+      ctx.translate(body.position.x, body.position.y);
+      ctx.rotate(body.angle);
+      
+      if (p.imgObj && p.imgObj.complete) {
+        ctx.beginPath();
+        ctx.arc(0, 0, p.r, 0, 2 * Math.PI);
+        ctx.clip();
+        ctx.drawImage(p.imgObj, -p.r, -p.r, p.r * 2, p.r * 2);
+        
+        ctx.beginPath();
+        ctx.arc(-p.r*0.3, -p.r*0.3, p.r*0.2, 0, 2 * Math.PI);
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.15)';
+        ctx.fill();
+      } else {
+        const grad = ctx.createRadialGradient(-p.r*0.3, -p.r*0.3, p.r*0.1, 0, 0, p.r);
+        grad.addColorStop(0, p.colors[0]);
+        grad.addColorStop(1, p.colors[1]);
+        
+        ctx.beginPath();
+        ctx.arc(0, 0, p.r, 0, 2 * Math.PI);
+        ctx.fillStyle = grad;
+        ctx.fill();
+        
+        ctx.beginPath();
+        ctx.arc(-p.r*0.3, -p.r*0.3, p.r*0.2, 0, 2 * Math.PI);
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.2)';
+        ctx.fill();
+      }
+      ctx.restore();
+    }
+  });
+
+  for (let i = particles.length - 1; i >= 0; i--) {
+    let p = particles[i];
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, p.radius, 0, 2 * Math.PI);
+    ctx.fillStyle = p.color;
+    ctx.globalAlpha = Math.max(0, p.life);
+    ctx.fill();
+    
+    p.x += p.vx;
+    p.y += p.vy;
+    p.vx *= 0.85; 
+    p.vy *= 0.85;
+    p.radius += (p.maxRadius - p.radius) * 0.1; 
+    p.life -= p.decay; 
+    
+    if (p.life <= 0) particles.splice(i, 1);
+  }
+  ctx.globalAlpha = 1.0; 
+
+  if (state === 'dragging' && currentPlanet) {
+    const dx = dragCurrent.x - dragStart.x;
+    const dy = dragCurrent.y - dragStart.y;
+    
+    let vx = dx * FORCE_MULTIPLIER;
+    let vy = dy * FORCE_MULTIPLIER;
+    let px = currentPlanet.position.x;
+    let py = currentPlanet.position.y;
+    
+    const dampening = 1 - 0.01; 
+    
+    for (let i = 0; i < 100; i++) {
+      const cx = centerX - px;
+      const cy = centerY - py;
+      const dist = Math.sqrt(cx*cx + cy*cy);
+      
+      if (dist > 0) {
+        vx += (cx / dist) * currentGravity * 16.6;
+        vy += (cy / dist) * currentGravity * 16.6;
+      }
+      
+      vx *= dampening; 
+      vy *= dampening;
+      px += vx;
+      py += vy;
+      
+      if (dist < CORE_RADIUS) break;
+      
+      if (i % 4 === 0) {
+        ctx.beginPath();
+        ctx.arc(px, py, 2.5, 0, 2 * Math.PI);
+        ctx.fillStyle = `rgba(255, 255, 255, ${Math.max(0, 1 - (i / 80))})`;
+        ctx.fill();
+      }
+    }
+  }
+}
+
+// --- 4. 物理ロジック ---
+function applyCentralGravity() {
+  if (state === 'playing') {
+    gameFrameCount++;
+    gravityMultiplier = 1.0 + Math.floor(gameFrameCount / 600) * 0.1;
+    if (gravityMultiplier > 3.0) gravityMultiplier = 3.0; 
+    currentGravity = BASE_GRAVITY * gravityMultiplier;
+  }
+
+  const bodies = Composite.allBodies(engine.world);
+  bodies.forEach(body => {
+    if (body.isStatic || (body === currentPlanet && state !== 'waiting')) return;
+    
+    const dx = centerX - body.position.x;
+    const dy = centerY - body.position.y;
+    const dist = Math.sqrt(dx * dx + dy * dy);
+    
+    if (dist > 0) {
+      const forceMag = currentGravity * body.mass;
+      const force = { x: (dx / dist) * forceMag, y: (dy / dist) * forceMag };
+      Body.applyForce(body, body.position, force);
+    }
+  });
+}
+
+let mergeQueue = [];
+function setupCollisions() {
+  Events.on(engine, 'collisionStart', (event) => {
+    event.pairs.forEach(pair => {
+      if (launchedPlanet && !isNextReady) {
+        if (pair.bodyA === launchedPlanet || pair.bodyB === launchedPlanet) {
+          isNextReady = true;
+          setTimeout(spawnNextReadyPlanet, 50);
+        }
+      }
+
+      const bodyA = pair.bodyA;
+      const bodyB = pair.bodyB;
+      
+      if (bodyA.level !== undefined && bodyB.level !== undefined && 
+          bodyA.level === bodyB.level && !bodyA.isMerging && !bodyB.isMerging) {
+            
+        bodyA.isMerging = true;
+        bodyB.isMerging = true;
+        
+        const newLevel = bodyA.level + 1;
+        if (newLevel < PLANETS.length) {
+          const midX = (bodyA.position.x + bodyB.position.x) / 2;
+          const midY = (bodyA.position.y + bodyB.position.y) / 2;
+          mergeQueue.push({ bodyA, bodyB, newLevel, x: midX, y: midY });
+        }
+      }
+    });
+  });
+
+  Events.on(engine, 'afterUpdate', () => {
+    if (mergeQueue.length > 0) {
+      mergeQueue.forEach(m => {
+        Composite.remove(engine.world, [m.bodyA, m.bodyB]);
+        addScore(PLANETS[m.bodyA.level].score);
+        spawnPlanet(m.x, m.y, m.newLevel, false);
+        spawnMergeEffect(m.x, m.y, PLANETS[m.newLevel]);
+      });
+      mergeQueue = [];
+    }
+  });
+}
+
+function spawnMergeEffect(x, y, newPlanet) {
+  const particleCount = 12 + Math.floor(Math.random() * 8); 
+  for (let i = 0; i < particleCount; i++) {
+    const angle = Math.random() * Math.PI * 2;
+    const speed = Math.random() * 5 + 2; 
+    
+    let color = newPlanet.colors[0];
+    const rand = Math.random();
+    if (rand > 0.7) color = '#ffffff';
+    else if (rand > 0.4) color = '#cccccc';
+
+    particles.push({
+      x: x, y: y,
+      vx: Math.cos(angle) * speed,
+      vy: Math.sin(angle) * speed,
+      radius: newPlanet.r * 0.1 + Math.random() * 5,
+      maxRadius: newPlanet.r * 0.6 + Math.random() * 15,
+      life: 1.0, 
+      decay: 0.02 + Math.random() * 0.03, 
+      color: color
+    });
+  }
+}
+
+// --- 5. 操作ロジック ---
+function setupInteractions() {
+  const canvas = render.canvas;
+  canvas.addEventListener('mousedown', (e) => startDrag(e.clientX, e.clientY));
+  canvas.addEventListener('mousemove', (e) => onDrag(e.clientX, e.clientY));
+  window.addEventListener('mouseup', endDrag);
+  
+  canvas.addEventListener('touchstart', (e) => {
+    e.preventDefault();
+    startDrag(e.touches[0].clientX, e.touches[0].clientY);
+  }, {passive: false});
+  canvas.addEventListener('touchmove', (e) => {
+    e.preventDefault();
+    onDrag(e.touches[0].clientX, e.touches[0].clientY);
+  }, {passive: false});
+  window.addEventListener('touchend', endDrag);
+}
+
+function getSpawnPoint() {
+  // 発射位置を「画面の左から20%（中間くらい）」に変更
+  const spawnX = width * 0.2; 
+  return { x: spawnX, y: centerY }; 
+}
+
+function spawnNextReadyPlanet() {
+  const p = getSpawnPoint();
+  currentPlanet = spawnPlanet(p.x, p.y, nextPlanetLevel, true);
+  nextPlanetLevel = Math.floor(Math.random() * 4);
+  updateNextUI();
+  state = 'waiting';
+}
+
+function spawnPlanet(x, y, level, isReadyState) {
+  const pData = PLANETS[level];
+  const body = Bodies.circle(x, y, pData.r, {
+    // 【重要】反発を下げ、摩擦と密度(質量)を上げて、他の星にぶつかっても押されにくくする
+    restitution: 0.05,   // ほぼ跳ね返らない
+    friction: 1.0,       // 表面の摩擦を最大にする
+    frictionAir: 0.01,   
+    density: 0.015 * pData.mass, // 密度を以前の3倍にし、重くして押されにくくした
+    render: { visible: false }
+  });
+  body.level = level;
+  body.isMerging = false;
+  body.enteredPlayArea = false; 
+  
+  if (isReadyState) Body.setStatic(body, true); 
+  
+  Composite.add(engine.world, body);
+  return body;
+}
+
+function startDrag(x, y) {
+  if (isGameOver || state !== 'waiting' || !currentPlanet) return;
+  state = 'dragging';
+  dragStart = { x, y };
+  dragCurrent = { x, y };
+  document.getElementById('instruction').style.display = 'none';
+}
+
+function onDrag(x, y) {
+  if (state === 'dragging') {
+    dragCurrent = { x, y };
+  }
+}
+
+function endDrag() {
+  if (state === 'dragging') {
+    const dx = dragCurrent.x - dragStart.x;
+    const dy = dragCurrent.y - dragStart.y;
+    
+    if (Math.hypot(dx, dy) < 10) {
+      state = 'waiting';
+      return;
+    }
+
+    Body.setStatic(currentPlanet, false);
+    Body.setVelocity(currentPlanet, {
+      x: dx * FORCE_MULTIPLIER,
+      y: dy * FORCE_MULTIPLIER
+    });
+    
+    launchedPlanet = currentPlanet;
+    currentPlanet = null;
+    state = 'playing';
+    isNextReady = false;
+    
+    setTimeout(() => {
+      if (!isNextReady) {
+        isNextReady = true;
+        spawnNextReadyPlanet();
+      }
+    }, 2500);
+  }
+}
+
+// --- 6. ゲーム管理とUI ---
+function checkGameOver() {
+  if (isGameOver) return;
+  
+  const bodies = Composite.allBodies(engine.world);
+  let isOut = false;
+  
+  bodies.forEach(body => {
+    if (body.isStatic || body.level === undefined || body === currentPlanet) return;
+    
+    const dist = Math.hypot(centerX - body.position.x, centerY - body.position.y);
+    
+    if (!body.enteredPlayArea) {
+      if (dist < playAreaRadius - PLANETS[body.level].r) {
+        body.enteredPlayArea = true;
+      }
+      return; 
+    }
+    
+    if (dist + PLANETS[body.level].r > playAreaRadius) {
+      isOut = true;
+    }
+  });
+  
+  if (isOut) {
+    gameOverTimer++;
+    render.canvas.style.boxShadow = `inset 0 0 ${Math.min(gameOverTimer * 2, 150)}px rgba(255, 0, 50, 0.4)`;
+    if (gameOverTimer > 150) triggerGameOver();
+  } else {
+    gameOverTimer = 0;
+    render.canvas.style.boxShadow = 'none';
+  }
+}
+
+function triggerGameOver() {
+  isGameOver = true;
+  document.getElementById('game-over').classList.add('active');
+  document.getElementById('final-score').innerText = score;
+}
+
+function addScore(points) {
+  score += points;
+  document.getElementById('score').innerText = score;
+}
+
+function updateNextUI() {
+  const preview = document.getElementById('next-planet-preview');
+  const p = PLANETS[nextPlanetLevel];
+  preview.style.width = Math.min(p.r * 1.5, 40) + 'px';
+  preview.style.height = Math.min(p.r * 1.5, 40) + 'px';
+  
+  if (p.imgSrc) {
+    preview.style.background = `url('${p.imgSrc}') center/cover no-repeat`;
+  } else {
+    preview.style.background = `radial-gradient(circle at 30% 30%, ${p.colors[0]}, ${p.colors[1]})`;
+  }
+}
+
+function resetGame() {
+  Composite.clear(engine.world);
+  Engine.clear(engine);
+  
+  Composite.add(engine.world, coreBody);
+  particles = []; 
+  launchedPlanet = null;
+  isNextReady = true;
+  
+  gameFrameCount = 0;
+  gravityMultiplier = 1.0;
+  currentGravity = BASE_GRAVITY;
+  
+  score = 0;
+  document.getElementById('score').innerText = score;
+  document.getElementById('game-over').classList.remove('active');
+  render.canvas.style.boxShadow = 'none';
+  
+  gameOverTimer = 0;
+  isGameOver = false;
+  nextPlanetLevel = Math.floor(Math.random() * 3);
+  
+  spawnNextReadyPlanet();
+}
+
+document.getElementById('restart-btn').addEventListener('click', resetGame);
+
+function handleResize() {
+  width = window.innerWidth;
+  height = window.innerHeight;
+  centerX = width / 2;
+  centerY = height / 2;
+  playAreaRadius = Math.min(width, height) * 0.4;
+  render.canvas.width = width;
+  render.canvas.height = height;
+  
+  if(coreBody) {
+    Body.setPosition(coreBody, { x: centerX, y: centerY });
+  }
+  
+  if (currentPlanet && state === 'waiting') {
+    Body.setPosition(currentPlanet, getSpawnPoint());
+  }
+}
+
+window.onload = init;
+</script>
+</body>
+</html>
+
+
+
+

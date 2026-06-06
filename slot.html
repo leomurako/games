@@ -1,0 +1,1141 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NEO SLOTS - ULTIMATE MULTI UNIVERSE</title>
+
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Matter.js (物理演算エンジン) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/matter-js/0.19.0/matter.min.js"></script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Black+Ops+One&family=Noto+Sans+JP:wght@700;900&family=Press+Start+2P&display=swap" rel="stylesheet">
+
+
+    <style>
+        /* === 既存のスタイル (変更なし) === */
+        body { font-family: 'Noto Sans JP', sans-serif; overflow: hidden; margin: 0; padding: 0; background-color: #000; }
+        .font-ops { font-family: 'Black Ops One', cursive; }
+        .font-retro { font-family: 'Press Start 2P', cursive; }
+
+
+        .reel-container { height: 140px; overflow: hidden; position: relative; background: linear-gradient(180deg, #e2e8f0 0%, #ffffff 50%, #e2e8f0 100%); border: 4px solid #0f172a; border-radius: 0.75rem; box-shadow: inset 0 15px 25px rgba(0,0,0,0.6), 0 5px 15px rgba(0,0,0,0.5); transition: all 0.5s ease; }
+        .reel-strip { display: flex; flex-direction: column; width: 100%; transition: transform 2.5s cubic-bezier(0.1, 1.3, 0.2, 1); }
+        .symbol { height: 140px; display: flex; justify-content: center; align-items: center; font-size: 5rem; filter: drop-shadow(0 5px 5px rgba(0,0,0,0.4)); transition: all 0.5s ease; }
+        .spinning { transition: none !important; animation: spinAnimation 0.12s linear infinite; filter: blur(2px); }
+
+
+        @keyframes spinAnimation { 0% { transform: translateY(0); } 100% { transform: translateY(-420px); } }
+        @keyframes pulseRed { 0%, 100% { box-shadow: 0 0 20px rgba(239,68,68,0.4), inset 0 0 20px rgba(239,68,68,0.2); border-color: #ef4444; } 50% { box-shadow: 0 0 60px rgba(239,68,68,0.8), inset 0 0 40px rgba(239,68,68,0.4); border-color: #b91c1c; } }
+        .mode-high-chance { animation: pulseRed 1.5s ease-in-out infinite; }
+        @keyframes hueRotate { 0% { filter: hue-rotate(0deg); } 100% { filter: hue-rotate(360deg); } }
+        .mode-fever { animation: hueRotate 2s linear infinite; box-shadow: 0 0 50px rgba(255,255,255,0.5); }
+        .bg-fever { animation: hueRotate 3s linear infinite; }
+        .cutin-text { text-shadow: 0 0 20px #ff0000, 0 0 40px #ff7300, 0 0 60px #fffb00; }
+
+
+        /* === 画面遷移用 === */
+        #main-wrapper { transition: transform 0.8s cubic-bezier(0.65, 0, 0.35, 1); will-change: transform; }
+        .page-section { height: 100vh; width: 100vw; position: relative; display: flex; align-items: center; justify-content: center; }
+
+
+        /* スクロールバー非表示 (ギャンブルの横スクロール用) */
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+
+        /* === スキンCSS (変更なし) === */
+        body.skin-glass .slot-machine-frame { background: rgba(255, 255, 255, 0.05) !important; border-color: rgba(255, 255, 255, 0.4) !important; backdrop-filter: blur(20px) saturate(150%); box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37), inset 0 0 20px rgba(255,255,255,0.2) !important; }
+        body.skin-glass .symbol { filter: drop-shadow(0 10px 15px rgba(255,255,255,0.8)) sepia(30%) hue-rotate(180deg) brightness(1.5) contrast(1.2); opacity: 0.9; }
+        body.skin-glass .reel-container { background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(10px); border-color: rgba(255,255,255,0.6); }
+
+
+        body.skin-cyber .slot-machine-frame { background: rgba(10, 10, 20, 0.9) !important; border-color: #0ff !important; box-shadow: 0 0 30px #0ff, inset 0 0 20px #0ff !important; }
+        body.skin-cyber .symbol { filter: drop-shadow(0 0 10px #0ff) drop-shadow(0 0 20px #f0f) hue-rotate(90deg) saturate(300%) contrast(1.5); }
+        body.skin-cyber .reel-container { background: #000; border-color: #f0f; box-shadow: inset 0 0 20px rgba(255,0,255,0.5); }
+
+
+        body.skin-retro .slot-machine-frame { background: #222 !important; border-radius: 0 !important; border: 8px solid #ccc !important; box-shadow: 10px 10px 0px #000 !important; }
+        body.skin-retro .symbol { filter: grayscale(100%) contrast(200%) drop-shadow(5px 5px 0px #000); transform: scale(0.85); }
+        body.skin-retro .reel-container { background: #eee; border-radius: 0; border: 4px solid #000; box-shadow: none; }
+        body.skin-retro * { font-family: 'Press Start 2P', cursive !important; }
+
+
+        .stop-btn { transition: all 0.1s; box-shadow: 0 8px 0 #7f1d1d, 0 15px 20px rgba(0,0,0,0.5); }
+        .stop-btn:active, .stop-btn.pressed { transform: translateY(8px); box-shadow: 0 0 0 #7f1d1d, 0 5px 10px rgba(0,0,0,0.5); }
+
+
+        /* === 追加：トースト通知アニメーション === */
+        @keyframes slideInDown { 0% { transform: translateY(-100%); opacity: 0; } 100% { transform: translateY(0); opacity: 1; } }
+        @keyframes slideOutUp { 0% { transform: translateY(0); opacity: 1; } 100% { transform: translateY(-100%); opacity: 0; } }
+        .toast-enter { animation: slideInDown 0.5s cubic-bezier(0.1, 1.4, 0.2, 1) forwards; }
+        .toast-exit { animation: slideOutUp 0.5s ease-in forwards; }
+
+
+        /* ギャンブル用ボタン */
+        .gamble-btn { transition: all 0.2s; }
+        .gamble-btn:active { transform: scale(0.95); }
+        .gamble-btn.selected { box-shadow: 0 0 20px #fff, inset 0 0 10px #fff; border-color: #fff; }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-indigo-950 via-gray-900 to-black text-white transition-colors duration-1000" id="main-bg">
+
+
+    <!-- 物理演算コイン用キャンバス (最前面) -->
+    <div id="coin-canvas-container" class="fixed inset-0 pointer-events-none z-50"></div>
+
+
+    <!-- トースト通知コンテナ (アチーブメント用) -->
+    <div id="toast-container" class="fixed top-4 left-1/2 transform -translate-x-1/2 z-[200] flex flex-col gap-2 pointer-events-none"></div>
+
+
+    <!-- 確定演出用オーバーレイ -->
+    <div id="cutin-overlay" class="fixed inset-0 z-40 flex items-center justify-center bg-black/90 opacity-0 pointer-events-none transition-opacity duration-300">
+        <div id="cutin-text" class="cutin-text font-ops text-[150px] md:text-[200px] font-black text-red-500 transform scale-0 transition-transform duration-500 tracking-widest italic">激熱</div>
+    </div>
+
+
+    <!-- 全画面メニュー起動ボタン -->
+    <button id="menu-toggle-btn" class="fixed top-6 right-6 z-[60] bg-yellow-500 text-black font-ops px-6 py-3 rounded-full shadow-[0_0_20px_rgba(234,179,8,0.6)] hover:scale-105 transition-transform border-2 border-yellow-200">
+        MENU / SHOP
+    </button>
+
+
+    <!-- ★改修: 全画面メニューパネル (ショップ ＆ アチーブメント) -->
+    <div id="menu-panel" class="fixed inset-0 bg-slate-950/95 backdrop-blur-2xl z-[100] transform translate-y-full transition-transform duration-500 ease-in-out flex flex-col">
+        <!-- ヘッダー -->
+        <div class="flex justify-between items-center p-6 md:p-10 border-b border-slate-700">
+            <h2 class="text-4xl md:text-5xl font-ops text-yellow-400 drop-shadow-[0_0_15px_rgba(250,204,21,0.5)]">NEO SYSTEM</h2>
+            <button id="menu-close-btn" class="text-white hover:text-red-500 text-5xl font-bold transition-colors">&times;</button>
+        </div>
+
+
+        <div class="flex flex-col md:flex-row h-full overflow-hidden p-6 md:p-10 gap-8">
+            <!-- 左側：ステータス＆タブ -->
+            <div class="w-full md:w-1/3 flex flex-col gap-6">
+                <div class="bg-black/60 p-6 rounded-2xl border border-white/10 text-center shadow-inner">
+                    <p class="text-sm text-slate-400 font-bold mb-2 tracking-widest">TOTAL CREDITS</p>
+                    <p class="text-4xl md:text-5xl font-ops text-yellow-400 drop-shadow-[0_0_10px_rgba(250,204,21,0.5)] global-credits-display">1,000</p>
+                </div>
+                <!-- タブボタン -->
+                <div class="flex flex-col gap-4">
+                    <button id="tab-btn-shop" class="w-full py-4 bg-slate-800 hover:bg-slate-700 border border-slate-600 rounded-xl font-ops text-2xl text-white transition shadow-[0_0_15px_rgba(255,255,255,0.1)] border-l-8 border-l-blue-500">SKIN SHOP</button>
+                    <button id="tab-btn-achieve" class="w-full py-4 bg-slate-800 hover:bg-slate-700 border border-slate-600 rounded-xl font-ops text-2xl text-slate-400 transition">ACHIEVEMENTS</button>
+                </div>
+            </div>
+
+
+            <!-- 右側：コンテンツエリア -->
+            <div class="w-full md:w-2/3 h-full overflow-y-auto bg-black/40 rounded-2xl border border-white/5 p-6 shadow-inner hide-scrollbar">
+
+
+                <!-- SHOP タブコンテンツ -->
+                <div id="tab-content-shop" class="flex flex-col gap-4 pb-10">
+                    <p class="text-slate-400 font-bold tracking-widest mb-2 border-b border-white/10 pb-2">PURCHASE SKINS</p>
+                    <div id="shop-items-container" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
+                </div>
+
+
+                <!-- ACHIEVEMENT タブコンテンツ -->
+                <div id="tab-content-achieve" class="hidden flex-col gap-4 pb-10">
+                    <p class="text-slate-400 font-bold tracking-widest mb-2 border-b border-white/10 pb-2">MISSIONS & REWARDS</p>
+                    <div id="achievements-container" class="flex flex-col gap-3"></div>
+                </div>
+
+
+            </div>
+        </div>
+    </div>
+
+
+
+
+    <!-- ============================================== -->
+    <!-- 画面統合ラッパー (3層構造) -->
+    <!-- ============================================== -->
+    <!-- ★ h-[300vh] に拡張し、3階層とする -->
+    <div id="main-wrapper" class="h-[300vh] w-full flex flex-col">
+
+
+        <!-- 1層目: オートスロット -->
+        <section class="page-section" id="page-auto">
+            <div id="slot-machine-auto" class="slot-machine-frame max-w-3xl w-full bg-slate-900/90 backdrop-blur-2xl rounded-[2.5rem] p-8 shadow-2xl border-4 border-slate-700 relative z-10 transition-all duration-500">
+                <div class="absolute -top-5 left-1/2 transform -translate-x-1/2 z-20">
+                    <div id="mode-badge" class="px-8 py-2 rounded-full border-2 border-slate-400 bg-slate-800 text-slate-300 font-bold tracking-widest shadow-[0_0_15px_rgba(0,0,0,0.8)] transition-all duration-500 font-ops text-xl">
+                        NORMAL MODE
+                    </div>
+                </div>
+
+
+                <div class="flex justify-between items-center mb-10 mt-4 bg-black/80 rounded-2xl p-6 border-b-4 border-slate-700 shadow-inner">
+                    <div>
+                        <p class="text-xs text-slate-400 font-bold tracking-widest mb-1">MODE GAMES</p>
+                        <p id="mode-games-display" class="text-2xl font-ops text-cyan-400">∞</p>
+                    </div>
+                    <div class="text-right">
+                        <p class="text-xs text-slate-400 font-bold tracking-widest mb-1">CREDITS</p>
+                        <p class="text-5xl font-ops text-yellow-400 drop-shadow-[0_0_15px_rgba(250,204,21,0.6)] global-credits-display">1,000</p>
+                    </div>
+                </div>
+
+
+                <div class="flex justify-center gap-4 md:gap-8 mb-10 bg-slate-800 p-10 rounded-3xl shadow-[inset_0_30px_60px_rgba(0,0,0,0.9)] border-y-8 border-slate-950 relative">
+                    <div class="reel-container w-28 md:w-36"><div id="reel-0" class="reel-strip"></div></div>
+                    <div class="reel-container w-28 md:w-36"><div id="reel-1" class="reel-strip"></div></div>
+                    <div class="reel-container w-28 md:w-36"><div id="reel-2" class="reel-strip"></div></div>
+                    <div class="absolute top-1/2 left-2 right-2 h-1.5 bg-red-500/60 shadow-[0_0_15px_rgba(239,68,68,1)] z-10 pointer-events-none transform -translate-y-1/2 rounded-full"></div>
+                </div>
+
+
+                <div class="h-20 flex items-center justify-center mb-8 bg-black/50 rounded-xl border border-white/5 shadow-inner">
+                    <p id="message-display-auto" class="text-2xl md:text-3xl font-bold text-center tracking-wide text-slate-300">スピンを開始せよ！</p>
+                </div>
+
+
+                <div class="flex justify-center">
+                    <button id="spin-button-auto" class="relative group overflow-hidden rounded-full px-20 py-6 text-4xl font-ops tracking-widest transition-all duration-300 bg-gradient-to-b from-red-500 to-red-900 text-white hover:scale-105 shadow-[0_0_40px_rgba(239,68,68,0.5)] active:scale-95 border-b-8 border-red-950">
+                        <span id="spin-text-auto">AUTO SPIN</span>
+                        <div class="absolute inset-0 w-full h-full bg-white/20 blur-md transform -skew-x-12 -translate-x-[150%] group-hover:translate-x-[150%] transition-transform duration-700 ease-out"></div>
+                    </button>
+                </div>
+            </div>
+
+
+            <!-- 下へ移動のガイド -->
+            <div class="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex flex-col items-center animate-bounce opacity-70 cursor-pointer" onclick="moveToPage(1)">
+                <span class="text-sm font-bold tracking-widest mb-1">MANUAL SLOT</span>
+                <span class="text-3xl">⬇</span>
+            </div>
+        </section>
+
+
+        <!-- 2層目: マニュアルスロット -->
+        <section class="page-section" id="page-manual">
+            <!-- 上へ移動のガイド -->
+            <div class="absolute top-4 left-1/2 transform -translate-x-1/2 flex flex-col items-center animate-bounce opacity-70 cursor-pointer" onclick="moveToPage(0)">
+                <span class="text-3xl">⬆</span>
+                <span class="text-sm font-bold tracking-widest mt-1">AUTO SLOT</span>
+            </div>
+
+
+            <div id="slot-machine-manual" class="slot-machine-frame max-w-3xl w-full bg-slate-900/90 backdrop-blur-2xl rounded-[2.5rem] p-8 shadow-2xl border-4 border-slate-700 relative z-10 transition-all duration-500">
+                <div class="absolute -top-5 left-1/2 transform -translate-x-1/2 z-20">
+                    <div class="px-8 py-2 rounded-full border-2 border-blue-400 bg-blue-900 text-blue-100 font-bold tracking-widest shadow-[0_0_15px_rgba(59,130,246,0.8)] font-ops text-xl">
+                        MANUAL SKILL MODE
+                    </div>
+                </div>
+
+
+                <div class="flex justify-between items-center mb-8 mt-4 bg-black/80 rounded-2xl p-6 border-b-4 border-slate-700 shadow-inner">
+                    <div>
+                        <p class="text-xs text-slate-400 font-bold tracking-widest mb-1">SKILL LEVEL</p>
+                        <p class="text-2xl font-ops text-blue-400">EXPERT</p>
+                    </div>
+                    <div class="text-right">
+                        <p class="text-xs text-slate-400 font-bold tracking-widest mb-1">CREDITS</p>
+                        <p class="text-5xl font-ops text-yellow-400 drop-shadow-[0_0_15px_rgba(250,204,21,0.6)] global-credits-display">1,000</p>
+                    </div>
+                </div>
+
+
+                <div class="flex flex-col gap-4 mb-8 bg-slate-800 p-8 pb-12 rounded-3xl shadow-[inset_0_30px_60px_rgba(0,0,0,0.9)] border-y-8 border-slate-950 relative">
+                    <div class="flex justify-center gap-4 md:gap-8 relative z-20">
+                        <div class="reel-container w-28 md:w-36"><div id="reel-manual-0" class="reel-strip" style="transition: none;"></div></div>
+                        <div class="reel-container w-28 md:w-36"><div id="reel-manual-1" class="reel-strip" style="transition: none;"></div></div>
+                        <div class="reel-container w-28 md:w-36"><div id="reel-manual-2" class="reel-strip" style="transition: none;"></div></div>
+                        <div class="absolute top-1/2 left-2 right-2 h-1.5 bg-red-500/60 shadow-[0_0_15px_rgba(239,68,68,1)] z-10 pointer-events-none transform -translate-y-1/2 rounded-full"></div>
+                    </div>
+                    <div class="flex justify-center gap-4 md:gap-8 mt-4">
+                        <button id="stop-btn-0" class="stop-btn w-28 md:w-36 bg-red-600 rounded-xl py-4 text-2xl font-ops font-bold text-white border-2 border-red-400 opacity-50 cursor-not-allowed">STOP</button>
+                        <button id="stop-btn-1" class="stop-btn w-28 md:w-36 bg-red-600 rounded-xl py-4 text-2xl font-ops font-bold text-white border-2 border-red-400 opacity-50 cursor-not-allowed">STOP</button>
+                        <button id="stop-btn-2" class="stop-btn w-28 md:w-36 bg-red-600 rounded-xl py-4 text-2xl font-ops font-bold text-white border-2 border-red-400 opacity-50 cursor-not-allowed">STOP</button>
+                    </div>
+                </div>
+
+
+                <div class="h-16 flex items-center justify-center mb-6 bg-black/50 rounded-xl border border-white/5 shadow-inner">
+                    <p id="message-display-manual" class="text-xl md:text-2xl font-bold text-center tracking-wide text-slate-300">SPINを押して、目押しで揃えろ！</p>
+                </div>
+
+
+                <div class="flex justify-center">
+                    <button id="spin-button-manual" class="relative group overflow-hidden rounded-full px-16 py-5 text-3xl font-ops tracking-widest transition-all duration-300 bg-gradient-to-b from-blue-500 to-blue-900 text-white hover:scale-105 shadow-[0_0_40px_rgba(59,130,246,0.5)] active:scale-95 border-b-8 border-blue-950">
+                        <span id="spin-text-manual">MANUAL SPIN</span>
+                    </button>
+                </div>
+            </div>
+
+
+            <!-- ★追加: 下へ移動のガイド (ギャンブルへ) -->
+            <div class="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex flex-col items-center animate-bounce opacity-70 text-pink-400 cursor-pointer" onclick="moveToPage(2)">
+                <span class="text-sm font-bold tracking-widest mb-1">VIP GAMBLE ZONE</span>
+                <span class="text-3xl">⬇</span>
+            </div>
+        </section>
+
+
+        <!-- ★追加★ 3層目: ギャンブルゾーン (横スクロール) -->
+        <section class="page-section" id="page-gamble">
+            <!-- 上へ戻るガイド -->
+            <div class="absolute top-4 left-1/2 transform -translate-x-1/2 flex flex-col items-center animate-bounce opacity-70 z-30 cursor-pointer" onclick="moveToPage(1)">
+                <span class="text-3xl">⬆</span>
+                <span class="text-sm font-bold tracking-widest mt-1">SLOT ROOM</span>
+            </div>
+
+
+            <div id="gamble-scroll-container" class="w-full h-full flex overflow-x-auto snap-x snap-mandatory hide-scrollbar relative">
+
+
+                <!-- GAMBLE 1: HIGH & LOW -->
+                <div class="min-w-full h-full snap-start flex items-center justify-center relative bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-green-900 via-emerald-950 to-black">
+                    <!-- 右ガイド -->
+                    <div class="absolute right-4 top-1/2 transform -translate-y-1/2 text-white/50 text-xl font-ops flex flex-col items-center animate-pulse">
+                        <span>ROULETTE</span><span class="text-4xl">➡</span>
+                    </div>
+
+
+                    <div class="max-w-2xl w-full bg-black/60 backdrop-blur-md p-8 rounded-3xl border-4 border-green-700 shadow-[0_0_50px_rgba(4,120,87,0.5)] text-center relative z-10">
+                        <h2 class="text-4xl font-ops text-emerald-400 mb-2">HIGH & LOW</h2>
+                        <p class="text-slate-300 mb-8 font-bold">次のカードは「7」より大きい？小さい？</p>
+
+
+                        <div class="flex justify-center gap-8 mb-8">
+                            <div class="w-32 h-48 bg-white rounded-xl flex flex-col items-center justify-center text-black border-4 border-slate-300 shadow-xl">
+                                <span class="text-6xl font-black text-slate-800">7</span>
+                                <span class="text-xl font-bold text-slate-500">BASE</span>
+                            </div>
+                            <div id="hl-result-card" class="w-32 h-48 bg-gradient-to-br from-slate-700 to-slate-900 rounded-xl flex flex-col items-center justify-center text-white border-4 border-slate-500 shadow-xl transition-all duration-500">
+                                <span class="text-6xl font-black">?</span>
+                            </div>
+                        </div>
+
+
+                        <div class="text-2xl font-ops text-yellow-400 mb-4">BET: <span id="hl-bet-display">100</span></div>
+                        <div class="flex justify-center gap-4 mb-8">
+                            <button onclick="changeBet('hl', 100)" class="px-4 py-2 bg-slate-700 hover:bg-slate-600 rounded font-bold">+100</button>
+                            <button onclick="changeBet('hl', 1000)" class="px-4 py-2 bg-slate-700 hover:bg-slate-600 rounded font-bold">+1000</button>
+                            <button onclick="resetBet('hl')" class="px-4 py-2 bg-red-900 hover:bg-red-800 rounded font-bold">RESET</button>
+                        </div>
+
+
+                        <div class="flex justify-center gap-6">
+                            <button id="btn-high" class="gamble-btn w-40 py-4 bg-gradient-to-b from-red-500 to-red-800 rounded-xl font-ops text-2xl border-2 border-red-300 shadow-[0_0_20px_rgba(239,68,68,0.5)]">HIGH (8-13)</button>
+                            <button id="btn-low" class="gamble-btn w-40 py-4 bg-gradient-to-b from-blue-500 to-blue-800 rounded-xl font-ops text-2xl border-2 border-blue-300 shadow-[0_0_20px_rgba(59,130,246,0.5)]">LOW (1-6)</button>
+                        </div>
+                        <p id="hl-msg" class="mt-6 text-xl font-bold h-8 text-white"></p>
+                    </div>
+                </div>
+
+
+                <!-- GAMBLE 2: ROULETTE -->
+                <div class="min-w-full h-full snap-start flex items-center justify-center relative bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-red-950 via-rose-950 to-black">
+                    <div class="absolute left-4 top-1/2 transform -translate-y-1/2 text-white/50 text-xl font-ops flex flex-col items-center animate-pulse">
+                        <span>HIGH&LOW</span><span class="text-4xl">⬅</span>
+                    </div>
+                    <div class="absolute right-4 top-1/2 transform -translate-y-1/2 text-white/50 text-xl font-ops flex flex-col items-center animate-pulse">
+                        <span>DICE ROLL</span><span class="text-4xl">➡</span>
+                    </div>
+
+
+                    <div class="max-w-2xl w-full bg-black/60 backdrop-blur-md p-8 rounded-3xl border-4 border-red-900 shadow-[0_0_50px_rgba(159,18,57,0.5)] text-center relative z-10">
+                        <h2 class="text-4xl font-ops text-rose-400 mb-2">NEO ROULETTE</h2>
+                        <p class="text-slate-300 mb-8 font-bold">色に賭けろ！ RED/BLACK(x2), GREEN(x14)</p>
+
+
+                        <!-- ルーレット盤面モック -->
+                        <div class="flex justify-center mb-8 relative">
+                            <div id="roulette-wheel" class="w-48 h-48 rounded-full border-8 border-slate-300 bg-gradient-to-tr from-red-600 via-green-600 to-black flex items-center justify-center shadow-2xl transition-transform duration-[3s] ease-out">
+                                <div class="w-32 h-32 rounded-full bg-slate-900 border-4 border-slate-700 flex items-center justify-center z-10">
+                                    <span id="roulette-result-text" class="text-4xl font-ops">?</span>
+                                </div>
+                            </div>
+                        </div>
+
+
+                        <div class="text-2xl font-ops text-yellow-400 mb-4">BET: <span id="rl-bet-display">100</span></div>
+                        <div class="flex justify-center gap-4 mb-8">
+                            <button onclick="changeBet('rl', 100)" class="px-4 py-2 bg-slate-700 hover:bg-slate-600 rounded font-bold">+100</button>
+                            <button onclick="changeBet('rl', 1000)" class="px-4 py-2 bg-slate-700 hover:bg-slate-600 rounded font-bold">+1000</button>
+                            <button onclick="resetBet('rl')" class="px-4 py-2 bg-red-900 hover:bg-red-800 rounded font-bold">RESET</button>
+                        </div>
+
+
+                        <div class="flex justify-center gap-4">
+                            <button id="btn-rl-red" class="gamble-btn flex-1 py-4 bg-red-600 rounded-xl font-ops text-xl border-2 border-red-400 shadow-[0_0_15px_red]">RED (x2)</button>
+                            <button id="btn-rl-green" class="gamble-btn flex-1 py-4 bg-green-600 rounded-xl font-ops text-xl border-2 border-green-400 shadow-[0_0_15px_green]">GREEN (x14)</button>
+                            <button id="btn-rl-black" class="gamble-btn flex-1 py-4 bg-slate-800 rounded-xl font-ops text-xl border-2 border-slate-500 shadow-[0_0_15px_rgba(255,255,255,0.2)]">BLACK (x2)</button>
+                        </div>
+                        <p id="rl-msg" class="mt-6 text-xl font-bold h-8 text-white"></p>
+                    </div>
+                </div>
+
+
+                <!-- GAMBLE 3: DICE ROLL -->
+                <div class="min-w-full h-full snap-start flex items-center justify-center relative bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-indigo-950 via-purple-950 to-black">
+                    <div class="absolute left-4 top-1/2 transform -translate-y-1/2 text-white/50 text-xl font-ops flex flex-col items-center animate-pulse">
+                        <span>ROULETTE</span><span class="text-4xl">⬅</span>
+                    </div>
+
+
+                    <div class="max-w-2xl w-full bg-black/60 backdrop-blur-md p-8 rounded-3xl border-4 border-purple-800 shadow-[0_0_50px_rgba(107,33,168,0.5)] text-center relative z-10">
+                        <h2 class="text-4xl font-ops text-fuchsia-400 mb-2">DICE ROLL</h2>
+                        <p class="text-slate-300 mb-8 font-bold">2つのサイコロの合計値を予測しろ！</p>
+
+
+                        <div class="flex justify-center gap-6 mb-8">
+                            <div id="dice-1" class="w-24 h-24 bg-white rounded-xl border-4 border-slate-300 flex items-center justify-center text-6xl text-black shadow-xl transition-transform duration-1000">🎲</div>
+                            <div id="dice-2" class="w-24 h-24 bg-white rounded-xl border-4 border-slate-300 flex items-center justify-center text-6xl text-black shadow-xl transition-transform duration-1000">🎲</div>
+                        </div>
+
+
+                        <div class="text-2xl font-ops text-yellow-400 mb-4">BET: <span id="dc-bet-display">100</span></div>
+                        <div class="flex justify-center gap-4 mb-8">
+                            <button onclick="changeBet('dc', 100)" class="px-4 py-2 bg-slate-700 hover:bg-slate-600 rounded font-bold">+100</button>
+                            <button onclick="changeBet('dc', 1000)" class="px-4 py-2 bg-slate-700 hover:bg-slate-600 rounded font-bold">+1000</button>
+                            <button onclick="resetBet('dc')" class="px-4 py-2 bg-red-900 hover:bg-red-800 rounded font-bold">RESET</button>
+                        </div>
+
+
+                        <div class="flex justify-center gap-4">
+                            <button id="btn-dc-low" class="gamble-btn flex-1 py-4 bg-gradient-to-b from-blue-600 to-blue-900 rounded-xl font-ops text-xl border-2 border-blue-400">LOW (2-6)<br>x2</button>
+                            <button id="btn-dc-seven" class="gamble-btn flex-1 py-4 bg-gradient-to-b from-yellow-500 to-yellow-700 rounded-xl font-ops text-xl border-2 border-yellow-300">SEVEN (7)<br>x4</button>
+                            <button id="btn-dc-high" class="gamble-btn flex-1 py-4 bg-gradient-to-b from-red-600 to-red-900 rounded-xl font-ops text-xl border-2 border-red-400">HIGH (8-12)<br>x2</button>
+                        </div>
+                        <p id="dc-msg" class="mt-6 text-xl font-bold h-8 text-white"></p>
+                    </div>
+                </div>
+
+
+            </div>
+        </section>
+
+
+    </div>
+
+
+    <!-- JavaScript ロジック群 -->
+    <script>
+        /** ==========================================
+         *  0. セーブ・データ永続化 (localStorage)
+         *  ========================================== */
+        const STORAGE_KEY = 'NEO_SLOTS_ULTIMATE_SAVE';
+
+
+        // アチーブメントの定義
+        const ACHIEVEMENTS_DEF = {
+            'first_spin': { title: 'スロット初心者', desc: '初めてスピンを回す', reward: 500, completed: false },
+            'win_manual': { title: '目押しの達人', desc: 'マニュアルスロットで勝利する', reward: 2000, completed: false },
+            'lucky_seven': { title: 'LUCKY SEVEN', desc: '「7️⃣」を揃える', reward: 5000, completed: false },
+            'gamble_win': { title: '勝負師', desc: 'ギャンブルゾーンで勝利する', reward: 3000, completed: false },
+            'all_skins': { title: 'スキンコレクター', desc: '全てのスキンを購入する', reward: 10000, completed: false },
+            'millionaire': { title: '大富豪', desc: '所持クレジットが10万を超える', reward: 50000, completed: false }
+        };
+
+
+        const GLOBAL_STATE = {
+            credits: 1000,
+            currentPage: 0,
+            ownedSkins: ['default'],
+            currentSkin: 'default',
+            achievements: JSON.parse(JSON.stringify(ACHIEVEMENTS_DEF)) // ディープコピー
+        };
+
+
+        function saveGame() {
+            try {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify({
+                    credits: GLOBAL_STATE.credits,
+                    ownedSkins: GLOBAL_STATE.ownedSkins,
+                    currentSkin: GLOBAL_STATE.currentSkin,
+                    achievements: GLOBAL_STATE.achievements
+                }));
+            } catch(e) { console.warn("Save failed", e); }
+        }
+
+
+        function loadGame() {
+            try {
+                const dataStr = localStorage.getItem(STORAGE_KEY);
+                if (dataStr) {
+                    const data = JSON.parse(dataStr);
+                    GLOBAL_STATE.credits = typeof data.credits === 'number' ? data.credits : 1000;
+                    GLOBAL_STATE.ownedSkins = data.ownedSkins || ['default'];
+                    GLOBAL_STATE.currentSkin = data.currentSkin || 'default';
+                    if (data.achievements) {
+                        for (let key in data.achievements) {
+                            if (GLOBAL_STATE.achievements[key]) {
+                                GLOBAL_STATE.achievements[key].completed = data.achievements[key].completed;
+                            }
+                        }
+                    }
+                }
+            } catch(e) { console.warn("Load failed", e); }
+        }
+
+
+        /** ==========================================
+         *  UI 同期 & アチーブメント判定
+         *  ========================================== */
+        function syncCreditsUI() {
+            document.querySelectorAll('.global-credits-display').forEach(el => {
+                el.textContent = GLOBAL_STATE.credits.toLocaleString();
+            });
+            checkAchievementTrigger('millionaire', () => GLOBAL_STATE.credits >= 100000);
+            saveGame();
+        }
+
+
+        function showToast(message, isGold = false) {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = `toast-enter p-4 rounded-xl shadow-2xl border-2 flex items-center justify-center font-bold tracking-wide min-w-[300px] text-center ${
+                isGold ? 'bg-gradient-to-r from-yellow-600 to-yellow-800 border-yellow-300 text-white' : 'bg-slate-800 border-slate-600 text-white'
+            }`;
+            toast.innerHTML = message.replace(/\n/g, '<br>');
+            container.appendChild(toast);
+
+
+            setTimeout(() => {
+                toast.classList.replace('toast-enter', 'toast-exit');
+                setTimeout(() => toast.remove(), 500);
+            }, 3000);
+        }
+
+
+        function checkAchievementTrigger(key, conditionFn) {
+            const ach = GLOBAL_STATE.achievements[key];
+            if (ach && !ach.completed && conditionFn()) {
+                ach.completed = true;
+                GLOBAL_STATE.credits += ach.reward;
+                showToast(`🏆 ACHIEVEMENT UNLOCKED!\n【${ach.title}】\n+${ach.reward} CREDITS`, true);
+                syncCreditsUI();
+                renderAchievements(); // UIが開いている場合更新
+                saveGame();
+            }
+        }
+
+
+
+
+        /** ==========================================
+         *  画面遷移 (縦 & 横スクロール)
+         *  ========================================== */
+        const wrapper = document.getElementById('main-wrapper');
+        let isScrolling = false;
+
+
+        window.moveToPage = function(pageIndex) {
+            if (isScrolling || pageIndex < 0 || pageIndex > 2) return;
+            isScrolling = true;
+            GLOBAL_STATE.currentPage = pageIndex;
+            wrapper.style.transform = `translateY(-${pageIndex * 100}vh)`;
+            setTimeout(() => { isScrolling = false; }, 800);
+        };
+
+
+        const gambleScrollContainer = document.getElementById('gamble-scroll-container');
+        window.addEventListener('keydown', (e) => {
+            if (GLOBAL_STATE.currentPage === 2) { // ギャンブルゾーンの時のみ左右有効
+                if (e.key === 'ArrowRight') gambleScrollContainer.scrollBy({ left: window.innerWidth, behavior: 'smooth' });
+                if (e.key === 'ArrowLeft') gambleScrollContainer.scrollBy({ left: -window.innerWidth, behavior: 'smooth' });
+            }
+            if (e.key === 'ArrowDown') moveToPage(GLOBAL_STATE.currentPage + 1);
+            if (e.key === 'ArrowUp') moveToPage(GLOBAL_STATE.currentPage - 1);
+        });
+        window.addEventListener('wheel', (e) => {
+            if (e.deltaY > 50) moveToPage(GLOBAL_STATE.currentPage + 1);
+            if (e.deltaY < -50) moveToPage(GLOBAL_STATE.currentPage - 1);
+        }, { passive: true });
+
+
+
+
+        /** ==========================================
+         *  全画面メニュー (ショップ & アチーブメント)
+         *  ========================================== */
+        const menuPanel = document.getElementById('menu-panel');
+        document.getElementById('menu-toggle-btn').addEventListener('click', () => {
+            renderShop();
+            renderAchievements();
+            menuPanel.classList.remove('translate-y-full');
+        });
+        document.getElementById('menu-close-btn').addEventListener('click', () => {
+            menuPanel.classList.add('translate-y-full');
+        });
+
+
+        // タブ切替ロジック
+        const tabShop = document.getElementById('tab-btn-shop');
+        const tabAchieve = document.getElementById('tab-btn-achieve');
+        const contentShop = document.getElementById('tab-content-shop');
+        const contentAchieve = document.getElementById('tab-content-achieve');
+
+
+        tabShop.addEventListener('click', () => {
+            tabShop.classList.add('text-white', 'border-l-8', 'border-l-blue-500', 'shadow-[0_0_15px_rgba(255,255,255,0.1)]'); tabShop.classList.remove('text-slate-400');
+            tabAchieve.classList.remove('text-white', 'border-l-8', 'border-l-blue-500', 'shadow-[0_0_15px_rgba(255,255,255,0.1)]'); tabAchieve.classList.add('text-slate-400');
+            contentShop.classList.remove('hidden'); contentShop.classList.add('flex');
+            contentAchieve.classList.add('hidden'); contentAchieve.classList.remove('flex');
+        });
+        tabAchieve.addEventListener('click', () => {
+            tabAchieve.classList.add('text-white', 'border-l-8', 'border-l-blue-500', 'shadow-[0_0_15px_rgba(255,255,255,0.1)]'); tabAchieve.classList.remove('text-slate-400');
+            tabShop.classList.remove('text-white', 'border-l-8', 'border-l-blue-500', 'shadow-[0_0_15px_rgba(255,255,255,0.1)]'); tabShop.classList.add('text-slate-400');
+            contentAchieve.classList.remove('hidden'); contentAchieve.classList.add('flex');
+            contentShop.classList.add('hidden'); contentShop.classList.remove('flex');
+        });
+
+
+        const SKINS = [
+            { id: 'default', name: 'NORMAL', price: 0, desc: 'デフォルトスキン' },
+            { id: 'retro', name: 'RETRO 8-BIT', price: 10000, desc: '古き良きドット絵風', color: 'text-green-400' },
+            { id: 'glass', name: 'ROYAL GLASS', price: 30000, desc: '光を反射する宝石', color: 'text-cyan-300' },
+            { id: 'cyber', name: 'CYBER PUNK', price: 50000, desc: 'ネオン輝く電脳空間', color: 'text-fuchsia-400' }
+        ];
+
+
+        function renderShop() {
+            const container = document.getElementById('shop-items-container');
+            container.innerHTML = '';
+            SKINS.forEach(skin => {
+                const isOwned = GLOBAL_STATE.ownedSkins.includes(skin.id);
+                const isEquipped = GLOBAL_STATE.currentSkin === skin.id;
+                let btnHtml = '';
+                if (isEquipped) {
+                    btnHtml = `<button disabled class="w-full py-3 rounded-lg bg-green-600/50 text-green-300 font-bold border border-green-500 cursor-not-allowed">EQUIPPED</button>`;
+                } else if (isOwned) {
+                    btnHtml = `<button onclick="equipSkin('${skin.id}')" class="w-full py-3 rounded-lg bg-blue-600 hover:bg-blue-500 text-white font-bold transition-colors shadow-lg">EQUIP</button>`;
+                } else {
+                    btnHtml = `<button onclick="buySkin('${skin.id}', ${skin.price})" class="w-full py-3 rounded-lg bg-yellow-600 hover:bg-yellow-500 text-white font-bold transition-colors flex justify-between px-6 shadow-lg"><span>BUY</span><span>${skin.price.toLocaleString()} C</span></button>`;
+                }
+                container.innerHTML += `
+                    <div class="bg-slate-900 border border-slate-700 rounded-2xl p-6 relative overflow-hidden flex flex-col gap-2">
+                        ${isEquipped ? '<div class="absolute -right-8 top-4 bg-green-500 text-xs font-bold py-1 px-10 rotate-45 shadow-md">SET</div>' : ''}
+                        <h3 class="text-2xl font-ops ${skin.color || 'text-white'}">${skin.name}</h3>
+                        <p class="text-sm text-slate-400 mb-4 flex-1">${skin.desc}</p>
+                        ${btnHtml}
+                    </div>
+                `;
+            });
+        }
+
+
+        function renderAchievements() {
+            const container = document.getElementById('achievements-container');
+            container.innerHTML = '';
+            for (let key in GLOBAL_STATE.achievements) {
+                const ach = GLOBAL_STATE.achievements[key];
+                const bgClass = ach.completed ? 'bg-yellow-900/40 border-yellow-500/50' : 'bg-slate-900 border-slate-700 opacity-70';
+                const icon = ach.completed ? '🏆' : '🔒';
+                container.innerHTML += `
+                    <div class="${bgClass} border rounded-xl p-4 flex items-center gap-4 transition-all">
+                        <div class="text-3xl">${icon}</div>
+                        <div class="flex-1">
+                            <h4 class="text-lg font-bold text-white">${ach.title}</h4>
+                            <p class="text-sm text-slate-400">${ach.desc}</p>
+                        </div>
+                        <div class="text-right">
+                            <p class="text-xs text-slate-400">REWARD</p>
+                            <p class="text-yellow-400 font-bold font-ops">+${ach.reward}</p>
+                        </div>
+                    </div>
+                `;
+            }
+        }
+
+
+        window.buySkin = function(id, price) {
+            if (GLOBAL_STATE.credits >= price) {
+                GLOBAL_STATE.credits -= price;
+                GLOBAL_STATE.ownedSkins.push(id);
+                syncCreditsUI();
+                equipSkin(id);
+                checkAchievementTrigger('all_skins', () => GLOBAL_STATE.ownedSkins.length >= SKINS.length);
+            } else {
+                showToast("クレジットが足りません！");
+            }
+        };
+
+
+        window.equipSkin = function(id) {
+            GLOBAL_STATE.currentSkin = id;
+            document.body.className = `bg-gradient-to-br from-indigo-950 via-gray-900 to-black text-white transition-colors duration-1000 skin-${id}`;
+            renderShop();
+            saveGame();
+        };
+
+
+
+
+        /** ==========================================
+         *  Matter.js 美麗コイン物理演算
+         *  ========================================== */
+        function generateCoinTexture() {
+            const size = 64;
+            const canvas = document.createElement('canvas'); canvas.width = size; canvas.height = size;
+            const ctx = canvas.getContext('2d');
+            const grad1 = ctx.createLinearGradient(0, 0, size, size);
+            grad1.addColorStop(0, '#FFF5A1'); grad1.addColorStop(0.5, '#FFB900'); grad1.addColorStop(1, '#996600');
+            ctx.beginPath(); ctx.arc(size/2, size/2, 30, 0, Math.PI * 2);
+            ctx.fillStyle = grad1; ctx.fill(); ctx.lineWidth = 2; ctx.strokeStyle = '#664400'; ctx.stroke();
+            const grad2 = ctx.createLinearGradient(0, 0, size, size);
+            grad2.addColorStop(0, '#CC8800'); grad2.addColorStop(1, '#FFEAA0');
+            ctx.beginPath(); ctx.arc(size/2, size/2, 22, 0, Math.PI * 2);
+            ctx.fillStyle = grad2; ctx.fill(); ctx.strokeStyle = '#FFEAA0'; ctx.lineWidth = 1; ctx.stroke();
+            ctx.fillStyle = '#885500'; ctx.font = 'bold 30px "Black Ops One", sans-serif';
+            ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.shadowColor = 'rgba(255,255,255,0.8)'; ctx.shadowBlur = 4;
+            ctx.fillText('$', size/2, size/2 + 2);
+            return canvas.toDataURL();
+        }
+        const COIN_TEXTURE = generateCoinTexture();
+
+
+        const engine = Matter.Engine.create();
+        const render = Matter.Render.create({ element: document.getElementById('coin-canvas-container'), engine: engine, options: { width: window.innerWidth, height: window.innerHeight, wireframes: false, background: 'transparent' }});
+        const ground = Matter.Bodies.rectangle(window.innerWidth/2, window.innerHeight+50, window.innerWidth*2, 100, { isStatic: true, render: { visible: false } });
+        Matter.World.add(engine.world, [ground]);
+        Matter.Render.run(render);
+        Matter.Runner.run(Matter.Runner.create(), engine);
+
+
+        window.addEventListener('resize', () => {
+            render.canvas.width = window.innerWidth; render.canvas.height = window.innerHeight;
+            Matter.Body.setPosition(ground, { x: window.innerWidth/2, y: window.innerHeight+50 });
+        });
+
+
+        window.emitCoins = function(amountMultiplier) {
+            const count = Math.min(Math.floor(amountMultiplier * 3), 100); 
+            let emitted = 0;
+            const interval = setInterval(() => {
+                if (emitted >= count) { clearInterval(interval); return; }
+                const coin = Matter.Bodies.circle( window.innerWidth / 2 + (Math.random() * 200 - 100), window.innerHeight, 16, { restitution: 0.8, friction: 0.01, density: 0.1, render: { sprite: { texture: COIN_TEXTURE, xScale: 0.5, yScale: 0.5 } } });
+                Matter.Body.setVelocity(coin, { x: (Math.random()-0.5)*30, y: -(30 + Math.random()*20) });
+                Matter.World.add(engine.world, coin);
+                emitted++;
+                setTimeout(() => Matter.World.remove(engine.world, coin), 6000 + Math.random()*2000);
+            }, 30);
+        };
+
+
+        /** ==========================================
+         *  ページ1 & 2: スロットロジック (既存維持)
+         *  ========================================== */
+        const SYMBOLS = ['🍒', '🍋', '🔔', '🍉', '⭐', '7️⃣'];
+        const PAYOUT_TABLE = { '7️⃣': 100, '⭐': 50, '🍉': 20, '🔔': 10, '🍋': 5, '🍒': 2 };
+        const BET_AMOUNT = 10;
+
+
+        function createSymbolElement(sym) {
+            const div = document.createElement('div'); div.className = 'symbol'; div.textContent = sym; return div;
+        }
+
+
+        // --- オートスロット ---
+        const AutoSlot = {
+            state: { isSpinning: false, mode: 'NORMAL', modeGames: 0 },
+            UI: {
+                msg: document.getElementById('message-display-auto'), btn: document.getElementById('spin-button-auto'),
+                reels: [document.getElementById('reel-0'), document.getElementById('reel-1'), document.getElementById('reel-2')],
+                badge: document.getElementById('mode-badge'), games: document.getElementById('mode-games-display'),
+                cutinOverlay: document.getElementById('cutin-overlay'), cutinText: document.getElementById('cutin-text')
+            },
+            init() {
+                this.UI.btn.addEventListener('click', () => this.spin());
+                this.UI.reels.forEach(r => { r.innerHTML = ''; r.appendChild(createSymbolElement('7️⃣')); });
+            },
+            drawLottery() {
+                const r = Math.random();
+                if (this.state.mode === 'FEVER') { if(r < 0.20) return '7️⃣'; if(r < 0.40) return '⭐'; if(r < 0.60) return '🔔'; return 'BLANK'; }
+                else if (this.state.mode === 'HIGH_CHANCE') { if(r < 0.05) return '7️⃣'; if(r < 0.15) return '⭐'; if(r < 0.25) return '🍉'; if(r < 0.40) return '🔔'; return 'BLANK'; }
+                else { if(r < 0.005) return '7️⃣'; if(r < 0.02) return '⭐'; if(r < 0.05) return '🍉'; if(r < 0.15) return '🔔'; if(r < 0.35) return '🍋'; if(r < 0.50) return '🍒'; return 'BLANK'; }
+            },
+            async playCutin() {
+                this.UI.cutinOverlay.classList.remove('opacity-0'); this.UI.cutinOverlay.classList.add('opacity-100');
+                await new Promise(r => setTimeout(r, 300));
+                this.UI.cutinText.classList.remove('scale-0'); this.UI.cutinText.classList.add('scale-100');
+                await new Promise(r => setTimeout(r, 1800));
+                this.UI.cutinText.classList.remove('scale-100'); this.UI.cutinText.classList.add('scale-0');
+                this.UI.cutinOverlay.classList.remove('opacity-100'); this.UI.cutinOverlay.classList.add('opacity-0');
+                await new Promise(r => setTimeout(r, 300));
+            },
+            async spin() {
+                if (this.state.isSpinning) return;
+                if (GLOBAL_STATE.credits < BET_AMOUNT) { this.showMessage('CREDIT IS EMPTY!', 'text-red-500'); return; }
+
+
+                checkAchievementTrigger('first_spin', () => true); // アチーブメント判定
+
+
+                this.state.isSpinning = true; GLOBAL_STATE.credits -= BET_AMOUNT; syncCreditsUI();
+                this.showMessage('SPINNING...', 'text-slate-300'); this.UI.btn.classList.add('opacity-50', 'cursor-not-allowed', 'scale-95');
+
+
+                const lotteryResult = this.drawLottery();
+                if ((lotteryResult === '7️⃣' || lotteryResult === '⭐') && Math.random() < 0.3) await this.playCutin();
+
+
+                this.UI.reels.forEach(strip => {
+                    strip.innerHTML = '';
+                    for(let i=0; i<6; i++) strip.appendChild(createSymbolElement(SYMBOLS[Math.floor(Math.random() * SYMBOLS.length)]));
+                    strip.style.transform = 'translateY(0)'; strip.classList.add('spinning');
+                });
+                await new Promise(r => setTimeout(r, 1200));
+
+
+                let finalReels = [];
+                if (lotteryResult !== 'BLANK') { finalReels = [lotteryResult, lotteryResult, lotteryResult]; }
+                else {
+                    while(true) {
+                        finalReels = [ SYMBOLS[Math.floor(Math.random()*SYMBOLS.length)], SYMBOLS[Math.floor(Math.random()*SYMBOLS.length)], SYMBOLS[Math.floor(Math.random()*SYMBOLS.length)] ];
+                        if (!(finalReels[0] === finalReels[1] && finalReels[1] === finalReels[2])) break;
+                    }
+                }
+
+
+                for (let i = 0; i < 3; i++) {
+                    await new Promise(res => {
+                        setTimeout(() => {
+                            const strip = this.UI.reels[i]; strip.classList.remove('spinning'); strip.innerHTML = '';
+                            [finalReels[i], SYMBOLS[0], SYMBOLS[1], SYMBOLS[2]].forEach(sym => strip.appendChild(createSymbolElement(sym)));
+                            strip.style.transform = `translateY(-420px)`; void strip.offsetWidth;
+                            strip.style.transition = 'transform 0.9s cubic-bezier(0.1, 1.4, 0.2, 1)'; strip.style.transform = 'translateY(0)';
+                            setTimeout(res, 900);
+                        }, i * 300);
+                    });
+                }
+
+
+                if (lotteryResult !== 'BLANK') {
+                    const multiplier = PAYOUT_TABLE[finalReels[0]]; const winAmount = Math.floor(BET_AMOUNT * multiplier * (this.state.mode === 'FEVER' ? 1.5 : 1));
+                    GLOBAL_STATE.credits += winAmount; syncCreditsUI();
+                    this.showMessage(`WIN! +${winAmount}`, 'text-yellow-400 drop-shadow-[0_0_15px_rgba(250,204,21,0.8)] animate-bounce font-ops text-4xl');
+                    emitCoins(multiplier);
+                    if (finalReels[0] === '7️⃣') { checkAchievementTrigger('lucky_seven', () => true); this.state.mode = 'FEVER'; this.state.modeGames = 30; setTimeout(() => this.showMessage('FEVER RUSH!!', 'text-pink-500 font-ops text-5xl'), 2000); }
+                    else if (finalReels[0] === '⭐' && this.state.mode !== 'FEVER') { this.state.mode = 'HIGH_CHANCE'; this.state.modeGames = 20; }
+                } else { this.showMessage('NO WIN', 'text-slate-500'); }
+
+
+                if (this.state.mode !== 'NORMAL') { this.state.modeGames--; if (this.state.modeGames <= 0) { this.state.mode = 'NORMAL'; this.showMessage('モード終了...', 'text-slate-400'); } this.updateModeUI(); }
+                this.state.isSpinning = false; this.UI.btn.classList.remove('opacity-50', 'cursor-not-allowed', 'scale-95');
+            },
+            updateModeUI() {
+                const machine = document.getElementById('slot-machine-auto');
+                machine.className = 'slot-machine-frame max-w-3xl w-full bg-slate-900/90 backdrop-blur-2xl rounded-[2.5rem] p-8 shadow-2xl border-4 relative z-10 transition-all duration-500';
+                if (this.state.mode === 'NORMAL') { this.UI.badge.textContent = 'NORMAL MODE'; this.UI.badge.className = 'px-8 py-2 rounded-full border-2 border-slate-400 bg-slate-800 text-slate-300 font-bold font-ops text-xl'; this.UI.games.textContent = '∞'; machine.classList.add('border-slate-700'); }
+                else if (this.state.mode === 'HIGH_CHANCE') { this.UI.badge.textContent = 'HIGH CHANCE!!'; this.UI.badge.className = 'px-8 py-2 rounded-full border-2 border-red-500 bg-red-900 text-white font-bold animate-pulse font-ops text-xl shadow-[0_0_20px_red]'; this.UI.games.textContent = this.state.modeGames; machine.classList.add('mode-high-chance'); }
+                else if (this.state.mode === 'FEVER') { this.UI.badge.textContent = 'FEVER RUSH!!!'; this.UI.badge.className = 'px-8 py-2 rounded-full border-2 border-yellow-400 bg-yellow-600 text-white font-bold mode-fever font-ops text-2xl shadow-[0_0_30px_yellow]'; this.UI.games.textContent = this.state.modeGames; machine.classList.add('mode-fever', 'border-yellow-400'); }
+            },
+            showMessage(text, className) { this.UI.msg.textContent = text; this.UI.msg.className = `text-2xl md:text-3xl font-bold text-center tracking-wide transition-all duration-300 ${className}`; }
+        };
+
+
+        // --- マニュアルスロット ---
+        const ManualSlot = {
+            state: { isSpinning: false, activeReels: 0 }, reelsData: [], symbolHeight: 140,
+            UI: { msg: document.getElementById('message-display-manual'), spinBtn: document.getElementById('spin-button-manual'), reelsDom: [document.getElementById('reel-manual-0'), document.getElementById('reel-manual-1'), document.getElementById('reel-manual-2')], stopBtns: [document.getElementById('stop-btn-0'), document.getElementById('stop-btn-1'), document.getElementById('stop-btn-2')] },
+            init() {
+                const baseSequence = ['🍒', '🍋', '🔔', '🍉', '⭐', '7️⃣'];
+                this.UI.reelsDom.forEach((dom, index) => {
+                    dom.innerHTML = ''; let stripSymbols = [];
+                    for(let i=0; i<20; i++) stripSymbols = stripSymbols.concat(baseSequence);
+                    stripSymbols.forEach(sym => dom.appendChild(createSymbolElement(sym)));
+                    this.reelsData.push({ dom: dom, y: 0, speed: 35, isSpinning: false, sequence: baseSequence, finalSymbol: null });
+                    this.UI.stopBtns[index].addEventListener('mousedown', () => this.stopReel(index));
+                });
+                this.UI.spinBtn.addEventListener('click', () => this.spin());
+            },
+            spin() {
+                if (this.state.isSpinning) return;
+                if (GLOBAL_STATE.credits < BET_AMOUNT) { this.showMessage('CREDIT IS EMPTY!', 'text-red-500'); return; }
+                this.state.isSpinning = true; this.state.activeReels = 3; GLOBAL_STATE.credits -= BET_AMOUNT; syncCreditsUI();
+                this.showMessage('目押しで止めろ！', 'text-blue-400'); this.UI.spinBtn.classList.add('opacity-50', 'cursor-not-allowed');
+                this.reelsData.forEach((data, i) => { data.isSpinning = true; this.UI.stopBtns[i].classList.remove('opacity-50', 'cursor-not-allowed'); this.UI.stopBtns[i].classList.add('hover:bg-red-500', 'active:scale-95'); });
+                this.updateLoop();
+            },
+            updateLoop() {
+                let allStopped = true;
+                this.reelsData.forEach(data => {
+                    if (data.isSpinning) {
+                        allStopped = false; data.y -= data.speed;
+                        if (data.y <= -(this.symbolHeight * 6 * 10)) data.y += (this.symbolHeight * 6 * 10);
+                        data.dom.style.transform = `translateY(${data.y}px)`;
+                    }
+                });
+                if (!allStopped) requestAnimationFrame(() => this.updateLoop());
+                else this.checkResult();
+            },
+            stopReel(index) {
+                const data = this.reelsData[index]; if (!data.isSpinning) return;
+                this.UI.stopBtns[index].classList.add('opacity-50', 'cursor-not-allowed', 'pressed'); this.UI.stopBtns[index].classList.remove('hover:bg-red-500', 'active:scale-95');
+                setTimeout(() => this.UI.stopBtns[index].classList.remove('pressed'), 200);
+                data.isSpinning = false;
+                data.y = Math.round(data.y / this.symbolHeight) * this.symbolHeight;
+                data.dom.style.transform = `translateY(${data.y}px)`;
+                data.finalSymbol = data.sequence[Math.abs(data.y / this.symbolHeight) % data.sequence.length];
+                data.dom.style.transition = 'transform 0.2s cubic-bezier(0.1, 2, 0.5, 1)';
+                data.dom.style.transform = `translateY(${data.y + 20}px)`;
+                setTimeout(() => { data.dom.style.transform = `translateY(${data.y}px)`; setTimeout(() => { data.dom.style.transition = 'none'; }, 200); }, 100);
+                this.state.activeReels--;
+            },
+            checkResult() {
+                const results = this.reelsData.map(d => d.finalSymbol);
+                if (results[0] === results[1] && results[1] === results[2]) {
+                    const winAmount = BET_AMOUNT * PAYOUT_TABLE[results[0]]; GLOBAL_STATE.credits += winAmount; syncCreditsUI();
+                    this.showMessage(`EXCELLENT! +${winAmount}`, 'text-yellow-400 drop-shadow-[0_0_15px_rgba(250,204,21,0.8)] animate-bounce font-ops text-4xl');
+                    emitCoins(PAYOUT_TABLE[results[0]]);
+                    checkAchievementTrigger('win_manual', () => true);
+                    if (results[0] === '7️⃣') checkAchievementTrigger('lucky_seven', () => true);
+                } else { this.showMessage('FAILED...', 'text-slate-500'); }
+                this.state.isSpinning = false; this.UI.spinBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+            },
+            showMessage(text, className) { this.UI.msg.textContent = text; this.UI.msg.className = `text-xl md:text-2xl font-bold text-center tracking-wide transition-all duration-300 ${className}`; }
+        };
+
+
+        /** ==========================================
+         *  ページ3: ギャンブルゾーンロジック (新規)
+         *  ========================================== */
+        const GambleLogic = {
+            bets: { hl: 100, rl: 100, dc: 100 },
+            isProcessing: false,
+
+
+            init() {
+                // UIイベントバインド
+                document.getElementById('btn-high').addEventListener('click', () => this.playHighLow('high'));
+                document.getElementById('btn-low').addEventListener('click', () => this.playHighLow('low'));
+
+
+                document.getElementById('btn-rl-red').addEventListener('click', () => this.playRoulette('red'));
+                document.getElementById('btn-rl-black').addEventListener('click', () => this.playRoulette('black'));
+                document.getElementById('btn-rl-green').addEventListener('click', () => this.playRoulette('green'));
+
+
+                document.getElementById('btn-dc-low').addEventListener('click', () => this.playDice('low'));
+                document.getElementById('btn-dc-seven').addEventListener('click', () => this.playDice('seven'));
+                document.getElementById('btn-dc-high').addEventListener('click', () => this.playDice('high'));
+
+
+                window.changeBet = (type, amount) => { this.bets[type] += amount; this.updateBetUI(); };
+                window.resetBet = (type) => { this.bets[type] = 100; this.updateBetUI(); };
+            },
+            updateBetUI() {
+                document.getElementById('hl-bet-display').textContent = this.bets.hl.toLocaleString();
+                document.getElementById('rl-bet-display').textContent = this.bets.rl.toLocaleString();
+                document.getElementById('dc-bet-display').textContent = this.bets.dc.toLocaleString();
+            },
+            checkAndDeductBet(type) {
+                if (GLOBAL_STATE.credits < this.bets[type]) { showToast("クレジットが不足しています！"); return false; }
+                GLOBAL_STATE.credits -= this.bets[type]; syncCreditsUI(); return true;
+            },
+            winProcess(amount) {
+                GLOBAL_STATE.credits += amount; syncCreditsUI();
+                emitCoins(amount / 500); // 演出用
+                checkAchievementTrigger('gamble_win', () => true);
+            },
+
+
+            // --- 1. HIGH & LOW ---
+            async playHighLow(choice) {
+                if (this.isProcessing) return;
+                if (!this.checkAndDeductBet('hl')) return;
+                this.isProcessing = true;
+                const msg = document.getElementById('hl-msg');
+                const card = document.getElementById('hl-result-card');
+                msg.textContent = 'ドロー中...'; msg.className = 'mt-6 text-xl font-bold h-8 text-slate-300 animate-pulse';
+
+
+                // カード回転演出
+                card.style.transform = 'rotateY(90deg)';
+                await new Promise(r => setTimeout(r, 300));
+
+
+                const resultNum = Math.floor(Math.random() * 13) + 1; // 1-13
+                card.innerHTML = `<span class="text-6xl font-black">${resultNum}</span>`;
+                card.style.transform = 'rotateY(0deg)';
+                card.className = 'w-32 h-48 bg-white rounded-xl flex flex-col items-center justify-center text-black border-4 border-slate-300 shadow-[0_0_30px_rgba(255,255,255,0.8)] transition-all duration-300';
+
+
+                await new Promise(r => setTimeout(r, 600));
+
+
+                let isWin = false;
+                if (choice === 'high' && resultNum > 7) isWin = true;
+                if (choice === 'low' && resultNum < 7) isWin = true;
+
+
+                if (resultNum === 7) {
+                    msg.textContent = 'DRAW! (返金)'; msg.className = 'mt-6 text-xl font-bold h-8 text-yellow-400';
+                    this.winProcess(this.bets.hl);
+                } else if (isWin) {
+                    const winAmount = this.bets.hl * 2;
+                    msg.textContent = `WIN! +${winAmount}`; msg.className = 'mt-6 text-2xl font-bold h-8 text-emerald-400 drop-shadow-[0_0_10px_rgba(52,211,153,0.8)] font-ops';
+                    this.winProcess(winAmount);
+                } else {
+                    msg.textContent = 'LOSE...'; msg.className = 'mt-6 text-xl font-bold h-8 text-red-500';
+                }
+
+
+                setTimeout(() => {
+                    card.style.transform = 'rotateY(90deg)';
+                    setTimeout(() => {
+                        card.innerHTML = `<span class="text-6xl font-black text-white">?</span>`;
+                        card.className = 'w-32 h-48 bg-gradient-to-br from-slate-700 to-slate-900 rounded-xl flex flex-col items-center justify-center border-4 border-slate-500 shadow-xl transition-all duration-300';
+                        card.style.transform = 'rotateY(0deg)';
+                        this.isProcessing = false;
+                    }, 300);
+                }, 2000);
+            },
+
+
+            // --- 2. ROULETTE ---
+            async playRoulette(choice) {
+                if (this.isProcessing) return;
+                if (!this.checkAndDeductBet('rl')) return;
+                this.isProcessing = true;
+                const msg = document.getElementById('rl-msg');
+                const wheel = document.getElementById('roulette-wheel');
+                const resultText = document.getElementById('roulette-result-text');
+
+
+                msg.textContent = 'NO MORE BET...'; msg.className = 'mt-6 text-xl font-bold h-8 text-slate-300 animate-pulse';
+                resultText.textContent = '...';
+
+
+                // 回転演出 (CSS Transform)
+                const spinRot = 1440 + Math.floor(Math.random() * 360);
+                wheel.style.transform = `rotate(${spinRot}deg)`;
+
+
+                // 抽選: 赤48%, 黒48%, 緑4%
+                let resultColor = '';
+                const r = Math.random();
+                if (r < 0.04) resultColor = 'green';
+                else if (r < 0.52) resultColor = 'red';
+                else resultColor = 'black';
+
+
+                await new Promise(res => setTimeout(res, 3000)); // アニメーション待機
+
+
+                resultText.textContent = resultColor.toUpperCase();
+                if(resultColor === 'red') resultText.className = 'text-4xl font-ops text-red-500 drop-shadow-[0_0_10px_red]';
+                if(resultColor === 'black') resultText.className = 'text-4xl font-ops text-slate-400 drop-shadow-[0_0_10px_white]';
+                if(resultColor === 'green') resultText.className = 'text-4xl font-ops text-green-500 drop-shadow-[0_0_10px_green]';
+
+
+                if (choice === resultColor) {
+                    const multi = resultColor === 'green' ? 14 : 2;
+                    const winAmount = this.bets.rl * multi;
+                    msg.textContent = `WIN! +${winAmount}`; msg.className = 'mt-6 text-2xl font-bold h-8 text-yellow-400 drop-shadow-[0_0_10px_rgba(250,204,21,0.8)] font-ops';
+                    this.winProcess(winAmount);
+                } else {
+                    msg.textContent = 'LOSE...'; msg.className = 'mt-6 text-xl font-bold h-8 text-slate-500';
+                }
+
+
+                setTimeout(() => {
+                    wheel.style.transition = 'none';
+                    wheel.style.transform = 'rotate(0deg)';
+                    void wheel.offsetWidth;
+                    wheel.style.transition = 'transform 3s ease-out';
+                    resultText.textContent = '?'; resultText.className = 'text-4xl font-ops text-white';
+                    this.isProcessing = false;
+                }, 2000);
+            },
+
+
+            // --- 3. DICE ROLL ---
+            async playDice(choice) {
+                if (this.isProcessing) return;
+                if (!this.checkAndDeductBet('dc')) return;
+                this.isProcessing = true;
+
+
+                const diceFaces = ['⚀','⚁','⚂','⚃','⚄','⚅'];
+                const d1Dom = document.getElementById('dice-1');
+                const d2Dom = document.getElementById('dice-2');
+                const msg = document.getElementById('dc-msg');
+                msg.textContent = 'ROLLING...'; msg.className = 'mt-6 text-xl font-bold h-8 text-slate-300 animate-pulse';
+
+
+                // 回転エフェクト
+                d1Dom.style.transform = 'rotate(720deg) scale(1.2)';
+                d2Dom.style.transform = 'rotate(-720deg) scale(1.2)';
+
+
+                // ガチャガチャ変わる演出
+                let rolls = 0;
+                const rollInterval = setInterval(() => {
+                    d1Dom.textContent = diceFaces[Math.floor(Math.random()*6)];
+                    d2Dom.textContent = diceFaces[Math.floor(Math.random()*6)];
+                    rolls++;
+                    if(rolls > 10) clearInterval(rollInterval);
+                }, 50);
+
+
+                await new Promise(r => setTimeout(r, 800));
+
+
+                const d1 = Math.floor(Math.random()*6) + 1;
+                const d2 = Math.floor(Math.random()*6) + 1;
+                const total = d1 + d2;
+
+
+                d1Dom.textContent = diceFaces[d1-1];
+                d2Dom.textContent = diceFaces[d2-1];
+                d1Dom.style.transform = 'rotate(0deg) scale(1)';
+                d2Dom.style.transform = 'rotate(0deg) scale(1)';
+
+
+                let isWin = false;
+                let multi = 2;
+                if (choice === 'seven' && total === 7) { isWin = true; multi = 4; }
+                else if (choice === 'low' && total >= 2 && total <= 6) { isWin = true; }
+                else if (choice === 'high' && total >= 8 && total <= 12) { isWin = true; }
+
+
+                if (isWin) {
+                    const winAmount = this.bets.dc * multi;
+                    msg.textContent = `TOTAL ${total} - WIN! +${winAmount}`; msg.className = 'mt-6 text-2xl font-bold h-8 text-fuchsia-400 drop-shadow-[0_0_10px_rgba(232,121,249,0.8)] font-ops';
+                    this.winProcess(winAmount);
+                } else {
+                    msg.textContent = `TOTAL ${total} - LOSE...`; msg.className = 'mt-6 text-xl font-bold h-8 text-slate-500';
+                }
+
+
+                setTimeout(() => { this.isProcessing = false; }, 1500);
+            }
+        };
+
+
+
+
+        /** ==========================================
+         *  初期起動処理 (Boot)
+         *  ========================================== */
+        window.addEventListener('DOMContentLoaded', () => {
+            loadGame(); // セーブデータの復元
+
+
+            // スキン適用
+            document.body.className = `bg-gradient-to-br from-indigo-950 via-gray-900 to-black text-white transition-colors duration-1000 skin-${GLOBAL_STATE.currentSkin}`;
+
+
+            // 各モジュール初期化
+            AutoSlot.init();
+            ManualSlot.init();
+            GambleLogic.init();
+
+
+            syncCreditsUI();
+        });
+
+
+    </script>
+</body>
+</html>
+
+

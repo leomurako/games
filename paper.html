@@ -1,0 +1,671 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Paper.io Clone - Stats & Name Tags</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@700;800;900&display=swap');
+
+  :root {
+    --bg-color: #f4f6f9;
+    --text-color: #2c3e50;
+    --ui-bg: rgba(255, 255, 255, 0.85);
+  }
+
+  body { margin: 0; padding: 0; overflow: hidden; background-color: var(--bg-color); font-family: 'Nunito', sans-serif; user-select: none; }
+  canvas { display: block; }
+
+  /* インゲーム UI */
+  #game-ui { position: absolute; top: 20px; left: 50%; transform: translateX(-50%); background: var(--ui-bg); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); padding: 12px 30px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); z-index: 10; transition: opacity 0.3s ease; opacity: 0; pointer-events: none; border: 1px solid rgba(255,255,255,0.6); min-width: 200px; }
+  .header-ui { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 5px; }
+  #timer-text { font-size: 22px; font-weight: 900; color: #34495e; }
+  #score-text { font-size: 22px; font-weight: 800; color: var(--text-color); }
+  .progress-bar-container { width: 100%; height: 8px; background: #e0e5ec; border-radius: 4px; overflow: hidden; }
+  #score-bar { width: 0%; height: 100%; background: #e74c3c; border-radius: 4px; transition: width 0.3s ease, background-color 0.3s; }
+
+  #minimap-ui { position: absolute; top: 20px; left: 20px; background: var(--ui-bg); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); padding: 8px; border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); z-index: 10; transition: opacity 0.3s ease; opacity: 0; pointer-events: none; border: 1px solid rgba(255,255,255,0.6); }
+  #minimapCanvas { display: block; width: 150px; height: 150px; border-radius: 8px; background: rgba(224, 229, 236, 0.5); }
+
+  #combat-text {
+    position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 64px; font-weight: 900; color: #fff; -webkit-text-stroke: 2px rgba(0,0,0,0.2); text-shadow: 0 15px 30px rgba(0,0,0,0.4); z-index: 15; pointer-events: none; opacity: 0;
+  }
+  .show-combat { animation: popCombat 1.2s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
+  @keyframes popCombat { 0% { opacity: 0; transform: translate(-50%, -10%) scale(0.5); } 20% { opacity: 1; transform: translate(-50%, -50%) scale(1.2); } 80% { opacity: 1; transform: translate(-50%, -50%) scale(1); } 100% { opacity: 0; transform: translate(-50%, -80%) scale(0.8); } }
+
+  /* モーダルUI */
+  .overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(244, 246, 249, 0.6); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); display: flex; justify-content: center; align-items: center; z-index: 20; transition: opacity 0.3s ease; }
+  .modal { background: #ffffff; padding: 40px 40px; border-radius: 24px; box-shadow: 0 20px 50px rgba(0,0,0,0.15); text-align: center; width: 340px; min-height: 250px; position: relative; overflow: hidden; transform: scale(0.95); animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
+  @keyframes popIn { to { transform: scale(1); opacity: 1; } }
+
+  .view { display: none; flex-direction: column; align-items: center; justify-content: center; width: 100%; height: 100%; }
+  .view.active { display: flex; animation: fadeSlideUp 0.35s ease forwards; }
+  @keyframes fadeSlideUp { 0% { opacity: 0; transform: translateY(20px); } 100% { opacity: 1; transform: translateY(0); } }
+
+  .logo { font-size: 42px; font-weight: 900; color: var(--text-color); margin: 0 0 5px 0; letter-spacing: -1px; }
+  .logo span { color: #3498db; }
+  .subtitle { color: #7f8c8d; font-weight: 700; font-size: 15px; margin-bottom: 25px; }
+  .section-title { font-size: 24px; font-weight: 800; color: var(--text-color); margin: 0 0 15px 0; }
+
+  .name-input { width: 100%; padding: 12px; border: 2px solid #ecf0f1; border-radius: 12px; font-size: 18px; font-weight: 800; font-family: 'Nunito', sans-serif; text-align: center; color: var(--text-color); margin-bottom: 20px; outline: none; transition: 0.2s; box-sizing: border-box; }
+  .name-input:focus { border-color: #3498db; box-shadow: 0 0 0 4px rgba(52, 152, 219, 0.2); }
+
+  .button-group { display: flex; gap: 15px; width: 100%; justify-content: center; }
+  .btn { display: inline-block; padding: 15px 0; width: 100%; font-size: 18px; font-weight: 800; font-family: inherit; border: none; border-radius: 14px; cursor: pointer; transition: all 0.1s; text-transform: uppercase; letter-spacing: 1px; }
+  .btn:active { transform: translateY(6px); }
+  .btn-primary { background-color: #2ecc71; color: white; box-shadow: 0 6px 0 #27ae60, 0 15px 20px rgba(46, 204, 113, 0.4); flex: 2; }
+  .btn-primary:active { box-shadow: 0 0px 0 #27ae60, 0 5px 10px rgba(46, 204, 113, 0.4); }
+  .btn-secondary { background-color: #ecf0f1; color: #34495e; box-shadow: 0 6px 0 #bdc3c7, 0 15px 20px rgba(0, 0, 0, 0.1); flex: 1; }
+  .btn-secondary:active { box-shadow: 0 0px 0 #bdc3c7, 0 5px 10px rgba(0, 0, 0, 0.1); }
+
+  .preview-box { width: 70px; height: 70px; border-radius: 18px; margin-bottom: 20px; background-color: #e74c3c; box-shadow: 0 10px 20px rgba(231, 76, 60, 0.4); transition: background-color 0.3s ease, box-shadow 0.3s ease; }
+  .color-picker { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; margin-bottom: 25px; }
+  .color-btn { width: 40px; height: 40px; border-radius: 50%; cursor: pointer; border: 3px solid transparent; transition: all 0.2s cubic-bezier(0.25, 0.8, 0.25, 1); box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+  .color-btn:hover { transform: translateY(-3px) scale(1.1); }
+  .color-btn.selected { transform: scale(1.15); box-shadow: 0 0 0 3px #fff, 0 0 0 6px var(--text-color); }
+
+  /* リザルト画面のスタッツUI */
+  .stats-container { display: flex; justify-content: space-between; width: 100%; background: #ecf0f1; border-radius: 16px; padding: 15px 20px; margin-bottom: 20px; box-sizing: border-box; }
+  .stat-box { text-align: center; }
+  .stat-label { font-size: 12px; color: #7f8c8d; font-weight: 800; margin-bottom: 2px; }
+  .stat-value { font-size: 24px; font-weight: 900; color: #2c3e50; }
+
+  .ranking-list { width: 100%; max-height: 160px; overflow-y: auto; margin-bottom: 15px; }
+  .ranking-list::-webkit-scrollbar { width: 6px; }
+  .ranking-list::-webkit-scrollbar-thumb { background: #bdc3c7; border-radius: 3px; }
+  .rank-item { display: flex; align-items: center; padding: 10px 12px; border-bottom: 1px solid #ecf0f1; transition: background 0.2s; }
+  .rank-item:last-child { border-bottom: none; }
+  .rank-item.is-me { background-color: rgba(52, 152, 219, 0.15); border-radius: 8px; box-shadow: inset 0 0 0 2px #3498db; }
+  .rank-color { width: 18px; height: 18px; border-radius: 4px; margin-right: 12px; flex-shrink: 0; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
+  .rank-name { flex-grow: 1; font-size: 16px; font-weight: 700; color: var(--text-color); text-align: left; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .rank-score { font-size: 16px; font-weight: 900; color: #e74c3c; margin-left: 10px; }
+
+  .controls-hint { margin-top: 25px; font-size: 13px; color: #95a5a6; font-weight: 700; }
+  .key { background: #ecf0f1; padding: 3px 8px; border-radius: 6px; color: #34495e; border-bottom: 2px solid #bdc3c7; margin: 0 3px; }
+  .hidden { display: none !important; }
+</style>
+</head>
+<body>
+
+<div id="combat-text">KILL!</div>
+<div id="minimap-ui"><canvas id="minimapCanvas" width="300" height="300"></canvas></div>
+
+<div id="game-ui">
+  <div class="header-ui">
+    <div id="timer-text">03:00</div>
+    <div id="score-text"><span id="score">0.00</span>%</div>
+  </div>
+  <div class="progress-bar-container"><div id="score-bar"></div></div>
+</div>
+<canvas id="gameCanvas"></canvas>
+
+<div id="ui-overlay" class="overlay">
+  <div class="modal">
+    <!-- メイン画面 -->
+    <div id="view-main" class="view active">
+      <h1 id="modal-title" class="logo">Paper<span>.io</span></h1>
+      <p id="modal-subtitle" class="subtitle">3分間で陣地を広げろ！</p>
+      <div class="button-group">
+        <button id="btn-play" class="btn btn-primary">PLAY</button>
+        <button id="btn-skins" class="btn btn-secondary">SKINS</button>
+      </div>
+      <div class="controls-hint">操作: <span class="key">←</span><span class="key">↑</span><span class="key">↓</span><span class="key">→</span> キー</div>
+    </div>
+
+    <!-- スキン＆名前設定画面 -->
+    <div id="view-skins" class="view">
+      <h2 class="section-title">PLAYER SETTINGS</h2>
+      <input type="text" id="player-name-input" class="name-input" placeholder="Your Name" value="You" maxlength="12">
+      <div id="skin-preview" class="preview-box"></div>
+      <div class="color-picker">
+        <div class="color-btn selected" style="background: #e74c3c;" data-color="#e74c3c"></div>
+        <div class="color-btn" style="background: #3498db;" data-color="#3498db"></div>
+        <div class="color-btn" style="background: #2ecc71;" data-color="#2ecc71"></div>
+        <div class="color-btn" style="background: #f1c40f;" data-color="#f1c40f"></div>
+        <div class="color-btn" style="background: #9b59b6;" data-color="#9b59b6"></div>
+        <div class="color-btn" style="background: #e67e22;" data-color="#e67e22"></div>
+        <div class="color-btn" style="background: #34495e;" data-color="#34495e"></div>
+        <div class="color-btn" style="background: #ff9ff3;" data-color="#ff9ff3"></div>
+      </div>
+      <button id="btn-back" class="btn btn-secondary" style="width: 100%;">BACK</button>
+    </div>
+
+    <!-- リザルト画面 -->
+    <div id="view-result" class="view">
+      <h2 class="section-title" id="result-title">RESULT</h2>
+      
+      <!-- 追加：自分のスタッツ表示 -->
+      <div class="stats-container">
+        <div class="stat-box">
+          <div class="stat-label">RANK</div>
+          <div class="stat-value" id="res-rank">1</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-label">SCORE</div>
+          <div class="stat-value"><span id="res-score">0.00</span><span style="font-size:16px">%</span></div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-label">KILLS</div>
+          <div class="stat-value" id="res-kills">0</div>
+        </div>
+      </div>
+
+      <div id="ranking-list" class="ranking-list"></div>
+      <button id="btn-restart" class="btn btn-primary" style="width: 100%; margin-top: 5px;">PLAY AGAIN</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  const canvas = document.getElementById('gameCanvas');
+  const ctx = canvas.getContext('2d');
+  const minimapCanvas = document.getElementById('minimapCanvas');
+  const miniCtx = minimapCanvas.getContext('2d');
+  
+  const uiOverlay = document.getElementById('ui-overlay');
+  const gameUi = document.getElementById('game-ui');
+  const minimapUi = document.getElementById('minimap-ui');
+  const scoreText = document.getElementById('score');
+  const scoreBar = document.getElementById('score-bar');
+  const timerText = document.getElementById('timer-text');
+  const combatTextEl = document.getElementById('combat-text');
+  
+  const viewMain = document.getElementById('view-main');
+  const viewSkins = document.getElementById('view-skins');
+  const viewResult = document.getElementById('view-result');
+  const resultTitle = document.getElementById('result-title');
+  const rankingList = document.getElementById('ranking-list');
+  const nameInput = document.getElementById('player-name-input');
+  
+  const btnPlay = document.getElementById('btn-play');
+  const btnSkins = document.getElementById('btn-skins');
+  const btnBack = document.getElementById('btn-back');
+  const btnRestart = document.getElementById('btn-restart');
+  const skinPreview = document.getElementById('skin-preview');
+  const colorBtns = document.querySelectorAll('.color-btn');
+
+  function resize() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
+  window.addEventListener('resize', resize); resize();
+
+  const TILE_SIZE = 40;
+  const COLS = 300;
+  const ROWS = 300;
+  const WORLD_WIDTH = COLS * TILE_SIZE;
+  const WORLD_HEIGHT = ROWS * TILE_SIZE;
+
+  const GAME_TIME = 180;
+  let timeLeft = GAME_TIME;
+
+  let map = [];
+  let trailMap = []; 
+  let players = [];
+  let player = null; 
+  const BOT_COUNT = 15; 
+  const botColors = ['#3498db', '#2ecc71', '#f1c40f', '#9b59b6', '#e67e22', '#34495e', '#ff9ff3', '#1abc9c', '#d35400', '#c0392b'];
+  const botNames = ["Alex", "Gamer99", "Ninja", "Sakura_JP", "NoobMaster", "ProPlayer", "Shadow", "Ghost", "Viper", "Lion", "Tiger", "Bear", "Wolf", "Dragon", "Phoenix", "Titan", "Zero", "Nova", "Max", "Leo","Iwazaki","Panchikun","Legend","Smith","Tarou","Hana"];
+
+  let gameState = 'START';
+  let myColor = '#e74c3c';
+  let particles = [];
+  let screenShake = 0;
+
+  function hexToRgba(hex, alpha) {
+    let r = parseInt(hex.slice(1, 3), 16), g = parseInt(hex.slice(3, 5), 16), b = parseInt(hex.slice(5, 7), 16);
+    return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+  }
+
+  function formatTime(s) {
+    let m = Math.floor(s / 60); let sec = Math.floor(s % 60);
+    return (m < 10 ? "0" + m : m) + ":" + (sec < 10 ? "0" + sec : sec);
+  }
+
+  function createParticles(x, y, color) {
+    for (let i = 0; i < 40; i++) {
+      particles.push({ x: x, y: y, vx: (Math.random() - 0.5) * 800, vy: (Math.random() - 0.5) * 800, size: Math.random() * 12 + 6, color: color, alpha: 1, life: 1 });
+    }
+  }
+  function updateParticles(dt) {
+    for (let i = particles.length - 1; i >= 0; i--) {
+      let p = particles[i]; p.x += p.vx * dt; p.y += p.vy * dt; p.vx *= 0.92; p.vy *= 0.92; p.life -= dt * 1.2; p.alpha = Math.max(0, p.life);
+      if (p.life <= 0) particles.splice(i, 1);
+    }
+  }
+  function drawParticles() {
+    particles.forEach(p => { ctx.fillStyle = hexToRgba(p.color, p.alpha); ctx.fillRect(p.x - p.size/2, p.y - p.size/2, p.size, p.size); });
+  }
+
+  function showCombatText(text, color) {
+    combatTextEl.innerText = text; combatTextEl.style.color = color || '#fff';
+    combatTextEl.classList.remove('show-combat'); void combatTextEl.offsetWidth; combatTextEl.classList.add('show-combat');
+  }
+
+  // UIイベント
+  btnSkins.addEventListener('click', () => { viewMain.classList.remove('active'); viewSkins.classList.add('active'); });
+  btnBack.addEventListener('click', () => { viewSkins.classList.remove('active'); viewMain.classList.add('active'); });
+  btnRestart.addEventListener('click', () => { viewResult.classList.remove('active'); viewMain.classList.add('active'); });
+  
+  colorBtns.forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      colorBtns.forEach(b => b.classList.remove('selected')); e.target.classList.add('selected');
+      myColor = e.target.getAttribute('data-color');
+      skinPreview.style.backgroundColor = myColor; skinPreview.style.boxShadow = `0 10px 20px ${hexToRgba(myColor, 0.4)}`;
+    });
+  });
+  
+  btnPlay.addEventListener('click', () => { if (gameState === 'START' || gameState === 'GAMEOVER') startGame(); });
+
+  function createPlayer(id, isBot, cx, cy, color, name) {
+    let p = {
+      id: id, isBot: isBot, isDead: false,
+      x: cx * TILE_SIZE + TILE_SIZE/2, y: cy * TILE_SIZE + TILE_SIZE/2,
+      size: 40, vx: 0, vy: -1, speed: isBot ? 280 : 320,
+      isOutside: false, trailPoints: [], trailGrids: [],
+      color: color, fillColor: hexToRgba(color, 0.25), aiTimer: 0,
+      name: name, scorePct: 0, kills: 0 // ★ KILLS（キル数）を追加
+    };
+    for (let y = cy - 2; y <= cy + 2; y++) {
+      for (let x = cx - 2; x <= cx + 2; x++) { if(x >= 0 && x < COLS && y >= 0 && y < ROWS) map[y][x] = id; }
+    }
+    return p;
+  }
+
+  function spawnBot(id) {
+    let bx = Math.floor(Math.random() * (COLS - 20)) + 10, by = Math.floor(Math.random() * (ROWS - 20)) + 10;
+    let bName = botNames[Math.floor(Math.random() * botNames.length)];
+    let bot = createPlayer(id, true, bx, by, botColors[Math.floor(Math.random() * botColors.length)], bName);
+    let dirs = [[0,-1],[0,1],[-1,0],[1,0]];
+    bot.vx = dirs[Math.floor(Math.random()*4)][0]; bot.vy = dirs[Math.floor(Math.random()*4)][1];
+    players.push(bot);
+  }
+
+  function resetMap() {
+    map = []; trailMap = []; particles = []; screenShake = 0; timeLeft = GAME_TIME;
+    for (let y = 0; y < ROWS; y++) { map.push(new Array(COLS).fill(0)); trailMap.push(new Array(COLS).fill(0)); }
+    players = [];
+    
+    let myName = nameInput.value.trim() || "You";
+    player = createPlayer(1, false, COLS/2, ROWS/2, myColor, myName);
+    players.push(player);
+    for (let i = 0; i < BOT_COUNT; i++) spawnBot(i + 2);
+  }
+
+  function startGame() {
+    resetMap(); updateAllScores(); gameState = 'PLAYING';
+    timerText.innerText = formatTime(timeLeft);
+    uiOverlay.style.opacity = '0'; setTimeout(() => uiOverlay.classList.add('hidden'), 300);
+    gameUi.style.opacity = '1'; minimapUi.style.opacity = '1'; 
+    scoreBar.style.background = player.color;
+    lastTime = performance.now();
+  }
+
+  function killPlayer(p, killerId) {
+    p.isDead = true; 
+    createParticles(p.x, p.y, p.color); 
+    
+    // ★ 誰かが誰かを倒した時、キラー側のキル数を+1する
+    if (killerId !== null && killerId !== p.id) {
+      let killer = players.find(v => v.id === killerId);
+      if (killer) killer.kills++;
+    }
+    
+    for (let y = 0; y < ROWS; y++) {
+      for (let x = 0; x < COLS; x++) {
+        if (map[y][x] === p.id) map[y][x] = 0;
+        if (trailMap[y][x] === p.id) trailMap[y][x] = 0;
+      }
+    }
+    updateAllScores();
+
+    if (!p.isBot) {
+      screenShake = 35; 
+      if (killerId === 1 || killerId === null) showCombatText("CRASHED...", "#e74c3c");
+      else showCombatText("DESTROYED!", "#e74c3c");
+      setTimeout(() => { if(gameState === 'PLAYING') { gameState = 'GAMEOVER'; showResult("GAME OVER"); } }, 1500);
+    } else {
+      if (killerId === 1) { showCombatText("KILL!", "#f1c40f"); screenShake = 15; }
+      setTimeout(() => {
+        if(gameState === 'PLAYING') {
+          let bx = Math.floor(Math.random() * (COLS - 20)) + 10, by = Math.floor(Math.random() * (ROWS - 20)) + 10;
+          let bName = botNames[Math.floor(Math.random() * botNames.length)];
+          let newBot = createPlayer(p.id, true, bx, by, botColors[Math.floor(Math.random() * botColors.length)], bName);
+          let dirs = [[0,-1],[0,1],[-1,0],[1,0]];
+          newBot.vx = dirs[Math.floor(Math.random()*4)][0]; newBot.vy = dirs[Math.floor(Math.random()*4)][1];
+          let idx = players.findIndex(v => v.id === p.id);
+          if (idx !== -1) players[idx] = newBot;
+        }
+      }, 2000);
+    }
+  }
+
+  function timeUp() {
+    gameState = 'GAMEOVER'; showCombatText("TIME UP!", "#3498db");
+    setTimeout(() => { showResult("TIME UP"); }, 2500);
+  }
+
+  function updateAllScores() {
+    let counts = {};
+    for (let y = 0; y < ROWS; y++) {
+      for (let x = 0; x < COLS; x++) {
+        if (map[y][x] > 0) counts[map[y][x]] = (counts[map[y][x]] || 0) + 1;
+      }
+    }
+    let totalTiles = COLS * ROWS;
+    players.forEach(p => {
+      if (!p.isDead) p.scorePct = (counts[p.id] || 0) / totalTiles * 100;
+    });
+
+    if (player && !player.isDead) {
+      scoreText.innerText = player.scorePct.toFixed(2);
+      scoreBar.style.width = player.scorePct + '%';
+    }
+  }
+
+  // ★ リザルト画面にスタッツを反映
+  function showResult(titleText) {
+    gameUi.style.opacity = '0'; minimapUi.style.opacity = '0';
+    uiOverlay.classList.remove('hidden'); setTimeout(() => uiOverlay.style.opacity = '1', 50);
+    viewMain.classList.remove('active'); viewSkins.classList.remove('active'); viewResult.classList.add('active');
+    
+    resultTitle.innerText = titleText;
+    
+    let rankData = players.map(p => { return { name: p.name, color: p.color, isMe: !p.isBot, pct: p.scorePct }; });
+    rankData.sort((a, b) => b.pct - a.pct);
+
+    // 自分の順位を計算
+    let myRankIndex = rankData.findIndex(r => r.isMe);
+    let myRank = myRankIndex !== -1 ? myRankIndex + 1 : "-";
+    
+    // UIへの反映
+    document.getElementById('res-rank').innerText = myRank;
+    document.getElementById('res-score').innerText = player.scorePct.toFixed(2);
+    document.getElementById('res-kills').innerText = player.kills;
+
+    let html = "";
+    rankData.forEach((r, idx) => {
+      html += `
+        <div class="rank-item ${r.isMe ? 'is-me' : ''}">
+          <div style="width: 30px; font-weight: 900; color: #7f8c8d; font-size: 18px;">${idx + 1}</div>
+          <div class="rank-color" style="background: ${r.color};"></div>
+          <div class="rank-name">${r.name}</div>
+          <div class="rank-score">${r.pct.toFixed(2)}%</div>
+        </div>
+      `;
+    });
+    rankingList.innerHTML = html;
+  }
+
+  document.addEventListener('keydown', (e) => {
+    if (gameState !== 'PLAYING' || !player || player.isDead) return;
+    if(["ArrowUp","ArrowDown","ArrowLeft","ArrowRight"].includes(e.key)) e.preventDefault();
+    let changed = false;
+    if (e.key === 'ArrowUp' && player.vy === 0) { player.vx = 0; player.vy = -1; changed = true; }
+    if (e.key === 'ArrowDown' && player.vy === 0) { player.vx = 0; player.vy = 1; changed = true; }
+    if (e.key === 'ArrowLeft' && player.vx === 0) { player.vx = -1; player.vy = 0; changed = true; }
+    if (e.key === 'ArrowRight' && player.vx === 0) { player.vx = 1; player.vy = 0; changed = true; }
+    if (changed && player.isOutside) player.trailPoints.push({x: player.x, y: player.y});
+  });
+
+  function updateBotAI(p, dt) {
+    p.aiTimer += dt;
+    let gx = p.x / TILE_SIZE, gy = p.y / TILE_SIZE;
+    let cx = Math.floor(gx) + 0.5, cy = Math.floor(gy) + 0.5;
+    if (Math.hypot(gx - cx, gy - cy) < 0.1 && p.aiTimer > 0.15) {
+      p.aiTimer = 0;
+      let gridX = Math.floor(gx), gridY = Math.floor(gy);
+      let danger = false;
+      let checkDist = p.isOutside ? 2 : 1; 
+      for (let i = 1; i <= checkDist; i++) {
+        let nx = gridX + p.vx * i, ny = gridY + p.vy * i;
+        if (nx < 0 || nx >= COLS || ny < 0 || ny >= ROWS) { danger = true; break; }
+        if (trailMap[ny][nx] !== 0) { danger = true; break; }
+        let nearEnemy = players.some(other => {
+          if (other.id === p.id || other.isDead) return false;
+          let ox = Math.floor(other.x/TILE_SIZE), oy = Math.floor(other.y/TILE_SIZE);
+          return Math.abs(ox - nx) + Math.abs(oy - ny) <= 2;
+        });
+        if (nearEnemy) { danger = true; break; }
+      }
+      if (danger) { smartTurnBot(p, gridX, gridY, true); 
+      } else {
+        if (p.isOutside) {
+          let maxTrail = 30 + (p.id % 20); 
+          if (p.trailGrids.length > maxTrail) { smartTurnBot(p, gridX, gridY, true); }
+          else if (Math.random() < 0.05) { smartTurnBot(p, gridX, gridY, false); }
+        } else {
+          if (Math.random() < 0.1) smartTurnBot(p, gridX, gridY, false);
+        }
+      }
+    }
+  }
+
+  function smartTurnBot(p, gridX, gridY, force) {
+    let canGo = []; const dirs = [[0,-1],[0,1],[-1,0],[1,0]];
+    for (let d of dirs) {
+      if (d[0] === -p.vx && d[1] === -p.vy) continue; 
+      if (d[0] === p.vx && d[1] === p.vy && force) continue; 
+      let nx = gridX + d[0], ny = gridY + d[1];
+      if (nx >= 0 && nx < COLS && ny >= 0 && ny < ROWS && trailMap[ny][nx] === 0) {
+        let score = 10;
+        let nnx = nx + d[0], nny = ny + d[1];
+        if (nnx < 0 || nnx >= COLS || nny < 0 || nny >= ROWS || trailMap[nny][nnx] !== 0) score -= 5;
+        if (p.isOutside) {
+          for(let r = 1; r <= 15; r++) {
+            let cx = nx + d[0]*r, cy = ny + d[1]*r;
+            if (cx >= 0 && cx < COLS && cy >= 0 && cy < ROWS) { if (map[cy][cx] === p.id) { score += 20; break; } } else break;
+          }
+        } else {
+          let cx = nx + d[0]*2, cy = ny + d[1]*2;
+          if (cx >= 0 && cx < COLS && cy >= 0 && cy < ROWS) { if (map[cy][cx] !== p.id) score += 10; }
+        }
+        canGo.push({dx: d[0], dy: d[1], score: score});
+      }
+    }
+    if (canGo.length > 0) {
+      canGo.sort((a, b) => b.score - a.score);
+      let bestScore = canGo[0].score; let bestDirs = canGo.filter(d => d.score === bestScore);
+      let chosen = bestDirs[Math.floor(Math.random() * bestDirs.length)]; 
+      p.vx = chosen.dx; p.vy = chosen.dy;
+      if (p.isOutside) p.trailPoints.push({x: p.x, y: p.y});
+    }
+  }
+
+  let lastTime = performance.now();
+
+  function loop(time) {
+    let dt = (time - lastTime) / 1000; lastTime = time;
+    if (dt > 0.1) dt = 0.016;
+
+    if (gameState === 'PLAYING') {
+      timeLeft -= dt;
+      if (timeLeft <= 0) { timeLeft = 0; timeUp(); }
+      timerText.innerText = formatTime(timeLeft);
+      update(dt);
+    }
+    
+    updateParticles(dt);
+    if (screenShake > 0) screenShake = Math.max(0, screenShake - 60 * dt);
+    draw(); requestAnimationFrame(loop);
+  }
+
+  function update(dt) {
+    let updateNeeded = false;
+    for (let i = 0; i < players.length; i++) {
+      let p = players[i]; if (p.isDead) continue;
+      if (p.isBot) updateBotAI(p, dt);
+
+      p.x += p.vx * p.speed * dt; p.y += p.vy * p.speed * dt;
+      let gx = Math.floor(p.x / TILE_SIZE), gy = Math.floor(p.y / TILE_SIZE);
+
+      if (p.x < 0 || p.x > WORLD_WIDTH || p.y < 0 || p.y > WORLD_HEIGHT) { killPlayer(p, null); continue; }
+
+      let onTrailId = trailMap[gy][gx];
+      if (onTrailId !== 0) {
+        let victim = players.find(v => v.id === onTrailId);
+        if (victim && !victim.isDead) {
+          if (victim.id === p.id) {
+            let idx = p.trailGrids.findIndex(t => t.x === gx && t.y === gy);
+            if (idx !== -1 && idx < p.trailGrids.length - 3) { killPlayer(p, p.id); continue; }
+          } else { killPlayer(victim, p.id); }
+        }
+      }
+
+      if (map[gy][gx] === p.id) {
+        if (p.isOutside) {
+          p.isOutside = false; fillTerritory(p);
+          for (let t of p.trailGrids) trailMap[t.y][t.x] = 0;
+          p.trailPoints = []; p.trailGrids = [];
+          updateNeeded = true; 
+        }
+      } else {
+        if (!p.isOutside) { p.isOutside = true; p.trailPoints.push({x: p.x, y: p.y}); }
+        if (p.trailGrids.length === 0 || p.trailGrids[p.trailGrids.length-1].x !== gx || p.trailGrids[p.trailGrids.length-1].y !== gy) {
+          p.trailGrids.push({x: gx, y: gy}); trailMap[gy][gx] = p.id;
+        }
+      }
+    }
+
+    for (let i = 0; i < players.length; i++) {
+      let p1 = players[i]; if (p1.isDead) continue;
+      let gx1 = Math.floor(p1.x/TILE_SIZE), gy1 = Math.floor(p1.y/TILE_SIZE);
+      for (let j = i + 1; j < players.length; j++) {
+        let p2 = players[j]; if (p2.isDead) continue;
+        let gx2 = Math.floor(p2.x/TILE_SIZE), gy2 = Math.floor(p2.y/TILE_SIZE);
+        if (gx1 === gx2 && gy1 === gy2) { killPlayer(p1, null); killPlayer(p2, null); }
+      }
+    }
+    if (updateNeeded) updateAllScores();
+  }
+
+  function fillTerritory(p) {
+    let visited = []; for (let y = 0; y < ROWS; y++) visited.push(new Array(COLS).fill(false));
+    let queue = [];
+    for (let y = 0; y < ROWS; y++) {
+      for (let x = 0; x < COLS; x++) {
+        if (x === 0 || x === COLS - 1 || y === 0 || y === ROWS - 1) {
+          if (map[y][x] !== p.id && trailMap[y][x] !== p.id) { queue.push({x, y}); visited[y][x] = true; }
+        }
+      }
+    }
+    let head = 0; const dirs = [[1,0], [-1,0], [0,1], [0,-1]];
+    while (head < queue.length) {
+      let curr = queue[head++];
+      for (let d of dirs) {
+        let nx = curr.x + d[0], ny = curr.y + d[1];
+        if (nx >= 0 && nx < COLS && ny >= 0 && ny < ROWS) {
+          if (!visited[ny][nx] && map[ny][nx] !== p.id && trailMap[ny][nx] !== p.id) { visited[ny][nx] = true; queue.push({x: nx, y: ny}); }
+        }
+      }
+    }
+    for (let y = 0; y < ROWS; y++) {
+      for (let x = 0; x < COLS; x++) { if (!visited[y][x] || trailMap[y][x] === p.id) map[y][x] = p.id; }
+    }
+  }
+
+  function draw() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    if (!player) return;
+    ctx.save();
+    
+    let shakeX = 0, shakeY = 0;
+    if (screenShake > 0.5) { shakeX = (Math.random() - 0.5) * screenShake; shakeY = (Math.random() - 0.5) * screenShake; }
+    let camX = player.x - canvas.width / 2, camY = player.y - canvas.height / 2;
+    ctx.translate(-camX + shakeX, -camY + shakeY);
+
+    let startX = Math.max(0, Math.floor(camX / TILE_SIZE)), startY = Math.max(0, Math.floor(camY / TILE_SIZE));
+    let endX = Math.min(COLS, Math.ceil((camX + canvas.width) / TILE_SIZE)), endY = Math.min(ROWS, Math.ceil((camY + canvas.height) / TILE_SIZE));
+
+    ctx.strokeStyle = '#e0e5ec'; ctx.lineWidth = 1; ctx.beginPath();
+    for (let x = startX; x <= endX; x++) { ctx.moveTo(x * TILE_SIZE, startY * TILE_SIZE); ctx.lineTo(x * TILE_SIZE, endY * TILE_SIZE); }
+    for (let y = startY; y <= endY; y++) { ctx.moveTo(startX * TILE_SIZE, y * TILE_SIZE); ctx.lineTo(endX * TILE_SIZE, y * TILE_SIZE); }
+    ctx.stroke();
+
+    for (let y = startY; y < endY; y++) {
+      for (let x = startX; x < endX; x++) {
+        let ownerId = map[y][x];
+        if (ownerId > 0) {
+          let owner = players.find(p => p.id === ownerId);
+          if (owner) {
+            ctx.fillStyle = owner.fillColor; ctx.fillRect(x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE);
+            ctx.fillStyle = owner.color; let thick = 4;
+            if (y > 0 && map[y-1][x] !== ownerId) ctx.fillRect(x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, thick);
+            if (y < ROWS-1 && map[y+1][x] !== ownerId) ctx.fillRect(x * TILE_SIZE, (y+1) * TILE_SIZE - thick, TILE_SIZE, thick);
+            if (x > 0 && map[y][x-1] !== ownerId) ctx.fillRect(x * TILE_SIZE, y * TILE_SIZE, thick, TILE_SIZE);
+            if (x < COLS-1 && map[y][x+1] !== ownerId) ctx.fillRect((x+1) * TILE_SIZE - thick, y * TILE_SIZE, thick, TILE_SIZE);
+          }
+        }
+      }
+    }
+
+    players.forEach(p => {
+      if (p.isDead) return;
+      if (p.isOutside && p.trailPoints.length > 0) {
+        ctx.strokeStyle = p.fillColor; ctx.lineWidth = p.size * 0.8; ctx.lineJoin = 'round'; ctx.lineCap = 'round';
+        ctx.beginPath(); ctx.moveTo(p.trailPoints[0].x, p.trailPoints[0].y);
+        for (let i = 1; i < p.trailPoints.length; i++) ctx.lineTo(p.trailPoints[i].x, p.trailPoints[i].y);
+        ctx.lineTo(p.x, p.y); ctx.stroke();
+      }
+      ctx.fillStyle = p.color; ctx.shadowColor = 'rgba(0,0,0,0.3)'; ctx.shadowBlur = 10; ctx.shadowOffsetY = 5;
+      let px = p.x - p.size / 2, py = p.y - p.size / 2, r = 10;
+      ctx.beginPath(); ctx.moveTo(px + r, py); ctx.lineTo(px + p.size - r, py);
+      ctx.quadraticCurveTo(px + p.size, py, px + p.size, py + r); ctx.lineTo(px + p.size, py + p.size - r);
+      ctx.quadraticCurveTo(px + p.size, py + p.size, px + p.size - r, py + p.size); ctx.lineTo(px + r, py + p.size);
+      ctx.quadraticCurveTo(px, py + p.size, px, py + p.size - r); ctx.lineTo(px, py + r);
+      ctx.quadraticCurveTo(px, py, px + r, py); ctx.fill(); ctx.shadowColor = 'transparent';
+
+      // ★ 接近した敵のネームタグを薄く描画
+      if (p.id !== player.id) {
+        let dist = Math.hypot(p.x - player.x, p.y - player.y);
+        // 800ピクセル以内に入ったら描画を始める
+        if (dist < 800) {
+          // 400px以下で完全に見えるようにし、それ以上離れると薄くなる計算
+          let alpha = 1.0 - ((dist - 400) / 400); 
+          alpha = Math.max(0, Math.min(1, alpha));
+          
+          if (alpha > 0) {
+            ctx.globalAlpha = alpha;
+            ctx.fillStyle = '#ffffff';
+            ctx.strokeStyle = 'rgba(0,0,0,0.8)';
+            ctx.lineWidth = 3;
+            ctx.font = '900 14px "Nunito", sans-serif';
+            ctx.textAlign = 'center';
+            // 頭の上に描画
+            ctx.strokeText(p.name, p.x, p.y - p.size/2 - 10);
+            ctx.fillText(p.name, p.x, p.y - p.size/2 - 10);
+            ctx.globalAlpha = 1.0; // リセット
+          }
+        }
+      }
+    });
+
+    ctx.strokeStyle = '#34495e'; ctx.lineWidth = 10; ctx.strokeRect(0, 0, WORLD_WIDTH, WORLD_HEIGHT);
+    drawParticles(); ctx.restore();
+    if (gameState === 'PLAYING' || (player && player.isDead)) drawMinimap();
+  }
+
+  function drawMinimap() {
+    miniCtx.clearRect(0, 0, minimapCanvas.width, minimapCanvas.height);
+    players.forEach(p => {
+      if(p.isDead) return;
+      miniCtx.fillStyle = p.color; miniCtx.beginPath();
+      for (let y = 0; y < ROWS; y++) { for (let x = 0; x < COLS; x++) { if (map[y][x] === p.id) miniCtx.rect(x, y, 1, 1); } }
+      miniCtx.fill();
+      miniCtx.fillStyle = p.fillColor; miniCtx.beginPath();
+      for (let y = 0; y < ROWS; y++) { for (let x = 0; x < COLS; x++) { if (trailMap[y][x] === p.id) miniCtx.rect(x, y, 1, 1); } }
+      miniCtx.fill();
+      miniCtx.fillStyle = '#ffffff'; miniCtx.beginPath();
+      miniCtx.arc(p.x / TILE_SIZE, p.y / TILE_SIZE, p.isBot ? 1.5 : 2.5, 0, Math.PI * 2); miniCtx.fill();
+    });
+    let vx = (player.x - canvas.width / 2) / TILE_SIZE, vy = (player.y - canvas.height / 2) / TILE_SIZE;
+    miniCtx.strokeStyle = 'rgba(44, 62, 80, 0.4)'; miniCtx.lineWidth = 1.5;
+    miniCtx.strokeRect(vx, vy, canvas.width / TILE_SIZE, canvas.height / TILE_SIZE);
+  }
+
+  resetMap(); requestAnimationFrame(loop);
+</script>
+</body>
+</html>
+
+
+
+
+

@@ -1,0 +1,833 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+   <meta charset="UTF-8">
+   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+   <title>Planet Drop - Circular Stage</title>
+   <script src="https://cdnjs.cloudflare.com/ajax/libs/matter-js/0.19.0/matter.min.js"></script>
+   <style>
+       :root {
+           --bg-color: #0b0c10;
+           --accent-color: #66fcf1;
+           --text-color: #e0fbfc;
+       }
+
+
+       * { margin: 0; padding: 0; box-sizing: border-box; user-select: none; touch-action: none; }
+
+
+       body {
+           background-color: var(--bg-color);
+           background-image: radial-gradient(circle at 50% 50%, #1a1c29 0%, #050505 100%);
+           color: var(--text-color);
+           font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+           display: flex;
+           justify-content: center;
+           align-items: center;
+           height: 100vh;
+           overflow: hidden;
+       }
+
+
+       #game-container {
+           position: relative;
+           width: 100%;
+           max-width: 600px;
+           height: 100%;
+           max-height: 900px;
+           background: rgba(255, 255, 255, 0.02);
+           box-shadow: 0 0 50px rgba(102, 252, 241, 0.1);
+       }
+
+
+       canvas {
+           display: block;
+           width: 100%;
+           height: 100%;
+       }
+
+
+       /* HUD (Head-Up Display) */
+       #hud {
+           position: absolute;
+           top: 20px;
+           left: 20px;
+           right: 20px;
+           display: flex;
+           justify-content: space-between;
+           pointer-events: none;
+           z-index: 10;
+       }
+
+
+       .score-box, .next-box {
+           background: rgba(0, 0, 0, 0.6);
+           border: 1px solid rgba(255, 255, 255, 0.2);
+           border-radius: 12px;
+           padding: 10px 20px;
+           backdrop-filter: blur(4px);
+           text-align: center;
+           box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+       }
+
+
+       .label {
+           display: block;
+           font-size: 12px;
+           letter-spacing: 2px;
+           color: #888;
+           margin-bottom: 8px;
+       }
+
+
+       #score {
+           font-size: 28px;
+           font-weight: bold;
+           color: var(--accent-color);
+           text-shadow: 0 0 10px rgba(102, 252, 241, 0.5);
+           transition: transform 0.15s ease-out;
+       }
+
+
+       #next-planet-preview {
+           width: 40px;
+           height: 40px;
+           border-radius: 50%;
+           margin: 0 auto;
+           background-color: #555;
+           transition: background-color 0.3s;
+           box-shadow: inset -5px -5px 10px rgba(0,0,0,0.5), inset 5px 5px 10px rgba(255,255,255,0.3);
+       }
+
+
+       /* めちゃくちゃいいデザインの進化順チャート (右下) */
+       #evolution-chart {
+           position: absolute;
+           bottom: 20px;
+           right: 20px;
+           background: rgba(10, 15, 25, 0.75);
+           border: 1px solid rgba(102, 252, 241, 0.3);
+           border-radius: 16px;
+           padding: 15px;
+           backdrop-filter: blur(10px);
+           pointer-events: none;
+           z-index: 10;
+           box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8), inset 0 0 15px rgba(102, 252, 241, 0.1);
+           max-width: 220px;
+       }
+
+
+       .evo-title {
+           font-size: 10px;
+           color: var(--accent-color);
+           letter-spacing: 3px;
+           text-align: center;
+           margin-bottom: 12px;
+           text-shadow: 0 0 5px var(--accent-color);
+       }
+
+
+       #evolution-chart-list {
+           display: flex;
+           flex-wrap: wrap;
+           align-items: center;
+           justify-content: center;
+           gap: 6px;
+       }
+
+
+       .evo-item {
+           border-radius: 50%;
+           box-shadow: inset -2px -2px 5px rgba(0,0,0,0.5), inset 2px 2px 5px rgba(255,255,255,0.4);
+           transition: transform 0.2s;
+       }
+
+
+       .evo-arrow {
+           color: #555;
+           font-size: 10px;
+       }
+
+
+       /* UI Overlays */
+       #ui-layer {
+           position: absolute;
+           inset: 0;
+           pointer-events: none;
+           z-index: 20;
+           display: none;
+       }
+       #ui-layer.active { display: block; pointer-events: auto; }
+
+
+       .screen {
+           position: absolute;
+           inset: 0;
+           display: flex;
+           flex-direction: column;
+           justify-content: center;
+           align-items: center;
+           background: rgba(0, 0, 0, 0.85);
+           backdrop-filter: blur(8px);
+           opacity: 0;
+           transition: opacity 0.3s;
+           pointer-events: none;
+       }
+       .screen.active { opacity: 1; pointer-events: auto; }
+
+
+       h1 { font-size: 2.5rem; color: var(--accent-color); margin-bottom: 10px; text-shadow: 0 0 20px var(--accent-color); text-align: center; line-height: 1.2;}
+       h2 { font-size: 2.5rem; color: #ff4c4c; margin-bottom: 20px; }
+
+
+       button {
+           margin-top: 30px;
+           padding: 15px 40px;
+           font-size: 1.2rem;
+           font-weight: bold;
+           background: transparent;
+           color: var(--text-color);
+           border: 2px solid var(--accent-color);
+           border-radius: 30px;
+           cursor: pointer;
+           transition: all 0.2s;
+           text-shadow: 0 0 5px rgba(255,255,255,0.5);
+           box-shadow: 0 0 15px rgba(102, 252, 241, 0.2) inset;
+       }
+       button:hover { background: var(--accent-color); color: #000; box-shadow: 0 0 20px var(--accent-color); }
+   </style>
+</head>
+<body>
+   <div id="game-container">
+       <div id="hud">
+           <div class="score-box">
+               <span class="label">SCORE</span>
+               <span id="score">0</span>
+           </div>
+           <div class="next-box">
+               <span class="label">NEXT</span>
+               <div id="next-planet-preview"></div>
+           </div>
+       </div>
+
+
+       <div id="evolution-chart">
+           <div class="evo-title">EVOLUTION</div>
+           <div id="evolution-chart-list"></div>
+       </div>
+
+
+       <canvas id="game-canvas"></canvas>
+
+
+       <div id="ui-layer" class="active">
+           <div id="start-screen" class="screen active">
+               <h1>PLANET DROP<br><span style="font-size: 1rem; color:#aaa">Circular Stage</span></h1>
+               <p style="margin-top: 10px; font-size: 14px; color: #bbb;">クリックで落下 / ドラッグで狙い撃ち</p>
+               <button id="btn-start">GAME START</button>
+           </div>
+           <div id="game-over-screen" class="screen">
+               <h2>GAME OVER</h2>
+               <div class="final-score">SCORE: <span id="result-score">0</span></div>
+               <button id="btn-retry">RETRY</button>
+           </div>
+       </div>
+   </div>
+
+
+   <script>
+       // ==========================================
+       // 1. データ定義 (PlanetDef)
+       // ==========================================
+       const PLANETS = [
+           { level: 0, radius: 18, color: '#A9A9A9', score: 1, name: 'Pluto' },
+           { level: 1, radius: 28, color: '#C0C0C0', score: 3, name: 'Moon' },
+           { level: 2, radius: 40, color: '#8B4513', score: 6, name: 'Mercury' },
+           { level: 3, radius: 54, color: '#CD5C5C', score: 10, name: 'Mars' },
+           { level: 4, radius: 70, color: '#DAA520', score: 15, name: 'Venus' },
+           { level: 5, radius: 88, color: '#4169E1', score: 21, name: 'Earth' },
+           { level: 6, radius: 108, color: '#00BFFF', score: 28, name: 'Neptune' },
+           { level: 7, radius: 130, color: '#87CEFA', score: 36, name: 'Uranus' },
+           { level: 8, radius: 154, color: '#F4A460', score: 45, name: 'Saturn' },
+           { level: 9, radius: 180, color: '#D2691E', score: 55, name: 'Jupiter' },
+           { level: 10, radius: 210, color: '#FF4500', score: 66, name: 'Sun' }
+       ];
+
+
+       // ==========================================
+       // 2. エフェクトシステム (Juice)
+       // ==========================================
+       class EffectSystem {
+           constructor() {
+               this.particles = [];
+           }
+          
+           spawnMergeEffect(x, y, color) {
+               const count = 20;
+               for (let i = 0; i < count; i++) {
+                   const angle = Math.random() * Math.PI * 2;
+                   const speed = Math.random() * 6 + 2;
+                   this.particles.push({
+                       x: x, y: y,
+                       vx: Math.cos(angle) * speed,
+                       vy: Math.sin(angle) * speed,
+                       life: 1.0,
+                       color: color,
+                       size: Math.random() * 5 + 2
+                   });
+               }
+           }
+
+
+           updateAndDraw(ctx) {
+               for (let i = this.particles.length - 1; i >= 0; i--) {
+                   let p = this.particles[i];
+                   p.x += p.vx;
+                   p.y += p.vy;
+                   p.life -= 0.03;
+                  
+                   if (p.life <= 0) {
+                       this.particles.splice(i, 1);
+                       continue;
+                   }
+
+
+                   ctx.globalAlpha = p.life;
+                   ctx.fillStyle = p.color;
+                   ctx.beginPath();
+                   ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+                   ctx.fill();
+               }
+               ctx.globalAlpha = 1.0;
+           }
+       }
+
+
+       // ==========================================
+       // 3. メインゲームクラス
+       // ==========================================
+       class PlanetDropGame {
+           constructor() {
+               this.width = 600;
+               this.height = 900;
+               this.state = 'TITLE';
+               this.score = 0;
+              
+               // 【修正】現在とNextを分離して管理
+               this.currentPlanetLevel = 0;
+               this.nextPlanetLevel = 0;
+              
+               // 操作・エイム用ステート
+               this.spawnY = 100;
+               this.currentDropX = this.width / 2;
+               this.isDropping = false;
+               this.isDragging = false;
+               this.dragStartX = 0;
+               this.dragStartY = 0;
+               this.dragDeltaX = 0;
+               this.dragDeltaY = 0;
+              
+               // 円形ステージのパラメータ
+               this.bowlCenter = { x: 300, y: 520 };
+               this.bowlRadius = 260;
+               this.dangerLineY = 220; // 溢れる判定ライン
+
+
+               this.warningTimer = 0;
+               this.isWarning = false;
+               this.warningThreshold = 180;
+              
+               this.initDOM();
+               this.initEvolutionChart();
+               this.initPhysics();
+               this.effectSystem = new EffectSystem();
+              
+               this.loop = this.loop.bind(this);
+               requestAnimationFrame(this.loop);
+           }
+
+
+           initDOM() {
+               this.canvas = document.getElementById('game-canvas');
+               this.ctx = this.canvas.getContext('2d');
+              
+               const dpr = window.devicePixelRatio || 1;
+               this.canvas.width = this.width * dpr;
+               this.canvas.height = this.height * dpr;
+               this.ctx.scale(dpr, dpr);
+              
+               this.scoreEl = document.getElementById('score');
+               this.nextPreviewEl = document.getElementById('next-planet-preview');
+               this.uiLayer = document.getElementById('ui-layer');
+               this.startScreen = document.getElementById('start-screen');
+               this.gameOverScreen = document.getElementById('game-over-screen');
+               this.resultScoreEl = document.getElementById('result-score');
+
+
+               document.getElementById('btn-start').addEventListener('click', () => this.startGame());
+               document.getElementById('btn-retry').addEventListener('click', () => this.startGame());
+
+
+               // 入力ハンドリング（ドラッグで放物線エイム機能）
+               const getEventPos = (e) => {
+                   const rect = this.canvas.getBoundingClientRect();
+                   const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+                   const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+                   return {
+                       x: (clientX - rect.left) * (this.width / rect.width),
+                       y: (clientY - rect.top) * (this.height / rect.height)
+                   };
+               };
+
+
+               this.canvas.addEventListener('mousedown', (e) => this.handleDown(getEventPos(e)));
+               this.canvas.addEventListener('touchstart', (e) => this.handleDown(getEventPos(e)), {passive: true});
+              
+               window.addEventListener('mousemove', (e) => this.handleMove(getEventPos(e)));
+               window.addEventListener('touchmove', (e) => this.handleMove(getEventPos(e)), {passive: false});
+              
+               window.addEventListener('mouseup', () => this.handleUp());
+               window.addEventListener('touchend', () => this.handleUp());
+           }
+
+
+           initEvolutionChart() {
+               const list = document.getElementById('evolution-chart-list');
+               PLANETS.forEach((p, index) => {
+                   const item = document.createElement('div');
+                   item.className = 'evo-item';
+                   item.style.backgroundColor = p.color;
+                   // 見た目のサイズを調整（大きすぎるものを抑える）
+                   const size = 12 + Math.min(15, index * 1.5);
+                   item.style.width = `${size}px`;
+                   item.style.height = `${size}px`;
+                   list.appendChild(item);
+
+
+                   if (index < PLANETS.length - 1) {
+                       const arrow = document.createElement('div');
+                       arrow.className = 'evo-arrow';
+                       arrow.innerHTML = '&#10140;';
+                       list.appendChild(arrow);
+                   }
+               });
+           }
+
+
+           initPhysics() {
+               this.engine = Matter.Engine.create();
+               this.engine.world.gravity.y = 1.2;
+
+
+               const walls = [];
+               const wallOptions = { isStatic: true, friction: 0.5, restitution: 0.1, render: { visible: false } };
+              
+               // 【追加】円形（ボウル型）ステージの構築
+               const parts = 32; // 円を何角形で表現するか
+               for (let i = 0; i <= parts / 2; i++) {
+                   const angle = (i / (parts / 2)) * Math.PI; // 0 から PI (下半分)
+                   const x = this.bowlCenter.x + Math.cos(angle) * this.bowlRadius;
+                   const y = this.bowlCenter.y + Math.sin(angle) * this.bowlRadius;
+                  
+                   const rect = Matter.Bodies.rectangle(x, y, 60, 40, {
+                       ...wallOptions,
+                       angle: angle
+                   });
+                   walls.push(rect);
+               }
+
+
+               // 左右の溢れ防止用の縦壁
+               walls.push(Matter.Bodies.rectangle(this.bowlCenter.x - this.bowlRadius, (this.bowlCenter.y + this.spawnY)/2, 60, this.bowlCenter.y - this.spawnY, wallOptions));
+               walls.push(Matter.Bodies.rectangle(this.bowlCenter.x + this.bowlRadius, (this.bowlCenter.y + this.spawnY)/2, 60, this.bowlCenter.y - this.spawnY, wallOptions));
+
+
+               Matter.World.add(this.engine.world, walls);
+               Matter.Events.on(this.engine, 'collisionStart', (event) => this.handleCollisions(event));
+           }
+
+
+           handleDown(pos) {
+               if (this.state !== 'PLAYING' || this.isDropping) return;
+               this.isDragging = true;
+               this.dragStartX = pos.x;
+               this.dragStartY = pos.y;
+               this.dragDeltaX = 0;
+               this.dragDeltaY = 0;
+           }
+
+
+           handleMove(pos) {
+               if (this.state !== 'PLAYING' || this.isDropping) return;
+               if (this.isDragging) {
+                   // スリングショットのように引っ張った方向の逆を計算
+                   this.dragDeltaX = this.dragStartX - pos.x;
+                   this.dragDeltaY = this.dragStartY - pos.y;
+                  
+                   // パワーの制限
+                   const maxDist = 200;
+                   const dist = Math.sqrt(this.dragDeltaX**2 + this.dragDeltaY**2);
+                   if (dist > maxDist) {
+                       this.dragDeltaX = (this.dragDeltaX / dist) * maxDist;
+                       this.dragDeltaY = (this.dragDeltaY / dist) * maxDist;
+                   }
+               } else {
+                   // 通常の横移動（本家スイカゲームの挙動）
+                   this.currentDropX = pos.x;
+                   const radius = PLANETS[this.currentPlanetLevel].radius;
+                   // ボウルの幅に収まるように制限
+                   const limitX = this.bowlRadius - 20;
+                   this.currentDropX = Math.max(this.bowlCenter.x - limitX + radius, Math.min(this.bowlCenter.x + limitX - radius, this.currentDropX));
+               }
+           }
+
+
+           handleUp() {
+               if (this.state !== 'PLAYING' || this.isDropping || !this.isDragging) return;
+               this.isDragging = false;
+              
+               // 引っ張った量から初速度（放物線のパワー）を計算
+               let vx = this.dragDeltaX * 0.08;
+               let vy = this.dragDeltaY * 0.08;
+              
+               // 下から上に撃ち上げるのは不自然なので、Y軸は下向きか0にクランプ
+               if (vy < 0) vy = 0;
+
+
+               this.dropPlanet(vx, vy);
+               this.dragDeltaX = 0;
+               this.dragDeltaY = 0;
+           }
+
+
+           startGame() {
+               Matter.World.clear(this.engine.world);
+               this.initPhysics();
+              
+               this.score = 0;
+               this.warningTimer = 0;
+               this.isWarning = false;
+               this.updateScore();
+              
+               // 【修正】ゲーム開始時にNextとCurrentを別々に初期化
+               this.nextPlanetLevel = Math.floor(Math.random() * 3);
+               this.prepareNextPlanet();
+              
+               this.state = 'PLAYING';
+               this.uiLayer.classList.remove('active');
+               this.startScreen.classList.remove('active');
+               this.gameOverScreen.classList.remove('active');
+           }
+
+
+           gameOver() {
+               this.state = 'GAMEOVER';
+               this.resultScoreEl.innerText = this.score;
+               this.uiLayer.classList.add('active');
+               this.gameOverScreen.classList.add('active');
+           }
+
+
+           prepareNextPlanet() {
+               // NextをCurrentに昇格させ、新しいNextを生成
+               this.currentPlanetLevel = this.nextPlanetLevel;
+               this.nextPlanetLevel = Math.floor(Math.random() * 3);
+              
+               // HUDのNextプレビューを更新
+               this.nextPreviewEl.style.backgroundColor = PLANETS[this.nextPlanetLevel].color;
+               const size = PLANETS[this.nextPlanetLevel].radius;
+               this.nextPreviewEl.style.width = `${Math.min(size, 40)}px`;
+               this.nextPreviewEl.style.height = `${Math.min(size, 40)}px`;
+              
+               this.isDropping = false;
+           }
+
+
+           dropPlanet(vx = 0, vy = 0) {
+               this.isDropping = true;
+               const pDef = PLANETS[this.currentPlanetLevel];
+              
+               const body = Matter.Bodies.circle(this.currentDropX, this.spawnY, pDef.radius, {
+                   restitution: 0.2,
+                   friction: 0.8,
+                   density: 0.001 * (this.currentPlanetLevel + 1),
+                   label: 'planet',
+                   planetLevel: this.currentPlanetLevel,
+                   popScale: 1.5
+               });
+
+
+               Matter.World.add(this.engine.world, body);
+              
+               // 引っ張って撃ち出した場合は初速度（放物線）を与える
+               if (vx !== 0 || vy !== 0) {
+                   Matter.Body.setVelocity(body, { x: vx, y: vy });
+               }
+
+
+               // クールダウン後に次をセット
+               setTimeout(() => {
+                   if(this.state === 'PLAYING') this.prepareNextPlanet();
+               }, 1000);
+           }
+
+
+           handleCollisions(event) {
+               const pairs = event.pairs;
+               const bodiesToRemove = [];
+               const bodiesToAdd = [];
+
+
+               for (let i = 0; i < pairs.length; i++) {
+                   const bodyA = pairs[i].bodyA;
+                   const bodyB = pairs[i].bodyB;
+
+
+                   if (bodyA.label === 'planet' && bodyB.label === 'planet') {
+                       if (bodyA.planetLevel === bodyB.planetLevel && !bodyA.isMerging && !bodyB.isMerging) {
+                           bodyA.isMerging = true;
+                           bodyB.isMerging = true;
+                          
+                           const nextLevel = bodyA.planetLevel + 1;
+                          
+                           if (nextLevel < PLANETS.length) {
+                               const newX = (bodyA.position.x + bodyB.position.x) / 2;
+                               const newY = (bodyA.position.y + bodyB.position.y) / 2;
+                               const pDef = PLANETS[nextLevel];
+
+
+                               const newPlanet = Matter.Bodies.circle(newX, newY, pDef.radius, {
+                                   restitution: 0.2,
+                                   friction: 0.8,
+                                   density: 0.001 * (nextLevel + 1),
+                                   label: 'planet',
+                                   planetLevel: nextLevel,
+                                   popScale: 1.5
+                               });
+
+
+                               bodiesToRemove.push(bodyA, bodyB);
+                               bodiesToAdd.push(newPlanet);
+
+
+                               this.score += pDef.score;
+                               this.updateScore();
+                               this.effectSystem.spawnMergeEffect(newX, newY, pDef.color);
+                           }
+                       }
+                   }
+               }
+
+
+               if (bodiesToRemove.length > 0) {
+                   Matter.World.remove(this.engine.world, bodiesToRemove);
+                   Matter.World.add(this.engine.world, bodiesToAdd);
+               }
+           }
+
+
+           updateScore() {
+               this.scoreEl.innerText = this.score;
+               this.scoreEl.style.transform = 'scale(1.3)';
+               setTimeout(() => this.scoreEl.style.transform = 'scale(1)', 150);
+           }
+
+
+           // ==========================================
+           // メイン描画ループ
+           // ==========================================
+           loop() {
+               this.ctx.clearRect(0, 0, this.width, this.height);
+
+
+               // --- 1. 背景と円形ステージの描画 ---
+               this.ctx.save();
+               this.ctx.beginPath();
+               this.ctx.arc(this.bowlCenter.x, this.bowlCenter.y, this.bowlRadius, 0, Math.PI, false);
+               this.ctx.moveTo(this.bowlCenter.x - this.bowlRadius, this.bowlCenter.y);
+               this.ctx.lineTo(this.bowlCenter.x - this.bowlRadius, this.spawnY);
+               this.ctx.moveTo(this.bowlCenter.x + this.bowlRadius, this.bowlCenter.y);
+               this.ctx.lineTo(this.bowlCenter.x + this.bowlRadius, this.spawnY);
+              
+               this.ctx.strokeStyle = 'rgba(102, 252, 241, 0.4)';
+               this.ctx.lineWidth = 4;
+               this.ctx.shadowBlur = 15;
+               this.ctx.shadowColor = 'var(--accent-color)';
+               this.ctx.stroke();
+
+
+               // 危険ラインの描画
+               this.ctx.beginPath();
+               this.ctx.setLineDash([10, 10]);
+               this.ctx.moveTo(this.bowlCenter.x - this.bowlRadius, this.dangerLineY);
+               this.ctx.lineTo(this.bowlCenter.x + this.bowlRadius, this.dangerLineY);
+               if (this.isWarning) {
+                   const alpha = 0.5 + Math.abs(Math.sin(Date.now() / 100)) * 0.5;
+                   this.ctx.strokeStyle = `rgba(255, 50, 50, ${alpha})`;
+                   this.ctx.lineWidth = 3;
+               } else {
+                   this.ctx.strokeStyle = 'rgba(255, 255, 255, 0.15)';
+                   this.ctx.lineWidth = 2;
+               }
+               this.ctx.stroke();
+               this.ctx.setLineDash([]);
+               this.ctx.restore();
+
+
+               // --- 2. 画面シェイク（猶予演出） ---
+               this.ctx.save();
+               if (this.isWarning && this.state === 'PLAYING') {
+                   const intensity = (this.warningTimer / this.warningThreshold) * 6;
+                   const shakeX = (Math.random() - 0.5) * intensity;
+                   const shakeY = (Math.random() - 0.5) * intensity;
+                   this.ctx.translate(shakeX, shakeY);
+               }
+
+
+               if (this.state === 'PLAYING') {
+                   Matter.Engine.update(this.engine, 1000 / 60);
+
+
+                   // 猶予判定ロジック
+                   let dangerouslyHigh = false;
+                   const bodies = Matter.Composite.allBodies(this.engine.world);
+                  
+                   for (let body of bodies) {
+                       if (body.label === 'planet') {
+                           if (body.position.y < this.dangerLineY &&
+                               Math.abs(body.velocity.y) < 0.5 &&
+                               Math.abs(body.velocity.x) < 0.5) {
+                               dangerouslyHigh = true;
+                               break;
+                           }
+                       }
+                   }
+
+
+                   if (dangerouslyHigh) {
+                       this.isWarning = true;
+                       this.warningTimer++;
+                       if (this.warningTimer >= this.warningThreshold) {
+                           this.gameOver();
+                       }
+                   } else {
+                       this.isWarning = false;
+                       this.warningTimer = Math.max(0, this.warningTimer - 2);
+                   }
+
+
+                   // --- 3. 予測線（Trajectory）と待機惑星の描画 ---
+                   if (!this.isDropping) {
+                       const pDef = PLANETS[this.currentPlanetLevel];
+                      
+                       this.ctx.beginPath();
+                       this.ctx.strokeStyle = 'rgba(255, 255, 255, 0.4)';
+                       this.ctx.lineWidth = 2;
+                       this.ctx.setLineDash([10, 15]);
+                      
+                       if (this.isDragging) {
+                           // ドラッグ中の放物線（パラボラ）予測を描画
+                           let simX = this.currentDropX;
+                           let simY = this.spawnY;
+                           let vx = this.dragDeltaX * 0.08;
+                           let vy = Math.max(0, this.dragDeltaY * 0.08);
+                          
+                           this.ctx.moveTo(simX, simY);
+                           for(let i=0; i<30; i++) {
+                               vy += this.engine.world.gravity.y * 1.5; // 予測精度調整
+                               simX += vx;
+                               simY += vy;
+                               // ボウル壁に当たった場合の簡易反射
+                               if (simX < this.bowlCenter.x - this.bowlRadius + pDef.radius ||
+                                   simX > this.bowlCenter.x + this.bowlRadius - pDef.radius) {
+                                   vx *= -0.6;
+                               }
+                               this.ctx.lineTo(simX, simY);
+                           }
+                       } else {
+                           // 通常の真っ直ぐな予測線
+                           this.ctx.moveTo(this.currentDropX, this.spawnY);
+                           this.ctx.lineTo(this.currentDropX, this.height);
+                       }
+                       this.ctx.stroke();
+                       this.ctx.setLineDash([]);
+                      
+                       // 落下待機惑星
+                       this.ctx.beginPath();
+                       this.ctx.arc(this.currentDropX, this.spawnY, pDef.radius, 0, Math.PI * 2);
+                       this.ctx.fillStyle = pDef.color;
+                       this.ctx.globalAlpha = 0.8;
+                       this.ctx.fill();
+                      
+                       // ドラッグ中は張力インジケーター（小さな矢印など）も描画できるが、シンプルに留める
+                       this.ctx.globalAlpha = 1.0;
+                   }
+
+
+                   // --- 4. 物理オブジェクトの描画 ---
+                   for (let body of bodies) {
+                       if (body.label === 'planet') {
+                           const pDef = PLANETS[body.planetLevel];
+                          
+                           if (body.popScale > 1.0) {
+                               body.popScale -= 0.05;
+                           } else {
+                               body.popScale = 1.0;
+                           }
+
+
+                           this.ctx.save();
+                           this.ctx.translate(body.position.x, body.position.y);
+                           this.ctx.rotate(body.angle);
+                           this.ctx.scale(body.popScale, body.popScale);
+
+
+                           this.ctx.beginPath();
+                           this.ctx.arc(0, 0, pDef.radius, 0, Math.PI * 2);
+                           this.ctx.fillStyle = pDef.color;
+                          
+                           this.ctx.shadowBlur = 15;
+                           this.ctx.shadowColor = pDef.color;
+                           this.ctx.fill();
+                          
+                           this.ctx.beginPath();
+                           this.ctx.arc(-pDef.radius * 0.3, -pDef.radius * 0.3, pDef.radius * 0.2, 0, Math.PI * 2);
+                           this.ctx.fillStyle = 'rgba(255,255,255,0.3)';
+                           this.ctx.fill();
+
+
+                           this.ctx.restore();
+                       }
+                   }
+               }
+
+
+               // --- 5. 猶予演出（赤い点滅オーバーレイ） ---
+               if (this.isWarning && this.state === 'PLAYING') {
+                   const dangerAlpha = (this.warningTimer / this.warningThreshold) * 0.4;
+                   const pulse = Math.abs(Math.sin(Date.now() / 150)) * dangerAlpha;
+                   this.ctx.fillStyle = `rgba(255, 0, 0, ${pulse})`;
+                   this.ctx.fillRect(0, 0, this.width, this.height);
+               }
+
+
+               this.ctx.restore(); // シェイクのリセット
+               this.effectSystem.updateAndDraw(this.ctx);
+               requestAnimationFrame(this.loop);
+           }
+       }
+
+
+       // ゲーム起動
+       window.onload = () => {
+           new PlanetDropGame();
+       };
+   </script>
+</body>
+</html>
+
+
+
+
+
+
