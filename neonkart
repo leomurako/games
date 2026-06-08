@@ -262,6 +262,7 @@
             justify-content: space-between;
         }
 
+        /* 30コースのスクロール領域設定 */
         .course-grid {
             width: 100%;
             max-width: 1200px;
@@ -270,6 +271,22 @@
             gap: 15px;
             margin: 20px 0;
             pointer-events: auto;
+            max-height: 55vh;
+            overflow-y: auto;
+            padding-right: 12px;
+        }
+
+        .course-grid::-webkit-scrollbar {
+            width: 10px;
+        }
+        .course-grid::-webkit-scrollbar-track {
+            background: #faf5eb;
+            border-left: 3px solid var(--ui-border);
+            border-radius: 8px;
+        }
+        .course-grid::-webkit-scrollbar-thumb {
+            background: var(--ui-border);
+            border-radius: 5px;
         }
 
         .course-card-modern {
@@ -375,8 +392,8 @@
 
         /* アイテムボックスのサイズ */
         .hud-item-box {
-            width: 75px;
-            height: 75px;
+            width: 85px;
+            height: 85px;
             background: #fff;
             border: 4px solid var(--ui-border);
             border-radius: 16px;
@@ -384,11 +401,11 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 2.6rem; /* 巨大な絵文字向けに調整 */
+            font-size: 2.2rem; /* 絵文字と個数を収めるために調整 */
             font-weight: 900;
             color: var(--brand-primary);
             text-align: center;
-            line-height: 1;
+            line-height: 1.1;
         }
 
         .minimap-panel {
@@ -488,7 +505,7 @@
             top:0; left:0; width:100%; height:100%;
             pointer-events: none;
             z-index: 4;
-            transition: background 0.3s ease;
+            transition: background 0.15s ease; /* 落雷演出の高速変化に対応 */
         }
 
         /* --- 5. リザルト（結果発表）画面用スタイル --- */
@@ -564,6 +581,63 @@
             </div>
         </div>
 
+        <!-- Mode Select Screen（追加：VS or GP） -->
+        <div id="mode-screen" class="screen hidden">
+            <div class="brand-section">
+                <h1 class="game-title" style="font-size: 4rem; text-shadow: 3px 3px 0px #fff, 6px 6px 0px var(--ui-border);">Select Mode</h1>
+                <p class="game-subtitle" style="color: var(--brand-blue);">Choose Your Challenge</p>
+            </div>
+
+            <div class="main-menu-buttons">
+                <button class="btn btn-primary" id="mode-single-btn">Single Stage</button>
+                <button class="btn btn-secondary" id="mode-gp-btn" style="background-color: var(--brand-green); text-shadow: 2px 2px 0px var(--ui-border);">Neon Grand Prix</button>
+                <button class="btn btn-secondary btn-back" id="mode-back-btn">Back</button>
+            </div>
+        </div>
+
+        <!-- GP Preview Screen（追加：GP用の次のコース予告・開始画面） -->
+        <div id="gp-preview-screen" class="screen hidden">
+            <div class="brand-section" style="margin-top: 2vh;">
+                <h1 class="game-title" style="font-size: 3.5rem; color: var(--brand-secondary); text-shadow: 3px 3px 0px #fff, 6px 6px 0px var(--ui-border);">Neon Cup</h1>
+                <p class="game-subtitle" style="color: var(--brand-green);">Grand Prix Challenge</p>
+            </div>
+            
+            <div class="pop-panel" style="width: 100%; max-width: 500px; padding: 25px; margin: 20px 0; text-align: center; pointer-events: auto;">
+                <h3 style="margin-bottom: 15px; font-size: 1.4rem;">Next Race: <span id="gp-preview-current-num" style="color: var(--brand-primary);">Race 1/4</span></h3>
+                
+                <div style="background: #fff; border: 3px solid var(--ui-border); border-radius: 12px; padding: 15px; margin-bottom: 20px;">
+                    <h4 id="gp-preview-course-name" style="font-size: 1.5rem; margin-bottom: 5px;">-</h4>
+                    <p id="gp-preview-course-desc" style="font-size: 0.9rem; color: #555;">-</p>
+                </div>
+
+                <div style="text-align: left; font-size: 0.95rem; font-weight: 900; line-height: 1.6; margin-bottom: 10px;">
+                    <strong>GP Courses:</strong>
+                    <ol id="gp-preview-course-list" style="margin-left: 20px; margin-top: 5px; color: #444;"></ol>
+                </div>
+            </div>
+
+            <button class="btn btn-primary" id="gp-preview-start-btn" style="width: 320px;">Start Race!</button>
+        </div>
+
+        <!-- GP Standings Screen（追加：GP用累積ポイントランキング） -->
+        <div id="gp-standings-screen" class="screen hidden">
+            <div class="brand-section" style="margin-top: 2vh;">
+                <h1 class="game-title" id="gp-standings-title" style="font-size: 3.8rem; text-shadow: 3px 3px 0px #fff, 6px 6px 0px var(--ui-border); color: var(--brand-secondary);">GP Standings</h1>
+                <p class="game-subtitle" id="gp-standings-subtitle" style="color: var(--brand-green);">Championship Points</p>
+            </div>
+
+            <div class="pop-panel result-panel">
+                <table class="result-table" id="gp-standings-table">
+                    <!-- JSにて順位・獲得ポイントが自動生成されます -->
+                </table>
+            </div>
+
+            <div style="display: flex; gap: 20px; pointer-events: auto; margin-bottom: 3vh;">
+                <button class="btn btn-primary" id="gp-standings-next-btn" style="width: 320px;">Next Race</button>
+                <button class="btn btn-secondary hidden" id="gp-standings-menu-btn" style="width: 320px;">Back to Menu</button>
+            </div>
+        </div>
+
         <!-- 2. スキンカスタマイズ画面 -->
         <div id="skin-screen" class="screen hidden">
             <div class="screen-header">
@@ -604,7 +678,7 @@
 
         <!-- 4. レース画面 -->
         <div id="game-screen" class="screen hidden">
-            <!-- 【不具合修正】カウントダウン表示用のポップなテキスト表示エリアを追加 -->
+            <!-- カウントダウン表示用のポップなテキスト表示エリア -->
             <div id="countdown-overlay" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 8rem; font-weight: 900; text-shadow: 4px 4px 0px #fff, 8px 8px 0px var(--ui-border); z-index: 100; pointer-events: none; font-family: 'Fredoka One', 'M PLUS Rounded 1c', sans-serif;"></div>
 
             <div class="hud-container">
@@ -647,6 +721,7 @@
             <div style="display: flex; gap: 20px; pointer-events: auto; margin-bottom: 3vh;">
                 <button class="btn btn-secondary" id="result-retry-btn">Retry Race</button>
                 <button class="btn btn-primary" id="result-menu-btn">Back to Menu</button>
+                <button class="btn btn-primary hidden" id="result-gp-standings-btn" style="background-color: var(--brand-blue); text-shadow: 2px 2px 0px var(--ui-border);">View GP Standings</button>
             </div>
         </div>
 
@@ -673,14 +748,17 @@
 
     <script>
         // ========================================================
-        // 1. グローバル定数・状態管理（TDZエラーを防ぐため最上部で一括定義）
+        // 1. グローバル定数・状態管理
         // ========================================================
         const UI_STATES = {
             MAIN: 'main',
+            MODE: 'mode',
             SKIN: 'skin',
             COURSE: 'course',
             GAME: 'game',
             RESULT: 'result',
+            GP_PREVIEW: 'gp_preview',
+            GP_STANDINGS: 'gp_standings',
             HELP: 'help' 
         };
 
@@ -711,26 +789,56 @@
             "Koopa Troopa"
         ];
 
-        // 文字ではなくビジュアル（巨大絵文字）で表現するためのマップ
+        // 本家風の新規追加アイテムも含めた巨大ビジュアル絵文字マップ
         const itemEmojiMap = {
             "MUSHROOM": "🍄",
+            "TRIPLE_MUSHROOM": "🍄x3",
             "STAR": "⭐",
             "BANANA": "🍌",
+            "TRIPLE_BANANA": "🍌x3",
             "GREEN_SHELL": "🐢",
-            "RED_SHELL": "🎯"
+            "TRIPLE_GREEN_SHELL": "🐢x3",
+            "RED_SHELL": "🎯",
+            "BLUE_SHELL": "👑", // トゲゾー（1位に爆破追尾）
+            "LIGHTNING": "⚡",  // サンダー（自分以外縮小＆スピン＆アイテム消失）
+            "GOLDEN_MUSHROOM": "🍄🌟" // パワフルキノコ（時間内無限連打ブースト）
         };
 
+        // コース数を30に拡張
         const courses = [
-            { name: "1. Mario Circuit", diff: "EASY", color: 0x2ed573, desc: "青空のもとを走る、芝生に囲まれた基本サーキット。" },
-            { name: "2. Desert Ruins", diff: "NORMAL", color: 0xffa502, desc: "起伏（コブ）が激しく、細かな丘陵が続く砂漠ステージ。" },
-            { name: "3. Peach Garden", diff: "NORMAL", color: 0xff6b81, desc: "美しい花に囲まれた、タイトなコーナーが続く中速サーキット。" },
-            { name: "4. DK Summit", diff: "HARD", color: 0x2bcbba, desc: "大ジャンプ台と急峻な高低差が待ち受ける雪山スロープ。" },
-            { name: "5. Bowser Castle", diff: "EXPERT", color: 0xff4757, desc: "直角クランクが連発する、玄人好みのスリリングな城。" },
-            { name: "6. Oasis Expressway", diff: "NORMAL", color: 0x1e90ff, desc: "水上をハイスピードで滑走する海沿い高速道路。" },
-            { name: "7. Sweet Sweet Kingdom", diff: "HARD", color: 0xff6b81, desc: "お菓子の国を模した、なだらかに上昇する立体 3D 螺旋道路。" },
-            { name: "8. Maple Treeway", diff: "HARD", color: 0xff7f50, desc: "紅葉した木の上を駆け抜ける、大ジャンプ連続の空中サーキット。" },
-            { name: "9. Grumble Volcano", diff: "EXPERT", color: 0xff4757, desc: "亀裂を跳び越えるジャンプ台が特徴的な溶岩キャニオン。" },
-            { name: "10. Rainbow Road", diff: "EXPERT", color: 0xa55eea, desc: "空中浮遊サーキット。うねるような高低差が特徴の最終難所。" }
+            // 1-10
+            { name: "1. Toad Highlands", diff: "EASY", color: 0x2ed573, desc: "緩やかなカーブが続く緑豊かな基本サーキット。" },
+            { name: "2. Desert Oasis", diff: "EASY", color: 0xffa502, desc: "古代遺跡がたたずむ乾燥した砂漠のショートトラック。" },
+            { name: "3. Peach Garden", diff: "NORMAL", color: 0xff6b81, desc: "美しい花びらが舞う、緩急のあるタイトな庭園。" },
+            { name: "4. Shy Guy Falls", diff: "NORMAL", color: 0x1e90ff, desc: "激しい水しぶきを伴う高低差の激しい渓谷コース。" },
+            { name: "5. Luigi Circuit", diff: "EASY", color: 0x2bcbba, desc: "長い直線と単純なバンクからなるハイスピードコース。" },
+            { name: "6. Alpine Pass", diff: "NORMAL", color: 0x7bed9f, desc: "針葉樹林に覆われた高地のうねうねした山岳道路。" },
+            { name: "7. Sweet Sweet Kingdom", diff: "NORMAL", color: 0xff6b81, desc: "お菓子の国に造られた甘い香りのする緩い螺旋コース。" },
+            { name: "8. Yoshi Valley", diff: "HARD", color: 0x2ed573, desc: "鋭い崖に囲まれた分岐の多い複雑な谷底トラック。" },
+            { name: "9. Sunset Wilds", diff: "NORMAL", color: 0xff7f50, desc: "夕日に照らされた滑りやすい荒野ダートコース。" },
+            { name: "10. Mario Raceway", diff: "NORMAL", color: 0x1e90ff, desc: "巨大なループのような大カーブを持つ由緒あるサーキット。" },
+            // 11-20
+            { name: "11. Maple Treeway", diff: "HARD", color: 0xff7f50, desc: "巨大な紅葉の木の上を滑走するスリリングなコース。" },
+            { name: "12. Koopa Cape", diff: "HARD", color: 0x10ac84, desc: "激流にのまれるハーフパイプ道路が特徴的な岬。" },
+            { name: "13. Grumble Volcano", diff: "EXPERT", color: 0xee5253, desc: "足場が沈み、マグマが噴き出す危険極まりない火山帯。" },
+            { name: "14. Bowser Castle", diff: "EXPERT", color: 0xff4757, desc: "直角クランクと炎が飛び交う、玄人向けの石造りの城。" },
+            { name: "15. Tick-Tock Clock", diff: "HARD", color: 0xa55eea, desc: "歯車が回転し、針が道を塞ぐ巨大時計の内部ロード。" },
+            { name: "16. Cloudtop Cruise", diff: "HARD", color: 0x1e90ff, desc: "天空を浮遊する雲と豆の木でできた立体的なコース。" },
+            { name: "17. Neo Bowser City", diff: "EXPERT", color: 0x341f97, desc: "雨に濡れたネオン輝くサイバーパンクな近未来都市。" },
+            { name: "18. Wario Mountain", diff: "HARD", color: 0xffa502, desc: "ヘリコプターから飛び降りる一方向型の長大な雪山滑降。" },
+            { name: "19. Sherbet Land", diff: "NORMAL", color: 0x2bcbba, desc: "つるつると滑る氷の洞窟と氷河でできた白い世界。" },
+            { name: "20. Ribbon Road", diff: "HARD", color: 0xff6b81, desc: "子供部屋のおもちゃと折り畳まれたリボンの上を走るコース。" },
+            // 21-30
+            { name: "21. Electrodrome", diff: "HARD", color: 0xa55eea, desc: "ネオンがきらめくディスコ。分岐するレーザーロード。" },
+            { name: "22. Dolphin Shoals", diff: "NORMAL", color: 0x1e90ff, desc: "イルカが跳ねる鮮やかなサンゴ礁の海中トラック。" },
+            { name: "23. Bone Dry Dunes", diff: "EXPERT", color: 0xff7f50, desc: "砂嵐が吹き荒れるコブの多い砂漠の荒涼とした難所。" },
+            { name: "24. Super Bell Subway", diff: "EXPERT", color: 0xffa502, desc: "地下鉄が往来する暗い線路内を爆走する危険ロード。" },
+            { name: "25. Mount Wario Peak", diff: "HARD", color: 0x10ac84, desc: "急峻な雪の斜面と滑りやすい松林を抜ける滑降コース。" },
+            { name: "26. Wild Woods", diff: "HARD", color: 0x2ed573, desc: "巨大な大樹の幹をなぞるように作られた神秘的な森。" },
+            { name: "27. Ice Outpost", diff: "EXPERT", color: 0x2bcbba, desc: "北極海上に絡み合う2本の鉄製アイススライダー。" },
+            { name: "28. Dragon Driftway", diff: "EXPERT", color: 0xff4757, desc: "龍の彫刻に沿ってドリフトを連続させるオリエンタルコース。" },
+            { name: "29. Big Blue Raceway", diff: "EXPERT", color: 0x1e90ff, desc: "海沿いをハイスピードで貫く超近未来的なウォータースライド。" },
+            { name: "30. Rainbow Road", diff: "EXPERT", color: 0xa55eea, desc: "宇宙空間に浮かぶ虹色にうねる最終難所の超難関ロード。" }
         ];
 
         const gameState = {
@@ -744,10 +852,13 @@
 
         const cameraTargets = {
             [UI_STATES.MAIN]: { pos: new THREE.Vector3(0, 2.0, 5.5), lookAt: new THREE.Vector3(0, 0.4, 0) },
+            [UI_STATES.MODE]: { pos: new THREE.Vector3(0, 2.0, 5.5), lookAt: new THREE.Vector3(0, 0.4, 0) },
             [UI_STATES.SKIN]: { pos: new THREE.Vector3(1.8, 1.2, 2.2), lookAt: new THREE.Vector3(0, 0.35, 0) },
             [UI_STATES.COURSE]: { pos: new THREE.Vector3(0, 8.0, 1.5), lookAt: new THREE.Vector3(0, 0.2, -3) },
-            [UI_STATES.GAME]: { pos: new THREE.Vector3(0, 0, 0), lookAt: new THREE.Vector3(0, 0, 0) },
+            [UI_STATES.GAME]: { pos: new THREE.Vector3(0, 0, 0), lookAt: new THREE.Vector3(0, 0, 0) }, 
             [UI_STATES.RESULT]: { pos: new THREE.Vector3(0, 2.0, 5.5), lookAt: new THREE.Vector3(0, 0.4, 0) }, 
+            [UI_STATES.GP_PREVIEW]: { pos: new THREE.Vector3(0, 2.0, 5.5), lookAt: new THREE.Vector3(0, 0.4, 0) },
+            [UI_STATES.GP_STANDINGS]: { pos: new THREE.Vector3(0, 2.0, 5.5), lookAt: new THREE.Vector3(0, 0.4, 0) },
             [UI_STATES.HELP]: { pos: new THREE.Vector3(0, 2.0, 5.5), lookAt: new THREE.Vector3(0, 0.4, 0) } 
         };
 
@@ -771,11 +882,11 @@
         let menuPodium = null;
         let environmentGroup = null;
 
-        // 【新規】スタート・ゴール表示オブジェクト
+        // スタート・ゴール表示オブジェクト
         let startArch = null;
         let finishLineMesh = null;
 
-        // 前輪タイヤだけを滑らかに曲げるためのステアリング用ピボット
+        // 前輪タイヤステアリングピボット
         let leftWheelPivot = null;
         let rightWheelPivot = null;
 
@@ -793,6 +904,7 @@
         let raceBananas = [];
         let raceProjectiles = []; 
         let driftSparks = [];
+        let exhaustSmoke = []; // 排気ガス煙用配列
         let cameraTowers = [];
         let minimapCanvas = null;
         let minimapCtx = null;
@@ -802,7 +914,22 @@
         let raceIntroState = 'countdown'; // 'countdown' or 'racing'
         let countdownTimer = 180; // 3秒間 (60fps * 3 = 180)
         let accelPressedTime = -1; // アクセルが最初に踏まれたときの時間
+        let rocketStartFailed = false; // 2秒より前に押し始めた時のミスフラグ
         let raceStartTime = 0; // 総レース走行タイム計測用
+
+        // ゲームバランス調整用アイテム出現カウント変数
+        let raceLightningCount = 0; 
+        let raceBlueShellCount = 0; 
+
+        // グランプリ（GP）モード制御用変数 (追加)
+        let gpActive = false;
+        let gpCurrentRaceIndex = 0; // 0 to 3
+        let gpCourses = []; // 選択された4コースのインデックス
+        let gpCumulativePoints = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]; // 12名の累積ポイント
+        const GP_POINTS_TABLE = [15, 12, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1]; // 規定の配分ポイント
+
+        // 環境用のパーティクルシステム
+        let weatherParticles = null;
 
         // Web Audio シンセサイザー
         let audioCtx = null;
@@ -810,7 +937,198 @@
         let engineFilter = null;
 
         // ========================================================
-        // 3. サウンド・シンセ処理
+        // 3. 30ステージ分類の定義 & 環境管理
+        // ========================================================
+        function getCourseTheme(index) {
+            const sakuraCourses = [2, 6, 19, 27];   // 3. Peach Garden, 7. Sweet Sweet Kingdom, 20. Ribbon Road, 28. Dragon Driftway
+            const desertCourses = [1, 8, 22];       // 2. Desert Oasis, 9. Sunset Wilds, 23. Bone Dry Dunes
+            const iceCourses = [5, 17, 18, 24, 26]; // 6. Alpine Pass, 18. Wario Mountain, 19. Sherbet Land, 25. Mount Wario Peak, 27. Ice Outpost
+            const darkCourses = [12, 13, 23];       // 13. Grumble Volcano, 14. Bowser Castle, 24. Super Bell Subway
+            const cosmicCourses = [14, 16, 20, 29]; // 15. Tick-Tock Clock, 17. Neo Bowser City, 21. Electrodrome, 30. Rainbow Road
+            const waterCourses = [3, 11, 21, 28];   // 4. Shy Guy Falls, 12. Koopa Cape, 22. Dolphin Shoals, 29. Big Blue Raceway
+            const autumnCourses = [10, 15, 25];     // 11. Maple Treeway, 16. Cloudtop Cruise, 26. Wild Woods
+            
+            if (sakuraCourses.includes(index)) return 'sakura';
+            if (desertCourses.includes(index)) return 'desert';
+            if (iceCourses.includes(index)) return 'ice';
+            if (darkCourses.includes(index)) return 'dark';
+            if (cosmicCourses.includes(index)) return 'cosmic';
+            if (waterCourses.includes(index)) return 'water';
+            if (autumnCourses.includes(index)) return 'autumn';
+            return 'grass'; // Toad Highlands, Luigi Circuit, Mario Raceway, etc.
+        }
+
+        // パーティクルを丸みのあるポップな形状にするためのキャンバステクスチャ作成
+        function createParticleTexture(theme) {
+            const canvas = document.createElement('canvas');
+            canvas.width = 32;
+            canvas.height = 32;
+            const ctx = canvas.getContext('2d');
+            ctx.fillStyle = '#ffffff';
+
+            if (theme === 'sakura') {
+                ctx.beginPath();
+                ctx.ellipse(16, 16, 13, 7, Math.PI / 4, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.fillStyle = 'rgba(0,0,0,0)';
+                ctx.globalCompositeOperation = 'destination-out';
+                ctx.beginPath();
+                ctx.arc(28, 28, 5, 0, Math.PI * 2);
+                ctx.fill();
+            } else if (theme === 'autumn') {
+                ctx.beginPath();
+                ctx.ellipse(16, 16, 12, 6, -Math.PI / 6, 0, Math.PI * 2);
+                ctx.fill();
+            } else if (theme === 'grass') {
+                ctx.beginPath();
+                ctx.ellipse(16, 16, 11, 5, Math.PI / 3, 0, Math.PI * 2);
+                ctx.fill();
+            } else if (theme === 'water') {
+                ctx.strokeStyle = '#ffffff';
+                ctx.lineWidth = 2.0;
+                ctx.beginPath();
+                ctx.arc(16, 16, 11, 0, Math.PI * 2);
+                ctx.stroke();
+                ctx.fillStyle = '#ffffff';
+                ctx.beginPath();
+                ctx.arc(11, 11, 2.5, 0, Math.PI * 2);
+                ctx.fill();
+            } else {
+                const grad = ctx.createRadialGradient(16, 16, 0, 16, 16, 16);
+                grad.addColorStop(0, 'rgba(255,255,255,1)');
+                grad.addColorStop(0.3, 'rgba(255,255,255,0.8)');
+                grad.addColorStop(1, 'rgba(255,255,255,0)');
+                ctx.fillStyle = grad;
+                ctx.fillRect(0, 0, 32, 32);
+            }
+
+            const texture = new THREE.CanvasTexture(canvas);
+            texture.needsUpdate = true;
+            return texture;
+        }
+
+        // コースに合わせた環境天気（降雪・桜吹雪・砂嵐など）を生成する処理
+        function initWeatherParticles(theme) {
+            if (weatherParticles) {
+                scene.remove(weatherParticles);
+                weatherParticles.geometry.dispose();
+                weatherParticles.material.dispose();
+                weatherParticles = null;
+            }
+
+            const particleCount = 200;
+            const geo = new THREE.BufferGeometry();
+            const positions = new Float32Array(particleCount * 3);
+            const velocities = [];
+
+            for (let i = 0; i < particleCount; i++) {
+                positions[i * 3] = (Math.random() - 0.5) * 200;
+                positions[i * 3 + 1] = Math.random() * 45 + 1;
+                positions[i * 3 + 2] = (Math.random() - 0.5) * 200;
+
+                let vy = -0.05 - Math.random() * 0.08;
+                let vx = (Math.random() - 0.5) * 0.04;
+                let vz = (Math.random() - 0.5) * 0.04;
+
+                if (theme === 'desert') {
+                    vy = -0.01 - Math.random() * 0.02;
+                    vx = -0.18 - Math.random() * 0.15;
+                } else if (theme === 'water') {
+                    vy = 0.05 + Math.random() * 0.06;
+                } else if (theme === 'dark') {
+                    vy = -0.02 - Math.random() * 0.03;
+                } else if (theme === 'sakura' || theme === 'autumn') {
+                    vy = -0.03 - Math.random() * 0.04;
+                    vx = (Math.random() - 0.5) * 0.08;
+                }
+
+                velocities.push(new THREE.Vector3(vx, vy, vz));
+            }
+
+            geo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+
+            let pColor = 0xffffff;
+            let pSize = 0.5;
+
+            if (theme === 'sakura') {
+                pColor = 0xffb7c5; 
+                pSize = 0.65;
+            } else if (theme === 'desert') {
+                pColor = 0xdfb15b; 
+                pSize = 0.45;
+            } else if (theme === 'ice') {
+                pColor = 0xffffff; 
+                pSize = 0.55;
+            } else if (theme === 'dark') {
+                pColor = 0xff4757; 
+                pSize = 0.4;
+            } else if (theme === 'cosmic') {
+                pColor = 0xe879f9; 
+                pSize = 0.5;
+            } else if (theme === 'water') {
+                pColor = 0xbae6fd; 
+                pSize = 0.45;
+            } else if (theme === 'autumn') {
+                pColor = 0xf97316; 
+                pSize = 0.6;
+            } else {
+                pColor = 0x4ade80; 
+                pSize = 0.4;
+            }
+
+            const pTex = createParticleTexture(theme);
+            const mat = new THREE.PointsMaterial({
+                color: pColor,
+                size: pSize,
+                map: pTex,
+                transparent: true,
+                opacity: 0.85,
+                depthWrite: false,
+                blending: THREE.AdditiveBlending
+            });
+
+            weatherParticles = new THREE.Points(geo, mat);
+            weatherParticles.velocities = velocities;
+            scene.add(weatherParticles);
+        }
+
+        // 毎フレーム、プレイヤーのいる場所にパーティクルが追従して移動する処理
+        function updateWeatherParticles() {
+            if (!weatherParticles || !camera) return;
+            
+            const positions = weatherParticles.geometry.attributes.position.array;
+            const velocities = weatherParticles.velocities;
+            const camPos = camera.position;
+
+            for (let i = 0; i < velocities.length; i++) {
+                let px = positions[i * 3];
+                let py = positions[i * 3 + 1];
+                let pz = positions[i * 3 + 2];
+                const v = velocities[i];
+
+                px += v.x;
+                py += v.y;
+                pz += v.z;
+
+                if (Math.abs(px - camPos.x) > 110) {
+                    px = camPos.x + (Math.random() - 0.5) * 180;
+                }
+                if (py < 0 || py > 45) {
+                    py = 35 + Math.random() * 10;
+                }
+                if (Math.abs(pz - camPos.z) > 110) {
+                    pz = camPos.z + (Math.random() - 0.5) * 180;
+                }
+
+                positions[i * 3] = px;
+                positions[i * 3 + 1] = py;
+                positions[i * 3 + 2] = pz;
+            }
+            weatherParticles.geometry.attributes.position.needsUpdate = true;
+        }
+
+        // ========================================================
+        // 4. サウンド・シンセ処理
         // ========================================================
         function initAudio() {
             if (audioCtx) return;
@@ -881,7 +1199,7 @@
             } catch(e) {}
         }
 
-        // スタート前のカウントダウン音の合成
+        // スタート前のカウントダウン音
         function playCountdownBeep(isGo) {
             if (!audioCtx) return;
             try {
@@ -893,12 +1211,12 @@
                 
                 osc.type = 'sine';
                 if (isGo) {
-                    osc.frequency.setValueAtTime(987.77, audioCtx.currentTime); // 高いシグナル(B5)
+                    osc.frequency.setValueAtTime(987.77, audioCtx.currentTime); 
                     gain.gain.setValueAtTime(0.12, audioCtx.currentTime);
                     gain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.6);
                     osc.start(); osc.stop(audioCtx.currentTime + 0.6);
                 } else {
-                    osc.frequency.setValueAtTime(493.88, audioCtx.currentTime); // 低いシグナル(B4)
+                    osc.frequency.setValueAtTime(493.88, audioCtx.currentTime); 
                     gain.gain.setValueAtTime(0.10, audioCtx.currentTime);
                     gain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.35);
                     osc.start(); osc.stop(audioCtx.currentTime + 0.35);
@@ -918,7 +1236,7 @@
         }
 
         // ========================================================
-        // 4. レースビジュアル・3D環境生成
+        // 5. レースビジュアル・3D環境生成
         // ========================================================
         function spawnDriftSpark(position, colorHex) {
             if (!scene) return;
@@ -958,11 +1276,88 @@
             }
         }
 
+        // アクセル/ブースト時に放出される排気ガス煙の生成
+        function spawnExhaustSmoke(position) {
+            if (!scene) return;
+            const geo = new THREE.SphereGeometry(0.2, 5, 5);
+            const mat = new THREE.MeshBasicMaterial({ 
+                color: 0xdddddd, 
+                transparent: true, 
+                opacity: 0.7 
+            });
+            const mesh = new THREE.Mesh(geo, mat);
+            mesh.position.copy(position);
+            scene.add(mesh);
+
+            exhaustSmoke.push({
+                mesh: mesh,
+                age: 0,
+                maxAge: 25 + Math.random() * 15,
+                velocity: new THREE.Vector3(
+                    (Math.random() - 0.5) * 0.04,
+                    Math.random() * 0.04 + 0.02,
+                    -0.08 - Math.random() * 0.04
+                )
+            });
+        }
+
+        function updateExhaustSmoke() {
+            if (!scene) return;
+            for (let i = exhaustSmoke.length - 1; i >= 0; i--) {
+                const smoke = exhaustSmoke[i];
+                smoke.age++;
+                smoke.mesh.position.add(smoke.velocity);
+                smoke.mesh.scale.multiplyScalar(1.04); 
+                smoke.mesh.material.opacity = Math.max(0, 0.7 * (1.0 - smoke.age / smoke.maxAge));
+
+                if (smoke.age >= smoke.maxAge) {
+                    scene.remove(smoke.mesh);
+                    smoke.mesh.geometry.dispose();
+                    smoke.mesh.material.dispose();
+                    exhaustSmoke.splice(i, 1);
+                }
+            }
+        }
+
         function generateEnvironment(curve) {
             if (!environmentGroup) return;
             while (environmentGroup.children.length > 0) {
                 const child = environmentGroup.children[0];
                 environmentGroup.remove(child);
+            }
+
+            const courseIdx = gameState.currentState === UI_STATES.GAME ? gameState.selectedCourse : 0;
+            const theme = getCourseTheme(courseIdx);
+
+            let grassColor = 0x47b855; 
+            let skyColor = 0xbae6fd;
+
+            if (theme === 'sakura') {
+                grassColor = 0xfecdd3; 
+                skyColor = 0xfff0f5;   
+            } else if (theme === 'desert') {
+                grassColor = 0xeab308; 
+                skyColor = 0xfef08a;   
+            } else if (theme === 'ice') {
+                grassColor = 0xf1f5f9; 
+                skyColor = 0xe0f2fe;   
+            } else if (theme === 'dark') {
+                grassColor = 0x1e293b; 
+                skyColor = 0x0f172a;   
+            } else if (theme === 'cosmic') {
+                grassColor = 0x090514; 
+                skyColor = 0x020617;   
+            } else if (theme === 'water') {
+                grassColor = 0x082f49; 
+                skyColor = 0x0284c7;   
+            } else if (theme === 'autumn') {
+                grassColor = 0xca8a04; 
+                skyColor = 0xffedd5;   
+            }
+
+            if (scene) {
+                scene.background.setHex(skyColor);
+                scene.fog.color.setHex(skyColor);
             }
 
             let minY = 0;
@@ -973,38 +1368,134 @@
             }
 
             const grassGeo = new THREE.PlaneGeometry(3500, 3500);
-            const grassMat = new THREE.MeshBasicMaterial({ color: 0x47b855 }); 
+            const grassMat = new THREE.MeshBasicMaterial({ color: grassColor }); 
             const grass = new THREE.Mesh(grassGeo, grassMat);
             grass.rotation.x = -Math.PI / 2;
             grass.position.y = minY - 0.5; 
             environmentGroup.add(grass);
 
-            const treeCount = 70;
-            for (let i = 0; i < treeCount; i++) {
+            const decorationCount = 100;
+            for (let i = 0; i < decorationCount; i++) {
                 const angle = Math.random() * Math.PI * 2;
-                const dist = 90 + Math.random() * 150;
+                const dist = 75 + Math.random() * 180;
                 const tx = Math.cos(angle) * dist;
                 const tz = Math.sin(angle) * dist;
                 const ty = minY - 0.5;
 
-                const tree = new THREE.Group();
-                const trunkGeo = new THREE.CylinderGeometry(0.18, 0.28, 0.9, 8);
-                const trunkMat = new THREE.MeshBasicMaterial({ color: 0x8a633a });
-                const trunk = new THREE.Mesh(trunkGeo, trunkMat);
-                trunk.position.y = 0.45;
-                tree.add(trunk);
+                const decoration = new THREE.Group();
 
-                const leavesGeo = new THREE.ConeGeometry(0.8, 2.0, 8);
-                const leavesMat = new THREE.MeshBasicMaterial({ color: 0x228b22 });
-                const leaves = new THREE.Mesh(leavesGeo, leavesMat);
-                leaves.position.y = 1.7;
-                tree.add(leaves);
+                if (theme === 'desert') {
+                    const mainCylinderGeo = new THREE.CylinderGeometry(0.3, 0.3, 2.5, 8);
+                    const cactusMat = new THREE.MeshBasicMaterial({ color: 0x15803d });
+                    const mainCylinder = new THREE.Mesh(mainCylinderGeo, cactusMat);
+                    mainCylinder.position.y = 1.25;
+                    decoration.add(mainCylinder);
 
-                tree.position.set(tx, ty, tz);
-                environmentGroup.add(tree);
+                    const branchGeo = new THREE.CylinderGeometry(0.2, 0.2, 1.0, 8);
+                    const arm1 = new THREE.Mesh(branchGeo, cactusMat);
+                    arm1.rotation.z = Math.PI / 2;
+                    arm1.position.set(0.6, 1.4, 0);
+                    const arm2 = arm1.clone();
+                    arm2.position.set(-0.6, 0.9, 0);
+                    decoration.add(arm1, arm2);
+                } else if (theme === 'sakura') {
+                    const trunkGeo = new THREE.CylinderGeometry(0.2, 0.35, 1.2, 8);
+                    const trunkMat = new THREE.MeshBasicMaterial({ color: 0x5c4033 });
+                    const trunk = new THREE.Mesh(trunkGeo, trunkMat);
+                    trunk.position.y = 0.6;
+                    decoration.add(trunk);
+
+                    const leavesGeo = new THREE.SphereGeometry(1.2, 8, 8);
+                    const leavesMat = new THREE.MeshBasicMaterial({ color: 0xff69b4 });
+                    const leaves = new THREE.Mesh(leavesGeo, leavesMat);
+                    leaves.position.y = 1.8;
+                    decoration.add(leaves);
+
+                    const leaves2 = leaves.clone();
+                    leaves2.scale.set(0.8, 0.8, 0.8);
+                    leaves2.position.set(0.6, 2.2, 0.3);
+                    const leaves3 = leaves.clone();
+                    leaves3.scale.set(0.8, 0.8, 0.8);
+                    leaves3.position.set(-0.6, 2.0, -0.3);
+                    decoration.add(leaves2, leaves3);
+                } else if (theme === 'ice') {
+                    const trunkGeo = new THREE.CylinderGeometry(0.18, 0.25, 0.8, 8);
+                    const trunkMat = new THREE.MeshBasicMaterial({ color: 0x475569 });
+                    const trunk = new THREE.Mesh(trunkGeo, trunkMat);
+                    trunk.position.y = 0.4;
+                    decoration.add(trunk);
+
+                    const leavesGeo = new THREE.ConeGeometry(0.9, 2.2, 8);
+                    const leavesMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
+                    const leaves = new THREE.Mesh(leavesGeo, leavesMat);
+                    leaves.position.y = 1.8;
+                    decoration.add(leaves);
+                } else if (theme === 'dark') {
+                    const cryGeo = new THREE.CylinderGeometry(0.05, 0.6, 3.0, 5);
+                    const cryMat = new THREE.MeshBasicMaterial({ color: 0xef4444 });
+                    const crystal = new THREE.Mesh(cryGeo, cryMat);
+                    crystal.position.y = 1.5;
+                    decoration.add(crystal);
+                } else if (theme === 'cosmic') {
+                    const baseGeo = new THREE.CylinderGeometry(0.15, 0.45, 3.8, 8);
+                    const baseMat = new THREE.MeshBasicMaterial({ color: 0x4c1d95 });
+                    const basePole = new THREE.Mesh(baseGeo, baseMat);
+                    basePole.position.y = 1.9;
+                    decoration.add(basePole);
+
+                    const headGeo = new THREE.SphereGeometry(0.55, 8, 8);
+                    const headMat = new THREE.MeshBasicMaterial({ color: 0xec4899 });
+                    const headGlow = new THREE.Mesh(headGeo, headMat);
+                    headGlow.position.y = 3.9;
+                    decoration.add(headGlow);
+                } else if (theme === 'water') {
+                    const trunkGeo = new THREE.CylinderGeometry(0.2, 0.3, 1.8, 8);
+                    const trunkMat = new THREE.MeshBasicMaterial({ color: 0xb45309 });
+                    const trunk = new THREE.Mesh(trunkGeo, trunkMat);
+                    trunk.position.y = 0.9;
+                    trunk.rotation.z = 0.15; 
+                    decoration.add(trunk);
+
+                    const leafGeo = new THREE.BoxGeometry(1.6, 0.05, 0.4);
+                    const leafMat = new THREE.MeshBasicMaterial({ color: 0x166534 });
+                    for (let j = 0; j < 5; j++) {
+                        const leaf = new THREE.Mesh(leafGeo, leafMat);
+                        leaf.position.set(0.1, 1.8, 0);
+                        leaf.rotation.y = (j / 5) * Math.PI * 2;
+                        leaf.rotation.z = -0.15;
+                        decoration.add(leaf);
+                    }
+                } else if (theme === 'autumn') {
+                    const trunkGeo = new THREE.CylinderGeometry(0.2, 0.3, 1.0, 8);
+                    const trunkMat = new THREE.MeshBasicMaterial({ color: 0x78350f });
+                    const trunk = new THREE.Mesh(trunkGeo, trunkMat);
+                    trunk.position.y = 0.5;
+                    decoration.add(trunk);
+
+                    const leavesGeo = new THREE.ConeGeometry(0.95, 2.1, 8);
+                    const leavesMat = new THREE.MeshBasicMaterial({ color: i % 2 === 0 ? 0xeab308 : 0xe11d48 }); 
+                    const leaves = new THREE.Mesh(leavesGeo, leavesMat);
+                    leaves.position.y = 1.8;
+                    decoration.add(leaves);
+                } else {
+                    const trunkGeo = new THREE.CylinderGeometry(0.18, 0.28, 0.9, 8);
+                    const trunkMat = new THREE.MeshBasicMaterial({ color: 0x8a633a });
+                    const trunk = new THREE.Mesh(trunkGeo, trunkMat);
+                    trunk.position.y = 0.45;
+                    decoration.add(trunk);
+
+                    const leavesGeo = new THREE.ConeGeometry(0.8, 2.0, 8);
+                    const leavesMat = new THREE.MeshBasicMaterial({ color: 0x15803d });
+                    const leaves = new THREE.Mesh(leavesGeo, leavesMat);
+                    leaves.position.y = 1.7;
+                    decoration.add(leaves);
+                }
+
+                decoration.position.set(tx, ty, tz);
+                environmentGroup.add(decoration);
             }
 
-            const cloudCount = 30;
+            const cloudCount = 35;
             for (let i = 0; i < cloudCount; i++) {
                 const cx = (Math.random() - 0.5) * 800;
                 const cz = (Math.random() - 0.5) * 800;
@@ -1026,78 +1517,60 @@
             }
         }
 
-        // コーススプラインの数理自動生成
         function createCourseSpline(index) {
             const points = [];
-            const segments = 24;
-            const radius = 150;
+            const segments = 32; 
+            const baseRadius = 145;
             
+            const sineFreq1 = 2 + (index % 4);
+            const sineAmp1 = 15 + (index % 5) * 5;
+            const sineFreq2 = 3 + (index % 3);
+            const sineAmp2 = 8 + (index % 4) * 3;
+            
+            const heightAmp = 2 + (index % 5) * 4.0;
+            const heightFreq = 2 + (index % 3);
+            
+            const twistFactor = (index >= 20) ? 0.15 : 0.0;
+
             for (let i = 0; i < segments; i++) {
                 const angle = (i / segments) * Math.PI * 2;
-                let r = radius;
+                
+                let r = baseRadius;
+                r += Math.sin(angle * sineFreq1) * sineAmp1;
+                r += Math.cos(angle * sineFreq2) * sineAmp2;
+                
+                if (index >= 10 && index < 20) {
+                    r += Math.sin(angle * 5) * 10;
+                } else if (index >= 20) {
+                    r += Math.cos(angle * 7) * 16;
+                }
+                
+                r *= (1.0 + Math.sin(angle) * twistFactor);
+
                 let x = Math.cos(angle) * r;
                 let z = Math.sin(angle) * r;
-                let y = 0;
-
-                switch(index) {
-                    case 0: // Mario Circuit
-                        r += Math.sin(angle * 2) * 20;
-                        x = Math.cos(angle) * r; z = Math.sin(angle) * r;
-                        break;
-                    case 1: // Desert Ruins
-                        r += Math.cos(angle * 3) * 15;
-                        x = Math.cos(angle) * r; z = Math.sin(angle) * r;
-                        y = Math.sin(angle * 12) * 5; 
-                        break;
-                    case 2: // Peach Garden
-                        r += Math.sin(angle * 5) * 30;
-                        x = Math.cos(angle) * r; z = Math.sin(angle) * r;
-                        break;
-                    case 3: // DK Summit
-                        r += Math.cos(angle * 2) * 20;
-                        x = Math.cos(angle) * r; z = Math.sin(angle) * r;
-                        y = Math.sin(angle) * 30;
-                        break;
-                    case 4: // Bowser Castle
-                        const factor = 0.8 + 0.2 * Math.sin(angle * 4);
-                        x = Math.cos(angle) * r * factor; z = Math.sin(angle) * r * factor;
-                        break;
-                    case 5: // Oasis Expressway
-                        r += Math.sin(angle * 3) * 20;
-                        x = Math.cos(angle) * r; z = Math.sin(angle) * r;
-                        y = Math.cos(angle * 3) * 8;
-                        break;
-                    case 6: // Sweet Sweet Kingdom
-                        const loopFactor = 1.0 + 0.3 * Math.sin(angle);
-                        r = radius * loopFactor;
-                        x = Math.cos(angle) * r; z = Math.sin(angle) * r;
-                        y = Math.sin(angle * 2) * 12;
-                        break;
-                    case 7: // Maple Treeway
-                        r += Math.sin(angle * 6) * 25;
-                        x = Math.cos(angle) * r; z = Math.sin(angle) * r;
-                        y = Math.cos(angle * 15);
-                        break;
-                    case 8: // Grumble Volcano
-                        r += Math.sin(angle * 4) * 35;
-                        x = Math.cos(angle) * r; z = Math.sin(angle) * r;
-                        y = Math.sin(angle * 3) * 12;
-                        break;
-                    case 9: // Rainbow Road
-                        r += Math.sin(angle * 2) * 25;
-                        x = Math.cos(angle) * r; z = Math.sin(angle) * r;
-                        y = Math.sin(angle) * 20;
-                        break;
+                
+                let y = Math.sin(angle * heightFreq) * heightAmp;
+                
+                if (index === 13 || index === 27) { 
+                    if (i > segments * 0.45 && i < segments * 0.55) {
+                        y -= 14; 
+                    }
                 }
+                if (index === 29) { 
+                    y = Math.sin(angle * 4) * 18 + Math.cos(angle * 2) * 8;
+                }
+                
                 points.push(new THREE.Vector3(x, y, z));
             }
+            
             const spline = new THREE.CatmullRomCurve3(points);
             spline.closed = true;
             return spline;
         }
 
         // ========================================================
-        // 5. ジオメトリ生成・ロードテクスチャ・ホイール
+        // 6. ジオメトリ生成・ロードテクスチャ・ホイール
         // ========================================================
         function createFlatRoadGeometry(curve, width, segments = 200) {
             const vertices = [];
@@ -1170,7 +1643,6 @@
             return texture;
         }
 
-        // 【修正】本家と同じ白黒のチェッカーフラッグゴールライン用テクスチャの動的生成
         function createCheckeredTexture() {
             const canvas = document.createElement('canvas');
             canvas.width = 128;
@@ -1193,45 +1665,6 @@
             return texture;
         }
 
-        function createEmojiTexture(emoji, bgRound = true, bgColor = '#ffffff') {
-            const canvas = document.createElement('canvas');
-            canvas.width = 128;
-            canvas.height = 128;
-            const ctx = canvas.getContext('2d');
-
-            if (bgRound) {
-                ctx.fillStyle = bgColor;
-                ctx.beginPath();
-                ctx.arc(64, 64, 56, 0, Math.PI * 2);
-                ctx.fill();
-                ctx.lineWidth = 6;
-                ctx.strokeStyle = '#222222';
-                ctx.stroke();
-            }
-
-            ctx.font = '76px sans-serif';
-            ctx.textAlign = 'center';
-            ctx.textBaseline = 'middle';
-            ctx.fillText(emoji, 64, 68); 
-
-            const texture = new THREE.CanvasTexture(canvas);
-            texture.needsUpdate = true;
-            return texture;
-        }
-
-        function createPopItemMesh(emoji, bgRound = true, bgColor = '#ffffff', scale = 2.4) {
-            const texture = createEmojiTexture(emoji, bgRound, bgColor);
-            const material = new THREE.MeshBasicMaterial({ 
-                map: texture, 
-                transparent: true,
-                side: THREE.DoubleSide, 
-                depthWrite: false 
-            });
-            const geo = new THREE.PlaneGeometry(scale, scale);
-            const mesh = new THREE.Mesh(geo, material);
-            return mesh;
-        }
-
         function getWheelGeometry(type) {
             if (type === 'slick') return new THREE.CylinderGeometry(0.3, 0.3, 0.3, 24);
             if (type === 'offroad') return new THREE.CylinderGeometry(0.38, 0.38, 0.25, 12);
@@ -1239,54 +1672,63 @@
         }
 
         // ========================================================
-        // 6. レース状態管理・初期化（全アセット・全変数を安全にバインド）
+        // 7. レース状態管理・初期化
         // ========================================================
         function initActualRace() {
             activeCameraMode = 'chase'; 
             lookBehindActive = false;
             
-            // 【実装】カウントダウンパラメータの初期化
             countdownTimer = 180; 
             accelPressedTime = -1;
+            rocketStartFailed = false; 
             raceIntroState = 'countdown';
+
+            raceLightningCount = 0;
+            raceBlueShellCount = 0;
 
             const overlay = document.getElementById('countdown-overlay');
             if (overlay) {
                 overlay.innerText = "";
             }
 
-            // 選択したコースのスプラインを生成
             raceCurve = createCourseSpline(gameState.selectedCourse);
 
-            // 自発光（MeshBasicMaterial）により道路を生成 (ROAD_WIDTH = 22.0)
+            const theme = getCourseTheme(gameState.selectedCourse);
+            let roadColor = 0xffffff;
+            if (theme === 'sakura') roadColor = 0xffd3e2;   
+            else if (theme === 'desert') roadColor = 0xfff2cc;  
+            else if (theme === 'ice') roadColor = 0xb2ebf2;     
+            else if (theme === 'dark') roadColor = 0x42384c;    
+            else if (theme === 'cosmic') roadColor = 0x1e003c;  
+            else if (theme === 'water') roadColor = 0x0284c7;   
+            else if (theme === 'autumn') roadColor = 0xffedd5;  
+
             const roadGeo = createFlatRoadGeometry(raceCurve, ROAD_WIDTH, 180);
             const roadTex = createPopRoadTexture();
             const roadMat = new THREE.MeshBasicMaterial({
                 map: roadTex,
-                side: THREE.DoubleSide
+                side: THREE.DoubleSide,
+                color: roadColor
             });
             roadMesh = new THREE.Mesh(roadGeo, roadMat);
             scene.add(roadMesh);
 
-            // ----------------------------------------------------
-            // 【新規実装】スタート・ゴールを視覚的に判別するゴールオブジェクトの設置
-            // ----------------------------------------------------
             const startPos = raceCurve.getPointAt(0.0);
             const tangent = raceCurve.getTangentAt(0.0).normalize();
             const right = new THREE.Vector3().crossVectors(tangent, new THREE.Vector3(0, 1, 0)).normalize();
 
-            // 1. チェッカーフラッグ柄のゴールラインを引く
+            // 1. チェッカーフラッグ柄のゴールライン
             const finishLineGeo = new THREE.PlaneGeometry(ROAD_WIDTH, 2.0);
             const finishLineTex = createCheckeredTexture();
             const finishLineMat = new THREE.MeshBasicMaterial({ map: finishLineTex, side: THREE.DoubleSide });
             finishLineMesh = new THREE.Mesh(finishLineGeo, finishLineMat);
             finishLineMesh.position.copy(startPos).add(new THREE.Vector3(0, 0.03, 0));
-            finishLineMesh.lookAt(startPos.clone().add(new THREE.Vector3(0, 1, 0))); // 真上に向ける
+            finishLineMesh.lookAt(startPos.clone().add(new THREE.Vector3(0, 1, 0))); 
             finishLineMesh.rotation.x = -Math.PI / 2;
             finishLineMesh.rotation.z = Math.atan2(tangent.x, tangent.z);
             scene.add(finishLineMesh);
 
-            // 2. 巨大なポップスタイルの3Dスタート/ゴールアーチ(ゲート)の作成・配置
+            // 2. スタート/ゴールアーチ(ゲート)
             startArch = new THREE.Group();
 
             const pillarGeo = new THREE.CylinderGeometry(0.4, 0.4, 10, 8);
@@ -1302,18 +1744,19 @@
             const crossbarMat = new THREE.MeshStandardMaterial({ color: 0xff4757, roughness: 0.5 });
             const crossbar = new THREE.Mesh(crossbarGeo, crossbarMat);
             crossbar.position.copy(startPos).add(new THREE.Vector3(0, 10.0, 0));
-            crossbar.lookAt(crossbar.position.clone().add(right)); // 道路を横断するように配置
+            crossbar.lookAt(crossbar.position.clone().add(right)); 
             
-            // 看板テキスト
             const startBanner = createPopItemMesh("🏁 START / FINISH 🏁", false, '#ffffff', 6.5);
             startBanner.position.copy(startPos).add(new THREE.Vector3(0, 11.6, 0));
-            startBanner.lookAt(startBanner.position.clone().add(tangent)); // ドライバーの正面に向ける
+            startBanner.lookAt(startBanner.position.clone().add(tangent)); 
             
             startArch.add(leftPillar, rightPillar, crossbar, startBanner);
             scene.add(startArch);
 
-            // レース用に本格 3D 背景（芝生・木・雲）を更新生成
             generateEnvironment(raceCurve);
+
+            // 専用お天気パーティクルシステムを初期化
+            initWeatherParticles(theme);
 
             // 12人のレーサー
             racers = [];
@@ -1322,22 +1765,20 @@
             kartGroup.rotation.set(0,0,0);
             scene.add(kartGroup);
 
-            // ----------------------------------------------------
-            // 【新規実装】プレイヤーを「最後尾(12番グリッド・インデックス11)」からスタートさせる
-            // ----------------------------------------------------
-            let playerStartProgress = 0.015 - (11 * 0.0035); // プレイヤーのグリッド (もっとも後方)
+            // プレイヤーを最後尾(12番グリッド)からスタート
+            let playerStartProgress = 0.015 - (11 * 0.0035); 
             let playerStartLap = 1;
             if (playerStartProgress < 0.0) {
                 playerStartProgress += 1.0;
-                playerStartLap = 0; // スタートライン手前なのでLapは0から
+                playerStartLap = 0; 
             }
 
-            // プレイヤー
+            // プレイヤーの初期化
             racers.push({
                 isPlayer: true,
                 mesh: kartGroup,
                 progress: playerStartProgress,
-                lateralOffset: (11 % 2 === 0 ? 1.8 : -1.8), // 互い違いにスタッガー配置
+                lateralOffset: (11 % 2 === 0 ? 1.8 : -1.8), 
                 speed: 0.0,
                 height: 0.0,
                 heightVelocity: 0.0,
@@ -1347,6 +1788,9 @@
                 boostTimer: 0,
                 starTimer: 0,
                 spinTimer: 0,
+                lightningTimer: 0, 
+                goldenTimer: 0,    
+                itemCount: 1,      
                 canTrick: false,
                 trickTimer: 0,
                 lap: playerStartLap,
@@ -1367,17 +1811,16 @@
                 const wl = new THREE.Mesh(wGeo, wMat); wl.rotation.z = Math.PI/2; wl.position.set(0.55, 0.1, 0.45);
                 const wr = wl.clone(); wr.position.x = -0.55;
                 const bl = wl.clone(); bl.position.set(0.55, 0.1, -0.45);
-                const br = bl.clone(); br.position.x = -0.55; // blを正確にコピーして背面右タイヤをZ=-0.45に固定
+                const br = bl.clone(); br.position.x = -0.55; 
                 botGroup.add(wl, wr, bl, br);
 
                 scene.add(botGroup);
 
-                // 各Botをグリッド上に前方から配置
                 let startProgress = 0.015 - (i * 0.0035);
                 let startLap = 1;
                 if (startProgress < 0.0) {
                     startProgress += 1.0;
-                    startLap = 0; // スタートラインの手前(Lap 0)
+                    startLap = 0; 
                 }
 
                 racers.push({
@@ -1392,9 +1835,12 @@
                     boostTimer: 0,
                     starTimer: 0,
                     spinTimer: 0,
+                    lightningTimer: 0, 
+                    goldenTimer: 0,    
+                    itemCount: 1,      
                     canTrick: false,
                     trickTimer: 0,
-                    lap: startLap, // 適正補正
+                    lap: startLap, 
                     lastProgress: startProgress,
                     hasItem: null,
                     isItemRoulette: false,
@@ -1402,7 +1848,6 @@
                 });
             }
 
-            // カメラ監視塔
             cameraTowers = [];
             const towersCount = 8;
             for (let i = 0; i < towersCount; i++) {
@@ -1419,17 +1864,13 @@
             minimapCanvas.height = 160;
             
             gameState.hasItem = null;
-            document.getElementById('hud-item-ui').innerText = ""; // 初期は完全に空表示
-            document.getElementById('hud-rank').innerText = "12th"; // 初期は12位
+            document.getElementById('hud-item-ui').innerText = ""; 
+            document.getElementById('hud-rank').innerText = "12th"; 
 
-            // 全て完了したタイミングでループを活性化させる
             gameActive = true;
-            
-            // 総レース走行タイム計測用
             raceStartTime = Date.now();
         }
 
-        // コースアイテムとジャンプ台の自動生成処理
         function generateItemsAndRamps() {
             if (!raceCurve) return;
             raceItems.forEach(item => { if (item.mesh) scene.remove(item.mesh); });
@@ -1437,7 +1878,7 @@
             raceRamps.forEach(ramp => { if (ramp.mesh) scene.remove(ramp.mesh); });
             raceRamps = [];
 
-            const segments = 12; // コース上の配置ポイント数
+            const segments = 12; 
             for (let i = 1; i < segments; i++) {
                 const ratio = i / segments;
                 const pos = raceCurve.getPointAt(ratio);
@@ -1445,12 +1886,10 @@
                 const right = new THREE.Vector3().crossVectors(tangent, new THREE.Vector3(0, 1, 0)).normalize();
 
                 if (i % 2 === 0) {
-                    // アイテムボックスをコース幅に並べて配置 (幅広ロードに対応)
                     const offsets = [-4.5, 0, 4.5];
                     offsets.forEach(offset => {
                         const itemPos = pos.clone().add(right.clone().multiplyScalar(offset)).add(new THREE.Vector3(0, 0.5, 0));
                         
-                        // ポップなアイテムボックス（黄色い立方体）の配置
                         const boxGeo = new THREE.BoxGeometry(0.8, 0.8, 0.8);
                         const boxMat = new THREE.MeshBasicMaterial({ color: 0xffa502 });
                         const boxMesh = new THREE.Mesh(boxGeo, boxMat);
@@ -1465,7 +1904,6 @@
                         });
                     });
                 } else {
-                    // ジャンプ台を配置 (少し幅を広く)
                     const rampPos = pos.clone().add(new THREE.Vector3(0, 0.1, 0));
                     
                     const rampGeo = new THREE.BoxGeometry(8.0, 0.3, 2.0);
@@ -1483,7 +1921,6 @@
             }
         }
 
-        // レース破棄
         function stopActualRace() {
             gameActive = false;
             if (roadMesh) {
@@ -1493,7 +1930,6 @@
                 roadMesh = null;
             }
 
-            // スタートゴールアーチとフラッグラインを綺麗にシーンから消去
             if (startArch) {
                 scene.remove(startArch);
                 startArch = null;
@@ -1523,17 +1959,31 @@
             driftSparks.forEach(s => { if (s.mesh) scene.remove(s.mesh); });
             driftSparks = [];
 
+            exhaustSmoke.forEach(s => { if (s.mesh) scene.remove(s.mesh); });
+            exhaustSmoke = [];
+
+            if (weatherParticles) {
+                scene.remove(weatherParticles);
+                weatherParticles.geometry.dispose();
+                weatherParticles.material.dispose();
+                weatherParticles = null;
+            }
+
             if (engineOsc) {
                 try {
                     engineOsc.stop();
                     engineOsc = null;
                 } catch(e){}
             }
-            audioCtx = null;
+            if (audioCtx) {
+                try {
+                    audioCtx.close();
+                } catch(e){}
+                audioCtx = null;
+            }
             raceCurve = null; 
         }
 
-        // 画面切り替え
         function setUIState(state) {
             gameState.currentState = state;
 
@@ -1553,8 +2003,85 @@
                 }
             });
 
+            // GP予告画面のダイナミックテキスト表示（追加）
+            if (state === UI_STATES.GP_PREVIEW) {
+                document.getElementById('gp-preview-current-num').innerText = `Race ${gpCurrentRaceIndex + 1}/4`;
+                const nextCourse = courses[gpCourses[gpCurrentRaceIndex]];
+                document.getElementById('gp-preview-course-name').innerText = nextCourse.name;
+                document.getElementById('gp-preview-course-desc').innerText = nextCourse.desc;
+                
+                const listEl = document.getElementById('gp-preview-course-list');
+                listEl.innerHTML = "";
+                gpCourses.forEach((cIdx, i) => {
+                    const li = document.createElement('li');
+                    li.style.marginBottom = "5px";
+                    if (i === gpCurrentRaceIndex) {
+                        li.innerHTML = `<strong style="color: var(--brand-primary);">${courses[cIdx].name} (Current)</strong>`;
+                    } else if (i < gpCurrentRaceIndex) {
+                        li.innerHTML = `<span style="text-decoration: line-through; color: #888;">${courses[cIdx].name}</span>`;
+                    } else {
+                        li.innerHTML = `<span>${courses[cIdx].name}</span>`;
+                    }
+                    listEl.appendChild(li);
+                });
+            }
+
+            // GP総合ランキング画面のダイナミック描画（追加）
+            if (state === UI_STATES.GP_STANDINGS) {
+                const table = document.getElementById('gp-standings-table');
+                table.innerHTML = "";
+
+                // 累積獲得ポイントを元にソート
+                const standings = racerNames.map((name, idx) => ({
+                    id: idx,
+                    name: name,
+                    points: gpCumulativePoints[idx]
+                }));
+                standings.sort((a, b) => b.points - a.points);
+
+                standings.forEach((racerResult, index) => {
+                    const rankNum = index + 1;
+                    const row = document.createElement('tr');
+                    row.className = racerResult.id === 0 ? "result-row player-highlight" : "result-row";
+                    
+                    const suffixes = ["st", "nd", "rd", "th"];
+                    const rankText = rankNum <= 3 ? `${rankNum}${suffixes[rankNum - 1]}` : `${rankNum}th`;
+
+                    row.innerHTML = `
+                        <td class="result-cell" style="font-size: 1.35rem; width: 15%;">${rankText}</td>
+                        <td class="result-cell" style="width: 50%;">${racerResult.name}</td>
+                        <td class="result-cell" style="width: 35%; text-align: right; font-family: monospace; font-size: 1.25rem;">${racerResult.points} pts</td>
+                    `;
+                    table.appendChild(row);
+                });
+
+                const nextBtn = document.getElementById('gp-standings-next-btn');
+                const gpMenuBtn = document.getElementById('gp-standings-menu-btn');
+
+                if (gpCurrentRaceIndex < 3) {
+                    document.getElementById('gp-standings-title').innerText = "GP Standings";
+                    document.getElementById('gp-standings-subtitle').innerText = `After Race ${gpCurrentRaceIndex + 1}/4`;
+                    nextBtn.innerText = "Next Race";
+                    nextBtn.classList.remove('hidden');
+                    gpMenuBtn.classList.add('hidden');
+                } else {
+                    document.getElementById('gp-standings-title').innerText = "Final Results";
+                    document.getElementById('gp-standings-subtitle').innerText = "Championship Standing";
+                    nextBtn.classList.add('hidden');
+                    gpMenuBtn.classList.remove('hidden');
+                    
+                    const overallWinner = standings[0];
+                    if (overallWinner.id === 0) {
+                        playSound('boost');
+                        const toast = document.getElementById('action-toast');
+                        toast.innerText = "🏆 CUP CHAMPION! 🏆";
+                        toast.classList.add('active');
+                        setTimeout(() => toast.classList.remove('active'), 2500);
+                    }
+                }
+            }
+
             if (state === UI_STATES.GAME) {
-                // 【不具合修正】Web Audio やその他初期化エラーに備えて頑強に try/catch で包み、ゲーム起動が必ず走るように設計
                 try {
                     initAudio();
                 } catch(e) {
@@ -1569,101 +2096,393 @@
             } else {
                 stopActualRace(); 
                 if (menuPodium) menuPodium.visible = true; 
+                generateEnvironment(null);
             }
         }
 
         // ========================================================
-        // 7. アイテム処理 & コレクタブル更新
+        // 8. サポート・各種ヘルパー関数
+        // ========================================================
+        function createPopItemMesh(text, isBillboard, backgroundColor, size) {
+            const canvas = document.createElement('canvas');
+            const isLongText = text.length > 3;
+            canvas.width = isLongText ? 512 : 128;
+            canvas.height = 128;
+            const ctx = canvas.getContext('2d');
+
+            ctx.fillStyle = backgroundColor || '#ffffff';
+            ctx.strokeStyle = '#222222';
+            ctx.lineWidth = 8;
+
+            if (isLongText) {
+                ctx.beginPath();
+                if (ctx.roundRect) {
+                    ctx.roundRect(10, 10, 492, 108, 24);
+                } else {
+                    ctx.rect(10, 10, 492, 108);
+                }
+                ctx.fill();
+                ctx.stroke();
+                ctx.fillStyle = '#222222';
+                ctx.font = 'bold 36px "M PLUS Rounded 1c", sans-serif';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(text, 256, 64);
+            } else {
+                ctx.beginPath();
+                ctx.arc(64, 64, 55, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.stroke();
+                ctx.fillStyle = '#222222';
+                ctx.font = 'bold 64px "M PLUS Rounded 1c", sans-serif';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(text, 64, 64);
+            }
+
+            const texture = new THREE.CanvasTexture(canvas);
+            const mat = new THREE.MeshBasicMaterial({ map: texture, transparent: true, side: THREE.DoubleSide });
+            
+            const width = size || 2.0;
+            const height = isLongText ? width * 0.25 : width;
+            const geo = new THREE.PlaneGeometry(width, height);
+            const mesh = new THREE.Mesh(geo, mat);
+            return mesh;
+        }
+
+        function createVisualLightningBolt(position) {
+            if (!scene) return;
+            const group = new THREE.Group();
+            const material = new THREE.MeshBasicMaterial({ color: 0xffea00 });
+            
+            let curPos = position.clone();
+            curPos.y += 0.2;
+            for (let i = 0; i < 5; i++) {
+                const height = 4.0;
+                const geo = new THREE.CylinderGeometry(0.15, 0.15, height, 5);
+                const mesh = new THREE.Mesh(geo, material);
+                
+                const offset = new THREE.Vector3(
+                    (Math.random() - 0.5) * 1.5,
+                    height / 2,
+                    (Math.random() - 0.5) * 1.5
+                );
+                mesh.position.copy(curPos).add(offset);
+                mesh.lookAt(curPos.clone().add(new THREE.Vector3(offset.x * 2, height, offset.z * 2)));
+                group.add(mesh);
+                
+                curPos.add(new THREE.Vector3(offset.x * 2, height, offset.z * 2));
+            }
+            scene.add(group);
+            
+            setTimeout(() => {
+                scene.remove(group);
+                group.traverse(child => {
+                    if (child.geometry) child.geometry.dispose();
+                    if (child.material) child.material.dispose();
+                });
+            }, 200);
+        }
+
+        function getRacerRank(racer) {
+            if (racers.length === 0) return 12;
+            const rankList = racers.map((r, idx) => ({
+                racer: r,
+                score: r.lap * 10 + r.progress
+            }));
+            rankList.sort((a, b) => b.score - a.score);
+            const rankIndex = rankList.findIndex(item => item.racer === racer);
+            return rankIndex !== -1 ? rankIndex + 1 : 12;
+        }
+
+        function getRankBasedItem(rank) {
+            if (rank === 1) {
+                const pool = ["BANANA", "BANANA", "GREEN_SHELL", "GREEN_SHELL", "MUSHROOM"];
+                return pool[Math.floor(Math.random() * pool.length)];
+            } else if (rank <= 3) {
+                const pool = ["GREEN_SHELL", "RED_SHELL", "MUSHROOM", "TRIPLE_BANANA", "TRIPLE_MUSHROOM"];
+                return pool[Math.floor(Math.random() * pool.length)];
+            } else if (rank <= 6) {
+                const pool = ["RED_SHELL", "TRIPLE_GREEN_SHELL", "MUSHROOM", "TRIPLE_MUSHROOM", "GOLDEN_MUSHROOM"];
+                return pool[Math.floor(Math.random() * pool.length)];
+            } else if (rank <= 9) {
+                const pool = ["TRIPLE_MUSHROOM", "STAR", "GOLDEN_MUSHROOM"];
+                if (raceBlueShellCount < 1) pool.push("BLUE_SHELL");
+                if (raceLightningCount < 1) pool.push("LIGHTNING");
+                
+                const item = pool[Math.floor(Math.random() * pool.length)];
+                if (item === "LIGHTNING") raceLightningCount++;
+                if (item === "BLUE_SHELL") raceBlueShellCount++;
+                return item;
+            } else {
+                const pool = ["STAR", "GOLDEN_MUSHROOM", "TRIPLE_MUSHROOM"];
+                if (raceLightningCount < 2) pool.push("LIGHTNING");
+                if (raceBlueShellCount < 2) pool.push("BLUE_SHELL");
+                
+                const item = pool[Math.floor(Math.random() * pool.length)];
+                if (item === "LIGHTNING") raceLightningCount++;
+                if (item === "BLUE_SHELL") raceBlueShellCount++;
+                return item;
+            }
+        }
+
+        // ========================================================
+        // 9. アイテム処理 & コレクタブル更新
         // ========================================================
         function executeItemUse(racer, itemType) {
-            if (itemType === "MUSHROOM") {
+            let activeType = itemType;
+            if (itemType === "TRIPLE_MUSHROOM") activeType = "MUSHROOM";
+            else if (itemType === "TRIPLE_BANANA") activeType = "BANANA";
+            else if (itemType === "TRIPLE_GREEN_SHELL") activeType = "GREEN_SHELL";
+
+            if (activeType === "MUSHROOM") {
                 racer.boostTimer = 120;
-                playSound('boost');
-                if (racer.isPlayer) {
-                    document.getElementById('screen-filter').style.background = 'rgba(255, 165, 2, 0.15)';
-                    setTimeout(() => { document.getElementById('screen-filter').style.background = 'none'; }, 500);
+                if (racer.isPlayer) { 
+                    playSound('boost');
+                    triggerBoostVisualEffect();
                 }
-            } else if (itemType === "STAR") {
+            } else if (activeType === "STAR") {
                 racer.starTimer = 300; 
                 racer.boostTimer = 300;
-                playSound('boost');
-                if (racer.isPlayer) {
+                if (racer.isPlayer) { 
+                    playSound('boost');
                     document.getElementById('screen-filter').style.background = 'rgba(255, 255, 255, 0.2)';
                     setTimeout(() => { document.getElementById('screen-filter').style.background = 'none'; }, 1000);
                 }
-            } else if (itemType === "BANANA") {
-                const ratio = racer.progress;
-                const pos = racer.mesh.position.clone();
+            } else if (activeType === "GOLDEN_MUSHROOM") {
+                racer.goldenTimer = 300; 
+                racer.boostTimer = 120;
+                if (racer.isPlayer) { 
+                    playSound('boost');
+                    triggerBoostVisualEffect();
+                }
+            } else if (activeType === "BANANA") {
+                const trackLength = raceCurve.getLength();
+                const offsetProgress = 3.5 / trackLength; 
+                let targetProgress = racer.progress - offsetProgress;
+                if (targetProgress < 0) targetProgress += 1.0;
 
-                // 余分な丸い白背景カードを排除してバナナそのものを配置
-                const bananaMesh = createPopItemMesh("🍌", false, '#ffffff', 2.0);
-                bananaMesh.position.copy(pos);
-                bananaMesh.position.y += 0.5;
+                const posAtTarget = raceCurve.getPointAt(targetProgress % 1.0);
+                const tangentAtTarget = raceCurve.getTangentAt(targetProgress % 1.0).normalize();
+                const rightAtTarget = new THREE.Vector3().crossVectors(tangentAtTarget, new THREE.Vector3(0, 1, 0)).normalize();
+
+                const finalBananaPos = posAtTarget.clone()
+                    .add(rightAtTarget.clone().multiplyScalar(racer.lateralOffset))
+                    .add(new THREE.Vector3(0, 0.5, 0));
+
+                const bananaMesh = createPopItemMesh("🍌", false, '#ffffff', 1.5);
+                bananaMesh.position.copy(finalBananaPos);
                 scene.add(bananaMesh);
 
                 raceBananas.push({
                     mesh: bananaMesh,
-                    pos: pos,
-                    ratio: ratio,
+                    pos: finalBananaPos,
+                    ratio: targetProgress % 1.0,
                     offset: racer.lateralOffset,
                     age: 0,
-                    maxAge: 1200 // 設置後約20秒（1200フレーム）で自然消滅
+                    maxAge: 1200 
                 });
-            } else if (itemType === "GREEN_SHELL") {
+            } else if (activeType === "GREEN_SHELL") {
                 fireProjectile("green", racer);
-            } else if (itemType === "RED_SHELL") {
+            } else if (activeType === "RED_SHELL") {
                 fireProjectile("red", racer);
+            } else if (activeType === "BLUE_SHELL") {
+                fireBlueShell(racer);
+            } else if (activeType === "LIGHTNING") {
+                triggerLightning(racer);
             }
+
+            if (itemType.startsWith("TRIPLE_")) {
+                racer.itemCount--;
+                if (racer.itemCount > 0) {
+                    racer.hasItem = itemType;
+                    if (racer.isPlayer) {
+                        gameState.hasItem = itemType;
+                        document.getElementById('hud-item-ui').innerText = itemEmojiMap[itemType].replace("x3", `x${racer.itemCount}`);
+                    }
+                    return; 
+                }
+            }
+
+            if (itemType === "GOLDEN_MUSHROOM" && racer.goldenTimer > 0) {
+                racer.hasItem = "GOLDEN_MUSHROOM";
+                if (racer.isPlayer) {
+                    gameState.hasItem = "GOLDEN_MUSHROOM";
+                }
+                return;
+            }
+
             racer.hasItem = null;
+            if (racer.isPlayer) {
+                gameState.hasItem = null;
+                document.getElementById('hud-item-ui').innerText = "";
+            }
         }
 
         function usePlayerItem() {
             if (!gameState.hasItem || gameState.isItemRoulette) return;
             executeItemUse(racers[0], gameState.hasItem);
-            gameState.hasItem = null;
-            // 使用後はアイテムボックス表示を空にする
-            document.getElementById('hud-item-ui').innerText = "";
         }
 
         function fireProjectile(type, owner) {
-            if (!raceCurve) return; 
-            const ratio = owner.progress;
+            if (!raceCurve) return;
             
-            // bgRound = false により余分な白背景を完璧に排除した「甲羅単体」の生成
-            const pMesh = createPopItemMesh("🐢", false, '#ffffff', 2.2);
-            if (type === "red") {
-                // 赤甲羅は赤色にカラーティント
-                pMesh.material.color.setHex(0xff4757);
-            } else {
-                // 緑甲羅は緑色にカラーティント
-                pMesh.material.color.setHex(0x2ed573);
-            }
+            let emoji = "🐢";
+            if (type === "red") emoji = "🎯";
+
+            const pMesh = createPopItemMesh(emoji, false, '#ffffff', 2.0);
             pMesh.position.copy(owner.mesh.position);
             scene.add(pMesh);
 
-            let targetRacer = null;
+            let target = null;
             if (type === "red") {
-                const rankList = racers.map((r, idx) => ({ id: idx, score: r.lap * 10 + r.progress }));
-                rankList.sort((a,b) => b.score - a.score);
-                const myRankIdx = rankList.findIndex(r => racers[r.id] === owner);
-                if (myRankIdx > 0) {
-                    targetRacer = racers[rankList[myRankIdx - 1].id]; 
-                }
+                let closestAheadDist = 9999;
+                racers.forEach(other => {
+                    if (other === owner) return;
+                    let dp = other.progress - owner.progress;
+                    if (dp < 0) dp += 1.0; 
+                    if (dp > 0 && dp < closestAheadDist) {
+                        closestAheadDist = dp;
+                        target = other;
+                    }
+                });
             }
 
             raceProjectiles.push({
                 mesh: pMesh,
-                progress: ratio + 0.005, 
+                progress: owner.progress + 0.005,
                 lateralOffset: owner.lateralOffset,
                 type: type,
                 owner: owner,
-                target: targetRacer,
-                speed: 0.45, 
+                target: target,
+                speed: 0.6, 
                 active: true
             });
+            if (owner.isPlayer) playSound('boost'); 
         }
 
-        // ロケットスタート成功時の派手な火炎バーストエフェクトとフラッシュ
+        function fireBlueShell(owner) {
+            if (!raceCurve) return;
+            const rankList = racers.map((r, idx) => ({ id: idx, score: r.lap * 10 + r.progress, racer: r }));
+            rankList.sort((a,b) => b.score - a.score);
+            const target = rankList[0].racer; 
+
+            const pMesh = createPopItemMesh("👑", false, '#ffffff', 2.6);
+            pMesh.material.color.setHex(0x1e90ff); 
+            pMesh.position.copy(owner.mesh.position);
+            scene.add(pMesh);
+
+            raceProjectiles.push({
+                mesh: pMesh,
+                progress: owner.progress + 0.005,
+                lateralOffset: owner.lateralOffset,
+                type: "blue",
+                owner: owner,
+                target: target,
+                speed: 0.85, 
+                active: true
+            });
+            if (owner.isPlayer) playSound('boost'); 
+        }
+
+        function triggerBlueShellExplosion(pos) {
+            for (let i = 0; i < 60; i++) {
+                const angle = Math.random() * Math.PI * 2;
+                const sparkPos = pos.clone().add(new THREE.Vector3(
+                    Math.cos(angle) * (0.5 + Math.random() * 3.5),
+                    Math.random() * 4.5,
+                    Math.sin(angle) * (0.5 + Math.random() * 3.5)
+                ));
+                spawnDriftSpark(sparkPos, 0x1e90ff); 
+                spawnDriftSpark(sparkPos, 0xffa502); 
+            }
+        }
+
+        function triggerLightning(owner) {
+            const filter = document.getElementById('screen-filter');
+            
+            if (filter) {
+                filter.style.background = 'rgba(0, 0, 0, 0.95)';
+            }
+
+            setTimeout(() => {
+                if (filter) {
+                    filter.style.background = 'rgba(255, 235, 100, 0.9)'; 
+                    setTimeout(() => { filter.style.background = 'none'; }, 150);
+                }
+
+                playSound('hit');
+
+                const player = racers[0];
+                if (player && scene) {
+                    createVisualLightningBolt(player.mesh.position);
+                }
+
+                racers.forEach(racer => {
+                    if (racer === owner) return;
+
+                    racer.spinTimer = 60; 
+                    racer.lightningTimer = 300; 
+                    racer.speed *= 0.3; 
+                    racer.hasItem = null; 
+
+                    const shockPos = racer.mesh.position.clone();
+                    for (let i = 0; i < 15; i++) {
+                        spawnDriftSpark(shockPos.clone().add(new THREE.Vector3(
+                            (Math.random() - 0.5) * 1.0,
+                            Math.random() * 2.5,
+                            (Math.random() - 0.5) * 1.0
+                        )), 0xffcc00);
+                    }
+
+                    if (racer.isPlayer) {
+                        document.getElementById('hud-item-ui').innerText = "";
+                        gameState.hasItem = null;
+                    }
+                });
+            }, 200);
+        }
+
+        // ========================================================
+        // 10. AI & コース物理
+        // ========================================================
+        function getAIOvertakeOffset(racer, trackLength) {
+            let avoidOffset = 0;
+            let closestAhead = null;
+            let closestAheadDist = 35.0; 
+
+            racers.forEach(other => {
+                if (other === racer) return;
+                let dp = other.progress - racer.progress;
+                if (dp < 0) dp += 1.0; 
+                const dist = dp * trackLength;
+                if (dist > 0.1 && dist < closestAheadDist) {
+                    closestAheadDist = dist;
+                    closestAhead = other;
+                }
+            });
+
+            if (closestAhead && closestAheadDist < 20.0) {
+                const latDiff = racer.lateralOffset - closestAhead.lateralOffset;
+                if (Math.abs(latDiff) < 1.8) {
+                    const dodgeDir = latDiff >= 0 ? 1.0 : -1.0;
+                    avoidOffset = dodgeDir * 2.3; 
+                }
+            }
+
+            raceBananas.forEach(banana => {
+                const distToBanana = (banana.ratio - racer.progress + 1.0) % 1.0;
+                if (distToBanana > 0 && distToBanana < 0.08) {
+                    const latDiff = Math.abs(racer.lateralOffset - banana.offset);
+                    if (latDiff < 2.2) {
+                        avoidOffset = racer.lateralOffset > banana.offset ? 2.5 : -2.5;
+                    }
+                }
+            });
+
+            return avoidOffset;
+        }
+
         function triggerRocketStartBurst(pos) {
             for (let i = 0; i < 45; i++) {
                 const randomSparkPos = pos.clone().add(new THREE.Vector3(
@@ -1671,11 +2490,10 @@
                     (Math.random() - 0.2) * 0.5,
                     -0.5 - Math.random() * 1.5
                 ));
-                spawnDriftSpark(randomSparkPos, 0xff7f50); // 炎を模した明るいオレンジの火花
-                spawnDriftSpark(randomSparkPos, 0xffcc00); // 黄金色の輝く火花
+                spawnDriftSpark(randomSparkPos, 0xff7f50); 
+                spawnDriftSpark(randomSparkPos, 0xffcc00); 
             }
             
-            // 画面を一瞬眩しくゴールドフラッシュさせる
             const filter = document.getElementById('screen-filter');
             if (filter) {
                 filter.style.background = 'rgba(255, 204, 0, 0.4)';
@@ -1683,14 +2501,12 @@
             }
         }
 
-        // ミニターボ発動時の画面揺らしとFOVアクション
         function triggerBoostVisualEffect() {
             const filter = document.getElementById('screen-filter');
             if (filter) {
                 filter.style.background = 'rgba(30, 144, 255, 0.15)';
                 setTimeout(() => { filter.style.background = 'none'; }, 200);
             }
-            // カメラを一瞬強く引いてスピード感を演出
             if (camera) {
                 camera.fov = 65;
                 camera.updateProjectionMatrix();
@@ -1698,20 +2514,27 @@
         }
 
         function updateRacePhysics() {
-            // 安全対策：もしコースやプレイヤーカートが生成されていなければ処理をスキップ
             if (!raceCurve || !gameActive || racers.length === 0 || !racers[0]) return;
 
-            // ----------------------------------------------------
-            // 3-2-1 カウントダウン & ロケットスタート制御
-            // ----------------------------------------------------
+            const trackLength = raceCurve.getLength();
+
             if (raceIntroState === 'countdown') {
                 countdownTimer--;
 
-                // スタート前のアクセル入力時間の記録
-                if (keys['w'] || keys['arrowup']) {
+                const isPressingAccel = keys['w'] || keys['arrowup'];
+                if (isPressingAccel) {
                     if (accelPressedTime === -1) {
-                        accelPressedTime = countdownTimer; // 180から減算中のフレームを記録
+                        accelPressedTime = countdownTimer; 
+                        if (countdownTimer > 120) {
+                            rocketStartFailed = true;
+                        }
                     }
+
+                    const player = racers[0];
+                    const tangent = raceCurve.getTangentAt(player.progress).normalize();
+                    const smokePos = player.mesh.position.clone().sub(tangent.clone().multiplyScalar(0.8));
+                    smokePos.y += 0.1;
+                    spawnExhaustSmoke(smokePos);
                 }
 
                 const overlay = document.getElementById('countdown-overlay');
@@ -1733,20 +2556,15 @@
                         overlay.style.color = "#1e90ff";
                         playCountdownBeep(true);
 
-                        // ロケットスタート判定
-                        if (accelPressedTime > 120) {
-                            // 3の時点でフライング気味にアクセルを押してしまっていた場合はエンジンブロー（スピン）
+                        if (rocketStartFailed) {
                             racers[0].spinTimer = 90; 
                             playSound('hit');
                         } else if (accelPressedTime > 0 && accelPressedTime <= 120) {
-                            // 2～1のタイミングよく押した段階により強力ブースト
-                            if (accelPressedTime >= 60 && accelPressedTime <= 120) {
-                                racers[0].boostTimer = 160; // スーパーロケットスタート
-                                triggerRocketStartBurst(racers[0].mesh.position);
-                            } else {
-                                racers[0].boostTimer = 80;  // 通常ロケットスタート
-                                triggerRocketStartBurst(racers[0].mesh.position);
-                            }
+                            const holdRatio = accelPressedTime / 120.0;
+                            const boostDuration = Math.floor(holdRatio * 180); 
+                            
+                            racers[0].boostTimer = boostDuration;
+                            triggerRocketStartBurst(racers[0].mesh.position);
                             playSound('boost');
                         }
                         
@@ -1755,14 +2573,12 @@
                     }
                 }
 
-                // カウントダウン中はグリッド上に並べるのみで物理は進めない
                 racers.forEach(racer => {
                     applySplinePlacement(racer);
                 });
+                updateExhaustSmoke();
                 return;
             }
-
-            const trackLength = raceCurve.getLength();
 
             racers.forEach((racer, index) => {
                 if (racer.starTimer > 0) {
@@ -1782,8 +2598,8 @@
                 }
 
                 let targetSpeed = 0.0;
-                let accel = 0.0025;
-                let decel = 0.004;
+                let accel = 0.0032; 
+                let decel = 0.0055; 
 
                 const hasStar = racer.starTimer > 0;
                 const hasBoost = racer.boostTimer > 0;
@@ -1791,99 +2607,112 @@
                 if (racer.starTimer > 0) racer.starTimer--;
                 if (racer.boostTimer > 0) racer.boostTimer--;
 
+                if (racer.goldenTimer > 0) {
+                    racer.goldenTimer--;
+                    if (racer.goldenTimer === 0) {
+                        racer.hasItem = null;
+                        if (racer.isPlayer) {
+                            gameState.hasItem = null;
+                            document.getElementById('hud-item-ui').innerText = "";
+                        }
+                    }
+                }
+
                 let maxSpeedBase = racer.isPlayer ? 0.35 : 0.31;
                 if (hasBoost) maxSpeedBase = 0.58; 
                 if (hasStar) maxSpeedBase = 0.52;
 
+                if (racer.lightningTimer > 0) {
+                    racer.lightningTimer--;
+                    racer.mesh.scale.set(0.48, 0.48, 0.48); 
+                    maxSpeedBase *= 0.55; 
+                    if (racer.lightningTimer === 0) {
+                        racer.mesh.scale.set(1.0, 1.0, 1.0); 
+                    }
+                } else {
+                    racer.mesh.scale.set(1.0, 1.0, 1.0);
+                }
+
                 if (racer.isPlayer) {
-                    if (keys['w'] || keys['arrowup']) {
+                    const isAccelerating = keys['w'] || keys['arrowup'];
+                    if (isAccelerating) {
                         targetSpeed = maxSpeedBase;
+
+                        const tangent = raceCurve.getTangentAt(racer.progress).normalize();
+                        const smokePos = racer.mesh.position.clone().sub(tangent.clone().multiplyScalar(0.8));
+                        smokePos.y += 0.1;
+                        spawnExhaustSmoke(smokePos);
                     } else if (keys['s'] || keys['arrowdown']) {
                         targetSpeed = -0.15; 
                     }
 
-                    // DとAの旋回方向の極性を適正値（A=左、D=右）に設定
-                    let steeringInput = 0;
-                    if (keys['a'] || keys['arrowleft']) steeringInput = -1; // 左旋回 (-1)
-                    if (keys['d'] || keys['arrowright']) steeringInput = 1;  // 右旋回 (1)
+                    if (hasBoost && Math.random() < 0.4) {
+                        const tangent = raceCurve.getTangentAt(racer.progress).normalize();
+                        const smokePos = racer.mesh.position.clone().sub(tangent.clone().multiplyScalar(0.8));
+                        smokePos.y += 0.1;
+                        spawnExhaustSmoke(smokePos);
+                    }
 
-                    // 前輪の旋回方向（ピボットの回転方向）を物理進行方向と100%一致するようにインバート
+                    let steeringInput = 0;
+                    if (keys['a'] || keys['arrowleft']) steeringInput = -1; 
+                    if (keys['d'] || keys['arrowright']) steeringInput = 1;  
+
                     if (leftWheelPivot && rightWheelPivot) {
                         let targetWheelYaw = 0;
-                        if (steeringInput > 0) targetWheelYaw = -0.45;      // Dキー（右入力）でタイヤを右（負のY回転）に向ける
-                        else if (steeringInput < 0) targetWheelYaw = 0.45;  // Aキー（左入力）でタイヤを左（正のY回転）に向ける
+                        if (steeringInput > 0) targetWheelYaw = -0.45;      
+                        else if (steeringInput < 0) targetWheelYaw = 0.45;  
                         leftWheelPivot.rotation.y = THREE.MathUtils.lerp(leftWheelPivot.rotation.y, targetWheelYaw, 0.15);
                         rightWheelPivot.rotation.y = THREE.MathUtils.lerp(rightWheelPivot.rotation.y, targetWheelYaw, 0.15);
                     }
 
-                    // 曲がっている最中かつ走行中のみドリフトを受け付ける
                     if (steeringInput !== 0) {
                         if (keys[' '] && racer.height === 0 && Math.abs(racer.speed) > 0.1) {
                             if (racer.driftState === 'none') {
-                                // A（マイナス）で左ドリフト、D（プラス）で右ドリフトを正確に発動
                                 racer.driftState = steeringInput > 0 ? 'right' : 'left';
                                 racer.driftTimer = 0;
-                                // ドリフト開始時の「ホップ（小ジャンプ）」
                                 racer.heightVelocity = 3.2; 
                                 racer.height = 0.05; 
                             }
                         }
                     }
 
-                    // ----------------------------------------------------
-                    // アウト側への慣性スライドを大幅に強化したドリフト制御
-                    // ----------------------------------------------------
                     if (racer.driftState !== 'none') {
-                        // ドリフト中はレスポンス（ステアリング応答）を重くし、慣性重視の操作感に (lerp: 0.08 -> 0.04)
                         if (racer.steerValue === undefined) racer.steerValue = 0;
                         racer.steerValue = THREE.MathUtils.lerp(racer.steerValue, steeringInput, 0.04);
 
-                        // 完全に静止した状態でスライドするのを防止するため、速度比例係数を算出
                         let driftSpeedFactor = Math.max(0, Math.min(1.5, Math.abs(racer.speed) / 0.35));
 
-                        // アウト側への遠心スライド力の適用（速度比例）
                         if (racer.driftState === 'left') {
-                            // 左ドリフト：カーブは左。アウト側は右（+lateralOffset方向）へ強くスライドする
                             let slidePower = 0.14;
-                            if (steeringInput < 0) { // Aを押してさらにイン（左）に切り込んでいる
+                            if (steeringInput < 0) { 
                                 slidePower -= 0.09;
-                            } else if (steeringInput > 0) { // Dを押してアウト（右）に逆ステア
+                            } else if (steeringInput > 0) { 
                                 slidePower += 0.08;
                             }
                             racer.lateralOffset += slidePower * driftSpeedFactor;
-                            // 曲がる方向へお尻を少し振り、鼻先をイン（左 = 正の回転）に向けさせます
                             racer.driftAngle = 0.28; 
                         } else if (racer.driftState === 'right') {
-                            // 右ドリフト：カーブは右。アウト側は左（-lateralOffset方向）へ強くスライドする
                             let slidePower = 0.14;
-                            if (steeringInput > 0) { // Dを押してさらにイン（右）に切り込んでいる
+                            if (steeringInput > 0) { 
                                 slidePower -= 0.09;
-                            } else if (steeringInput < 0) { // Aを押してアウト（左）に逆ステア
+                            } else if (steeringInput < 0) { 
                                 slidePower += 0.08;
                             }
                             racer.lateralOffset -= slidePower * driftSpeedFactor;
-                            // 曲がる方向へお尻を少し振り、鼻先をイン（右 = 負の回転）に向けさせます
                             racer.driftAngle = -0.28; 
                         }
 
-                        // 【実装】ドリフトボタン（スペースキー）を離した瞬間にミニターボ解放
                         if (!keys[' ']) {
                             resolveMiniTurbo(racer);
                         }
                     } else {
-                        // ----------------------------------------------------
-                        // Wキー（アクセル入力中）など移動中のみ左右に動くように変更
-                        // 停止中（AやDを単体で押しただけ）はスライドしないように、速度に比例してオフセットを増減
-                        // ----------------------------------------------------
-                        let steerSpeedFactor = racer.speed * 2.85; // 停止時は 0 となり、左右移動しない
+                        let steerSpeedFactor = racer.speed * 2.85; 
 
                         if (steeringInput !== 0) {
                             if (racer.steerValue === undefined) racer.steerValue = 0;
                             racer.steerValue = THREE.MathUtils.lerp(racer.steerValue, steeringInput, 0.09);
                             racer.lateralOffset += racer.steerValue * 0.18 * steerSpeedFactor; 
-                            
-                            // 通常旋回中も、お尻がわずかに外側に流れ、鼻先が曲がる方向へ少し向く（ロールではなくYaw方向）挙動の実装
-                            racer.driftAngle = -steeringInput * 0.15; // A(左旋回=-1)のとき正(0.15)=左向き / D(right=1)のとき負(-0.15)=右向き
+                            racer.driftAngle = -steeringInput * 0.15; 
                         } else {
                             if (racer.steerValue === undefined) racer.steerValue = 0;
                             racer.steerValue = THREE.MathUtils.lerp(racer.steerValue, 0, 0.1);
@@ -1892,19 +2721,16 @@
                         }
                     }
 
-                    // ----------------------------------------------------
-                    // ドリフトの火花を3段階（青 ➔ 赤 ➔ 紫）に拡張
-                    // ----------------------------------------------------
                     if (racer.driftState !== 'none' && racer.height === 0) {
                         racer.driftTimer++;
 
                         let sparkColor = null;
                         if (racer.driftTimer >= 145) {
-                            sparkColor = 0xa55eea; // 紫（ウルトラミニターボ）
+                            sparkColor = 0xa55eea; 
                         } else if (racer.driftTimer >= 85) {
-                            sparkColor = 0xff4757; // 赤（スーパーミニターボ）
+                            sparkColor = 0xff4757; 
                         } else if (racer.driftTimer >= 35) {
-                            sparkColor = 0x00f0ff; // 青（ミニターボ）
+                            sparkColor = 0x00f0ff; 
                         }
 
                         if (sparkColor) {
@@ -1916,41 +2742,41 @@
                     }
 
                 } else {
-                    // AI (Bot) 処理
-                    targetSpeed = maxSpeedBase * (0.83 + Math.sin(Date.now() * 0.001 + index) * 0.17);
+                    const player = racers[0];
+                    let aiBaseMaxSpeed = maxSpeedBase * (0.94 + Math.sin(Date.now() * 0.0015 + index) * 0.08);
+                    
+                    if (player) {
+                        const progressDiff = player.progress - racer.progress;
+                        if (progressDiff > 0.12) {
+                            aiBaseMaxSpeed *= 1.15; 
+                        } else if (progressDiff < -0.15) {
+                            aiBaseMaxSpeed *= 0.90; 
+                        }
+                    }
+
+                    targetSpeed = aiBaseMaxSpeed;
                     
                     racer.aiThinkTimer--;
                     if (racer.aiThinkTimer <= 0) {
-                        racer.aiThinkTimer = 30 + Math.random() * 40; 
+                        racer.aiThinkTimer = 25 + Math.random() * 30; 
 
                         if (racer.hasItem && !racer.isItemRoulette) {
-                            if (racer.hasItem === "MUSHROOM" || racer.hasItem === "STAR") {
+                            if (racer.hasItem === "MUSHROOM" || racer.hasItem === "STAR" || racer.hasItem.startsWith("TRIPLE_MUSHROOM") || racer.hasItem === "GOLDEN_MUSHROOM") {
                                 executeItemUse(racer, racer.hasItem);
-                            } else if (racer.hasItem === "BANANA") {
-                                const anyoneBehind = racers.some(other => other !== racer && (racer.progress - other.progress) > 0 && (racer.progress - other.progress) < 0.05);
-                                if (anyoneBehind) executeItemUse(racer, "BANANA");
+                            } else if (racer.hasItem === "BANANA" || racer.hasItem === "TRIPLE_BANANA") {
+                                const anyoneBehind = racers.some(other => other !== racer && (racer.progress - other.progress) > 0 && (racer.progress - other.progress) < 0.06);
+                                if (anyoneBehind) executeItemUse(racer, racer.hasItem);
                             } else {
-                                const anyoneAhead = racers.some(other => other !== racer && (other.progress - racer.progress) > 0 && (other.progress - racer.progress) < 0.12);
+                                const anyoneAhead = racers.some(other => other !== racer && (other.progress - racer.progress) > 0 && (other.progress - racer.progress) < 0.15);
                                 if (anyoneAhead) executeItemUse(racer, racer.hasItem);
                             }
                         }
                     }
 
-                    let dodgeOffset = 0;
-                    raceBananas.forEach(banana => {
-                        const distToBanana = (banana.ratio - racer.progress + 1.0) % 1.0;
-                        if (distToBanana > 0 && distToBanana < 0.08) {
-                            const latDiff = Math.abs(racer.lateralOffset - banana.offset);
-                            if (latDiff < 2.0) {
-                                dodgeOffset = racer.lateralOffset > banana.offset ? 1.8 : -1.8;
-                            }
-                        }
-                    });
-
-                    // 道路幅が広くなったため、AIのライン取りの振れ幅を大きく調整 (2.8 -> 5.0)
-                    const baseLine = Math.sin(racer.progress * 18 + index) * 5.0; 
-                    const finalTargetLine = baseLine + dodgeOffset;
-                    racer.lateralOffset += (finalTargetLine - racer.lateralOffset) * 0.05;
+                    const avoidOffset = getAIOvertakeOffset(racer, trackLength);
+                    const baseLine = Math.sin(racer.progress * 12 + index) * 4.5; 
+                    const finalTargetLine = baseLine + avoidOffset;
+                    racer.lateralOffset += (finalTargetLine - racer.lateralOffset) * 0.06; 
                 }
 
                 if (racer.speed < targetSpeed) {
@@ -1974,7 +2800,7 @@
                     racer.lap++;
                 } else if (racer.progress < 0.0) {
                     racer.progress += 1.0;
-                    racer.lap--; // 逆走時の減算処理
+                    racer.lap--; 
                 }
 
                 if (racer.height > 0 || racer.heightVelocity !== 0) {
@@ -1987,8 +2813,8 @@
                         if (racer.trickTimer > 0) {
                             racer.boostTimer = 85; 
                             racer.trickTimer = 0;
-                            playSound('boost');
-                            if (racer.isPlayer) {
+                            if (racer.isPlayer) { 
+                                playSound('boost');
                                 document.getElementById('screen-filter').style.background = 'rgba(255, 165, 2, 0.12)';
                                 setTimeout(() => { document.getElementById('screen-filter').style.background = 'none'; }, 300);
                             }
@@ -2004,43 +2830,65 @@
 
             updateEngineSound(racers[0].speed);
 
-            // コライダ押し出し
+            // 車体衝突物理
             for (let i = 0; i < racers.length; i++) {
                 for (let j = i + 1; j < racers.length; j++) {
                     const r1 = racers[i];
                     const r2 = racers[j];
-                    const dist = r1.mesh.position.distanceTo(r2.mesh.position);
-                    if (dist < 1.4) {
-                        const pushForce = 0.2;
-                        const dir = new THREE.Vector3().subVectors(r1.mesh.position, r2.mesh.position).normalize();
-                        r1.lateralOffset += dir.x * pushForce;
-                        r2.lateralOffset -= dir.x * pushForce;
-
-                        const tempSpeed = r1.speed;
-                        r1.speed = r2.speed * 0.8;
-                        r2.speed = tempSpeed * 0.8;
+                    
+                    let dp = r1.progress - r2.progress;
+                    if (dp > 0.5) dp -= 1.0;
+                    if (dp < -0.5) dp += 1.0;
+                    const ds = dp * trackLength; 
+                    
+                    if (Math.abs(ds) < 2.0) {
+                        const dl = r1.lateralOffset - r2.lateralOffset;
+                        const targetLateralDist = 1.4; 
+                        
+                        if (Math.abs(dl) < targetLateralDist) {
+                            const sign = dl >= 0 ? 1.0 : -1.0;
+                            const overlap = targetLateralDist - Math.abs(dl);
+                            
+                            r1.lateralOffset += overlap * 0.52 * sign;
+                            r2.lateralOffset -= overlap * 0.52 * sign;
+                            
+                            r1.speed *= 0.98;
+                            r2.speed *= 0.98;
+                            
+                            if (Math.random() < 0.1) {
+                                const midPos = r1.mesh.position.clone().lerp(r2.mesh.position, 0.5);
+                                spawnDriftSpark(midPos, 0xffcc00);
+                            }
+                        }
                     }
                 }
             }
 
             updateCollectiblesAndProjectiles();
             updateDriftSparks();
+            updateExhaustSmoke(); 
         }
 
-        // 3段階ミニターボの解放時間の振り分け
+        // 3段階ミニターボの解放
         function resolveMiniTurbo(racer) {
             if (racer.driftTimer > 145) { 
-                racer.boostTimer = 180; // ウルトラミニターボ (紫色の最高ダッシュ)
-                playSound('boost');
-                triggerBoostVisualEffect();
+                racer.boostTimer = 180; 
+                if (racer.isPlayer) { 
+                    playSound('boost');
+                    triggerBoostVisualEffect();
+                }
             } else if (racer.driftTimer > 85) { 
-                racer.boostTimer = 110; // スーパーミニターボ (赤)
-                playSound('boost');
-                triggerBoostVisualEffect();
+                racer.boostTimer = 110; 
+                if (racer.isPlayer) {
+                    playSound('boost');
+                    triggerBoostVisualEffect();
+                }
             } else if (racer.driftTimer > 35) { 
-                racer.boostTimer = 50;  // ミニターボ (青)
-                playSound('boost');
-                triggerBoostVisualEffect();
+                racer.boostTimer = 50;  
+                if (racer.isPlayer) {
+                    playSound('boost');
+                    triggerBoostVisualEffect();
+                }
             }
             racer.driftState = 'none';
             racer.driftTimer = 0;
@@ -2062,7 +2910,7 @@
                         if (dist < 1.8) {
                             item.active = false;
                             item.mesh.visible = false;
-                            item.respawnTimer = 300; 
+                            item.respawnTimer = 180; 
                             triggerItemRoulette(racer);
                         }
                     });
@@ -2094,7 +2942,6 @@
                 if (b.mesh) b.mesh.rotation.y += 0.02; 
                 
                 let triggered = false;
-                // 当たり判定
                 for (let j = 0; j < racers.length; j++) {
                     const racer = racers[j];
                     if (racer.spinTimer === 0) {
@@ -2110,14 +2957,13 @@
                     }
                 }
 
-                // 被弾せず、かつ規定寿命（20秒）を超えた場合は自然消滅
                 if (!triggered && b.age >= b.maxAge) {
                     scene.remove(b.mesh);
                     raceBananas.splice(idx, 1);
                 }
             }
 
-            // 甲羅
+            // 甲羅 (緑・赤・トゲゾー)
             for (let i = raceProjectiles.length - 1; i >= 0; i--) {
                 const p = raceProjectiles[i];
                 p.progress += p.speed / trackLength;
@@ -2127,27 +2973,44 @@
                 const tangent = raceCurve.getTangentAt(ratio).normalize();
                 const normal = new THREE.Vector3(-tangent.z, 0, tangent.x).normalize();
 
-                if (p.type === "red" && p.target) {
-                    p.lateralOffset += (p.target.lateralOffset - p.lateralOffset) * 0.12;
+                let exploded = false;
+
+                if (p.type === "blue" && p.target) {
+                    p.lateralOffset += (p.target.lateralOffset - p.lateralOffset) * 0.15;
+                    
+                    let pDiff = p.target.progress - p.progress;
+                    if (pDiff < -0.5) pDiff += 1.0;
+                    if (pDiff > 0.5) pDiff -= 1.0;
+                    
+                    const distToTarget = Math.abs(pDiff) * trackLength;
+                    if (distToTarget < 3.0 && p.mesh.position.distanceTo(p.target.mesh.position) < 4.0) {
+                        p.target.spinTimer = 120; 
+                        triggerBlueShellExplosion(p.target.mesh.position);
+                        playSound('hit');
+                        exploded = true;
+                    }
+                } else {
+                    if (p.type === "red" && p.target) {
+                        p.lateralOffset += (p.target.lateralOffset - p.lateralOffset) * 0.16;
+                    }
+
+                    for (let j = 0; j < racers.length; j++) {
+                        const racer = racers[j];
+                        if (racer !== p.owner) {
+                            const dist = p.mesh.position.distanceTo(racer.mesh.position);
+                            if (dist < 1.8) {
+                                racer.spinTimer = 80; 
+                                playSound('hit');
+                                exploded = true;
+                                break;
+                            }
+                        }
+                    }
                 }
 
                 const finalPos = pos.clone().add(normal.multiplyScalar(p.lateralOffset)).add(new THREE.Vector3(0, 0.4, 0));
                 p.mesh.position.copy(finalPos);
                 p.mesh.rotation.y += 0.05; 
-
-                let exploded = false;
-                for (let j = 0; j < racers.length; j++) {
-                    const racer = racers[j];
-                    if (racer !== p.owner) {
-                        const dist = p.mesh.position.distanceTo(racer.mesh.position);
-                        if (dist < 1.8) {
-                            racer.spinTimer = 80; 
-                            playSound('hit');
-                            exploded = true;
-                            break;
-                        }
-                    }
-                }
 
                 if (exploded || p.progress > 2.0) {
                     scene.remove(p.mesh);
@@ -2171,34 +3034,27 @@
             racer.mesh.position.copy(finalPos);
 
             if (racer.spinTimer === 0) {
-                // ----------------------------------------------------
-                // 高低差における車体の反転や、Euler回転変換バグによる真横・カメラ向き反転バグを解決
-                // tangent（進行方向）のY（上下）成分を 0 に投影した完全に水平なベクトル(XZ平面)を作成します
-                // ----------------------------------------------------
                 const flatTangent = new THREE.Vector3(tangent.x, 0, tangent.z).normalize();
                 const flatTarget = finalPos.clone().add(flatTangent);
                 
-                // 水平ターゲットに向けて lookAt することで、純粋なY軸旋回（Yaw）のみを計算
                 racer.mesh.lookAt(flatTarget);
 
                 if (racer.trickTimer > 0) {
                     racer.mesh.rotation.x += 0.25; 
                 } else if (racer.isPlayer) {
-                    // ドリフト時は、計算された適正な前方水平方向に対して、ドリフト用の旋回傾き角度(Y)のみをオフセット
                     racer.mesh.rotation.y += racer.driftAngle;
                 }
             }
         }
 
         // ========================================================
-        // 8. カメラワーク更新
+        // 11. カメラワーク更新
         // ========================================================
         function updateCamera() {
             if (racers.length === 0 || !racers[0]) return; 
             const player = racers[0];
             if (!player || !camera || !raceCurve || !gameActive) return;
 
-            // スピード感によるFOV値のスムーズな線形補間（戻し）
             camera.fov = THREE.MathUtils.lerp(camera.fov, 55, 0.05);
             camera.updateProjectionMatrix();
 
@@ -2207,7 +3063,6 @@
                 const tangent = raceCurve.getTangentAt(ratio).normalize();
 
                 if (lookBehindActive) {
-                    // ミラーカメラ
                     const camDest = player.mesh.position.clone()
                         .add(tangent.clone().multiplyScalar(2.8)) 
                         .add(new THREE.Vector3(0, 1.1, 0)); 
@@ -2215,17 +3070,14 @@
                     camera.position.lerp(camDest, 0.25); 
                     camera.lookAt(player.mesh.position.clone().add(new THREE.Vector3(0, 0.35, 0)));
                 } else {
-                    // 真後ろ超至近距離カメラ
                     const camDest = player.mesh.position.clone()
                         .sub(tangent.clone().multiplyScalar(2.8)) 
                         .add(new THREE.Vector3(0, 1.1, 0)); 
 
-                    // 【不具合修正】引数の渡し方を修正し、NaNによるカメラ消失を防ぎました
                     camera.position.lerp(camDest, 0.25); 
                     camera.lookAt(player.mesh.position.clone().add(new THREE.Vector3(0, 0.35, 0)));
                 }
             } else {
-                // TVドローン接近カメラ（自車から13メートル内をキープ）
                 let closestTower = cameraTowers[0];
                 let minDist = 9999;
                 cameraTowers.forEach(tower => {
@@ -2245,12 +3097,11 @@
         }
 
         // ========================================================
-        // 9. HUD更新・ミニマップ
+        // 12. HUD更新・ミニマップ
         // ========================================================
         function updateHUDAndMinimap() {
             if (!raceCurve || !gameActive || racers.length === 0 || !racers[0]) return; 
 
-            // リアルタイムに周回数(lap)とスプライン進行度(progress)を合算したスコアから全員の順位を継続更新
             const rankList = racers.map((r, idx) => ({
                 id: idx, isPlayer: r.isPlayer, score: r.lap * 10 + r.progress
             }));
@@ -2264,21 +3115,15 @@
             const player = racers[0];
             document.getElementById('hud-lap').innerText = `${Math.min(player.lap, 3)}/3`;
 
-            // アイテムがない時、何も表示しないようにする
             if (!player.hasItem && !player.isItemRoulette) {
                 document.getElementById('hud-item-ui').innerText = "";
             }
 
-            // プレイヤーが3周を走りきって完走した瞬間、早期リターンを行ってこれ以降の描画を遮断
             if (player.lap > 3) {
                 gameActive = false;
-                
-                // プレイヤーの総走行タイムを算出
                 const playerTimeMs = Date.now() - raceStartTime;
-                
-                // 順位発表ボードを生成し表示
                 showResults(playerRank, playerTimeMs);
-                return; // 【最重要】直後の minimapCanvas 処理を実行させずに早期脱出
+                return; 
             }
 
             if (minimapCtx) {
@@ -2310,26 +3155,28 @@
             }
         }
 
-        // 公式風リザルト画面の生成と表示処理
         function showResults(playerRank, playerTimeMs) {
             const table = document.getElementById('result-table');
             if (!table) return;
             table.innerHTML = "";
 
-            // 全員の成績テーブルを生成
             const standings = racers.map((r, idx) => ({
                 id: idx,
                 isPlayer: r.isPlayer,
                 score: r.lap * 10 + r.progress,
                 name: r.isPlayer ? "YOU (Player)" : racerNames[idx]
             }));
-            // スコアが高い順にソート
             standings.sort((a, b) => b.score - a.score);
 
             standings.forEach((racerResult, index) => {
                 const rankNum = index + 1;
                 
-                // タイム生成
+                // ポイント配分（追加）
+                const pointsEarned = GP_POINTS_TABLE[rankNum - 1] || 1;
+                if (gpActive) {
+                    gpCumulativePoints[racerResult.id] += pointsEarned;
+                }
+
                 const rankOffset = rankNum - playerRank; 
                 let simulatedTimeMs = playerTimeMs + rankOffset * (2500 + Math.random() * 1500);
                 if (simulatedTimeMs < 12000) simulatedTimeMs = 12000;
@@ -2345,39 +3192,63 @@
                 const suffixes = ["st", "nd", "rd", "th"];
                 const rankText = rankNum <= 3 ? `${rankNum}${suffixes[rankNum - 1]}` : `${rankNum}th`;
 
+                // GPモード時は、獲得したポイントも行の右側に追加表示
+                let pointsDisplayStr = gpActive ? ` (+${pointsEarned}pts)` : "";
+
                 row.innerHTML = `
                     <td class="result-cell" style="font-size: 1.35rem; width: 15%;">${rankText}</td>
                     <td class="result-cell" style="width: 50%;">${racerResult.name}</td>
-                    <td class="result-cell" style="width: 35%; text-align: right; font-family: monospace; font-size: 1.25rem;">${timeStr}</td>
+                    <td class="result-cell" style="width: 35%; text-align: right; font-family: monospace; font-size: 1.25rem;">${timeStr}${pointsDisplayStr}</td>
                 `;
                 table.appendChild(row);
             });
 
-            // リザルトステートに遷移
+            // GPモードかVS(シングル)モードかでボタン配置を変更（追加）
+            const retryBtn = document.getElementById('result-retry-btn');
+            const menuBtn = document.getElementById('result-menu-btn');
+            const gpBtn = document.getElementById('result-gp-standings-btn');
+
+            if (gpActive) {
+                retryBtn.classList.add('hidden');
+                menuBtn.classList.add('hidden');
+                gpBtn.classList.remove('hidden');
+            } else {
+                retryBtn.classList.remove('hidden');
+                menuBtn.classList.remove('hidden');
+                gpBtn.classList.add('hidden');
+            }
+
             setUIState(UI_STATES.RESULT);
         }
 
-        // AI・プレイヤー用のアイテムスロットルーレット
         function triggerItemRoulette(racer) {
             if (racer.isItemRoulette) return;
             racer.isItemRoulette = true;
             
-            const roulettePool = ["MUSHROOM", "STAR", "BANANA", "GREEN_SHELL", "RED_SHELL"];
+            const currentRank = getRacerRank(racer);
+            const rolledItem = getRankBasedItem(currentRank);
+            
+            const roulettePool = Object.keys(itemEmojiMap);
             let counter = 0;
             const interval = setInterval(() => {
                 const rand = roulettePool[Math.floor(Math.random() * roulettePool.length)];
                 if (racer.isPlayer) {
-                    // ルーレット中も巨大絵文字を高速シャッフルするように変更
                     document.getElementById('hud-item-ui').innerText = itemEmojiMap[rand];
                 }
                 counter++;
                 if (counter > 8) {
                     clearInterval(interval);
-                    racer.hasItem = rand;
+                    racer.hasItem = rolledItem;
+                    
+                    if (rolledItem.startsWith("TRIPLE_")) {
+                        racer.itemCount = 3;
+                    } else {
+                        racer.itemCount = 1;
+                    }
+
                     if (racer.isPlayer) {
-                        gameState.hasItem = rand;
-                        // ルーレット決定後は巨大絵文字アイコンを適応
-                        document.getElementById('hud-item-ui').innerText = itemEmojiMap[rand];
+                        gameState.hasItem = rolledItem;
+                        document.getElementById('hud-item-ui').innerText = itemEmojiMap[rolledItem];
                         playSound('item_get');
                     }
                     racer.isItemRoulette = false;
@@ -2395,7 +3266,6 @@
             }
         }
 
-        // 前輪ピボットを配慮してタイヤグラフィックスを更新
         function updateWheelType(type) {
             gameState.wheelType = type;
             const newGeo = getWheelGeometry(type);
@@ -2419,10 +3289,9 @@
         }
 
         // ========================================================
-        // 10. DOMインターフェース一括構築
+        // 13. DOMインターフェース一括構築
         // ========================================================
         function setupUI() {
-            // カートボディ色セレクター構築
             const colorSelector = document.getElementById('color-selector');
             colorsList.forEach(color => {
                 const dot = document.createElement('div');
@@ -2438,12 +3307,10 @@
                 colorSelector.appendChild(dot);
             });
 
-            // ホイールタイプ切り替え時リスナーのバインド
             document.getElementById('wheel-select').addEventListener('change', (e) => {
                 updateWheelType(e.target.value);
             });
 
-            // コース選択カード構築
             const courseGrid = document.getElementById('course-grid');
             courses.forEach((course, index) => {
                 const card = document.createElement('div');
@@ -2463,40 +3330,98 @@
                 courseGrid.appendChild(card);
             });
 
-            // HTMLのスクリーン要素を取得し、一括バインド
             screens[UI_STATES.MAIN] = document.getElementById('home-screen');
+            screens[UI_STATES.MODE] = document.getElementById('mode-screen'); // 追加
             screens[UI_STATES.SKIN] = document.getElementById('skin-screen');
             screens[UI_STATES.COURSE] = document.getElementById('course-screen');
             screens[UI_STATES.GAME] = document.getElementById('game-screen');
-            screens[UI_STATES.RESULT] = document.getElementById('result-screen'); // リザルト画面
-            screens[UI_STATES.HELP] = document.getElementById('help-modal'); // 操作説明画面
+            screens[UI_STATES.RESULT] = document.getElementById('result-screen'); 
+            screens[UI_STATES.GP_PREVIEW] = document.getElementById('gp-preview-screen'); // 追加
+            screens[UI_STATES.GP_STANDINGS] = document.getElementById('gp-standings-screen'); // 追加
+            screens[UI_STATES.HELP] = document.getElementById('help-modal'); 
 
-            // ボタンへのクリックリスナー登録
-            document.getElementById('home-start-btn').addEventListener('click', () => setUIState(UI_STATES.COURSE));
+            // ホーム画面 -> モード選択
+            document.getElementById('home-start-btn').addEventListener('click', () => setUIState(UI_STATES.MODE));
             document.getElementById('home-customize-btn').addEventListener('click', () => setUIState(UI_STATES.SKIN));
             document.getElementById('skin-back-btn').addEventListener('click', () => setUIState(UI_STATES.MAIN));
-            document.getElementById('course-back-btn').addEventListener('click', () => setUIState(UI_STATES.MAIN));
-            // 【修正】キー入力を即座に受け付けるように、スタートボタン押下時にウインドウを自動的にフォーカスします
+
+            // モード選択画面制御 (追加)
+            document.getElementById('mode-back-btn').addEventListener('click', () => setUIState(UI_STATES.MAIN));
+            
+            // VS(シングル)モード
+            document.getElementById('mode-single-btn').addEventListener('click', () => {
+                gpActive = false;
+                setUIState(UI_STATES.COURSE);
+            });
+
+            // GP(グランプリ)モード
+            document.getElementById('mode-gp-btn').addEventListener('click', () => {
+                gpActive = true;
+                gpCurrentRaceIndex = 0;
+                gpCumulativePoints.fill(0);
+
+                // 全30コースから重複なしのランダム4ステージを選出
+                gpCourses = [];
+                const courseIndicesPool = Array.from({ length: courses.length }, (_, i) => i);
+                for (let i = courseIndicesPool.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [courseIndicesPool[i], courseIndicesPool[j]] = [courseIndicesPool[j], courseIndicesPool[i]];
+                }
+                gpCourses = courseIndicesPool.slice(0, 4);
+
+                gameState.selectedCourse = gpCourses[0];
+                setUIState(UI_STATES.GP_PREVIEW);
+            });
+
+            // コース予告画面開始
+            document.getElementById('gp-preview-start-btn').addEventListener('click', () => {
+                setUIState(UI_STATES.GAME);
+                window.focus();
+            });
+
+            // GPランキング画面から「次へ」または「終了してメニューへ」
+            document.getElementById('gp-standings-next-btn').addEventListener('click', () => {
+                if (gpCurrentRaceIndex < 3) {
+                    gpCurrentRaceIndex++;
+                    gameState.selectedCourse = gpCourses[gpCurrentRaceIndex];
+                    setUIState(UI_STATES.GP_PREVIEW);
+                }
+            });
+            document.getElementById('gp-standings-menu-btn').addEventListener('click', () => {
+                gpActive = false;
+                setUIState(UI_STATES.MAIN);
+            });
+
+            // コース選択画面制御
+            document.getElementById('course-back-btn').addEventListener('click', () => setUIState(UI_STATES.MODE));
             document.getElementById('course-launch-btn').addEventListener('click', () => {
                 setUIState(UI_STATES.GAME);
-                window.focus(); // キーボードフォーカスの強制獲得
+                window.focus(); 
             });
-            document.getElementById('game-exit-btn').addEventListener('click', () => setUIState(UI_STATES.MAIN));
+            document.getElementById('game-exit-btn').addEventListener('click', () => {
+                gpActive = false;
+                setUIState(UI_STATES.MAIN);
+            });
 
-            // リザルト画面ボタンへのリスナー登録
             document.getElementById('result-retry-btn').addEventListener('click', () => setUIState(UI_STATES.GAME));
             document.getElementById('result-menu-btn').addEventListener('click', () => setUIState(UI_STATES.MAIN));
+            
+            // リザルトからGP累積ポイント表へ遷移（追加）
+            document.getElementById('result-gp-standings-btn').addEventListener('click', () => {
+                setUIState(UI_STATES.GP_STANDINGS);
+            });
 
-            // ホーム操作説明用ボタンへのリスナー登録
             document.getElementById('home-help-btn').addEventListener('click', () => setUIState(UI_STATES.HELP));
             document.getElementById('help-close-btn').addEventListener('click', () => setUIState(UI_STATES.MAIN));
 
-            // 操作用キーボードリスナーの一括バインド
             window.addEventListener('keydown', (e) => {
                 const key = e.key.toLowerCase();
                 keys[key] = true;
 
-                // [Space] ジャンプ・トリックアクション
+                if (["arrowup", "arrowdown", "arrowleft", "arrowright", " "].includes(e.key.toLowerCase())) {
+                    e.preventDefault();
+                }
+
                 if (e.key === ' ' && racers[0]) {
                     if (racers[0].canTrick && racers[0].trickTimer === 0) {
                         racers[0].trickTimer = 30;
@@ -2507,12 +3432,10 @@
                     }
                 }
 
-                // [Q] / [E] アイテム使用
                 if (key === 'q' || key === 'e') {
                     usePlayerItem();
                 }
 
-                // [C] / [R] ミラー表示（バックミラー）
                 if (key === 'c' || key === 'r') {
                     lookBehindActive = true;
                 }
@@ -2529,7 +3452,7 @@
         }
 
         // ========================================================
-        // 11. Three.js ベースシステム & アニメーションループ
+        // 14. Three.js ベースシステム & アニメーションループ
         // ========================================================
         function init3D() {
             const canvas = document.getElementById('bg-canvas');
@@ -2560,7 +3483,6 @@
             menuPodium.position.y = -0.1;
             scene.add(menuPodium);
 
-            // 自車
             kartGroup = new THREE.Group();
             kartGroup.position.set(0, 0.15, 0);
 
@@ -2594,7 +3516,6 @@
             const wheelMat = new THREE.MeshStandardMaterial({ color: 0x1e293b, roughness: 0.8 });
             const wheelGeo = getWheelGeometry(gameState.wheelType);
 
-            // 前輪用の首振りステアリングピボット(THREE.Group)の配置
             leftWheelPivot = new THREE.Group();
             leftWheelPivot.position.set(0.6, 0.1, 0.5);
             leftWheel = new THREE.Mesh(wheelGeo, wheelMat);
@@ -2607,7 +3528,6 @@
             rightWheel.rotation.z = Math.PI / 2;
             rightWheelPivot.add(rightWheel);
 
-            // 後輪は固定
             backLeftWheel = new THREE.Mesh(wheelGeo, wheelMat);
             backLeftWheel.rotation.z = Math.PI / 2;
             backLeftWheel.position.set(0.6, 0.1, -0.5);
@@ -2618,16 +3538,13 @@
             kartGroup.add(leftWheelPivot, rightWheelPivot, backLeftWheel, backRightWheel);
             scene.add(kartGroup);
 
-            // 背景草原の生成
             generateEnvironment(null);
             
-            // UIをバインド
             setupUI();
             
             animate();
         }
 
-        // --- アニメーション描画ループ ---
         function animate() {
             requestAnimationFrame(animate);
 
@@ -2646,6 +3563,7 @@
                 updateRacePhysics();
                 updateCamera();
                 updateHUDAndMinimap();
+                updateWeatherParticles();
             }
 
             if (renderer && scene && camera) {
@@ -2653,10 +3571,16 @@
             }
         }
 
-        // ページロード完了時に3D起動
+        window.addEventListener('resize', () => {
+            if (camera && renderer) {
+                camera.aspect = window.innerWidth / window.innerHeight;
+                camera.updateProjectionMatrix();
+                renderer.setSize(window.innerWidth, window.innerHeight);
+            }
+        });
+
         window.onload = init3D;
 
-        // ブラウザ autoplay ポリシー対策 of オーディオ復帰
         window.addEventListener('click', () => {
             if (audioCtx && audioCtx.state === 'suspended') {
                 audioCtx.resume();
@@ -2664,4 +3588,4 @@
         });
     </script>
 </body>
-</html>
+</html
