@@ -1,0 +1,1614 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+	<meta charset="UTF-8">
+	<title>PUYO VS CPU - MONOCHROME POP & CLASSIC SCORING</title>
+	<style>
+		/* 明るく爽やかで極めて上質なライトグラデーション背景 */
+		body {
+			background: radial-gradient(circle at 0% 0%, #e0f2fe 0%, #f3e8ff 50%, #fef3c7 100%);
+			color: #1e293b;
+			font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Hiragino Kaku Gothic ProN", sans-serif;
+			display: flex;
+			flex-direction: column;
+			align-items: center;
+			justify-content: center;
+			min-height: 100vh;
+			margin: 0;
+			overflow: hidden;
+			user-select: none;
+		}
+
+		h1 {
+			margin: 5px 0 10px 0;
+			font-size: 28px;
+			font-weight: 900;
+			letter-spacing: 2px;
+			color: #1e293b;
+			text-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
+		}
+
+		/* プレミアムなグラスモルフィズム風カードコンテナ */
+		#game-wrapper {
+			position: relative;
+			display: flex;
+			flex-direction: column;
+			align-items: center;
+			background: rgba(255, 255, 255, 0.75);
+			backdrop-filter: blur(25px);
+			padding: 24px;
+			border-radius: 32px;
+			box-shadow: 0 30px 60px rgba(15, 23, 42, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.8);
+			border: 1px solid rgba(255, 255, 255, 0.5);
+		}
+
+		canvas {
+			background-color: #f8fafc;
+			border-radius: 16px;
+			box-shadow: 0 10px 25px rgba(0, 0, 0, 0.03);
+		}
+
+		/* 極めてミニマルかつ滑らかに縮小・フェードアウトするホーム画面 */
+		#home-screen {
+			position: absolute;
+			top: 24px;
+			left: 24px;
+			width: 820px;
+			height: 660px;
+			background: rgba(255, 255, 255, 0.95);
+			display: flex;
+			flex-direction: column;
+			align-items: center;
+			justify-content: center;
+			z-index: 10;
+			border-radius: 16px;
+			box-shadow: 0 10px 40px rgba(0, 0, 0, 0.02);
+			transition: opacity 0.4s cubic-bezier(0.25, 0.8, 0.25, 1), transform 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+			transform: scale(1);
+			opacity: 1;
+		}
+
+		#home-screen.hidden {
+			opacity: 0;
+			transform: scale(0.96);
+			pointer-events: none;
+		}
+
+		.main-logo {
+			font-size: 40px;
+			font-weight: 900;
+			color: #1e293b;
+			margin-bottom: 40px;
+			text-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+			letter-spacing: 6px;
+			text-align: center;
+		}
+
+		.main-logo span {
+			background: linear-gradient(135deg, #ff5e62, #ff9f1a);
+			-webkit-background-clip: text;
+			-webkit-text-fill-color: transparent;
+		}
+
+		.option-group {
+			display: flex;
+			flex-direction: column;
+			width: 320px;
+			margin-bottom: 30px;
+		}
+
+		.option-group label {
+			font-size: 13px;
+			color: #64748b;
+			margin-bottom: 8px;
+			text-align: left;
+			text-transform: uppercase;
+			letter-spacing: 1.5px;
+			font-weight: bold;
+		}
+
+		.option-group select {
+			background: #f1f5f9;
+			color: #1e293b;
+			border: 2px solid #cbd5e1;
+			padding: 12px 16px;
+			border-radius: 12px;
+			font-size: 15px;
+			outline: none;
+			cursor: pointer;
+			box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
+			font-weight: bold;
+			transition: border-color 0.2s, box-shadow 0.2s;
+		}
+
+		.option-group select:focus {
+			border-color: #ffd32a;
+			box-shadow: 0 0 10px rgba(255, 211, 42, 0.4);
+		}
+
+		#start-btn {
+			background: linear-gradient(135deg, #ffd32a 0%, #ff9f1a 100%);
+			color: #1e293b;
+			border: none;
+			padding: 16px 64px;
+			font-size: 18px;
+			font-weight: 900;
+			border-radius: 50px;
+			cursor: pointer;
+			margin-top: 15px;
+			box-shadow: 0 8px 20px rgba(255, 159, 26, 0.35);
+			transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+			letter-spacing: 2px;
+			border: 2px solid rgba(255, 255, 255, 0.4);
+		}
+
+		#start-btn:hover {
+			transform: translateY(-4px) scale(1.05);
+			box-shadow: 0 10px 25px rgba(255, 159, 26, 0.5);
+		}
+
+		#start-btn:active {
+			transform: translateY(1px) scale(0.98);
+		}
+
+		#controls-info {
+			margin-top: 15px;
+			font-size: 12px;
+			color: #64748b;
+			text-align: center;
+			line-height: 1.6;
+			letter-spacing: 0.5px;
+		}
+
+		.key {
+			background: #fff;
+			border: 1px solid #cbd5e1;
+			padding: 2px 6px;
+			border-radius: 6px;
+			color: #1e293b;
+			font-weight: bold;
+			box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+		}
+	</style>
+</head>
+
+<body>
+
+	<h1>PUYO VS CPU</h1>
+	<div id="game-wrapper">
+		<canvas id="gameCanvas" width="820" height="660"></canvas>
+
+		<div id="home-screen">
+			<div class="main-logo">PUYO <span>VS CPU</span></div>
+
+			<div class="option-group">
+				<label for="cpu-diff">CPの強さ（難易度）:</label>
+				<select id="cpu-diff">
+                <option value="easy">甘口</option>
+                <option value="normal" selected>中辛</option>
+                <option value="hard">辛口</option>
+            </select>
+			</div>
+
+			<button id="start-btn">MATCH START</button>
+		</div>
+	</div>
+
+	<div id="controls-info">
+		【PLAYER操作】 移動: <span class="key">←</span> <span class="key">→</span> |
+		高速落下: <span class="key">↓</span> |
+		左回転: <span class="key">Z</span> |
+		右回転: <span class="key">X</span>
+	</div>
+
+	<script>
+		// ==========================================
+// 1. 定数と明るいポップ調カラーの定義
+// ==========================================
+const COLS = 6;
+const ROWS = 13;          
+const BLOCK_SIZE = 43;    // 各ステージを約23%拡大
+
+const COLORS = {
+    0: 'transparent',
+    1: '#ff5e62', // パステルレッド
+    2: '#4ea8de', // パステルブルー
+    3: '#56ab2f', // パステルグリーン
+    4: '#fbc531', // パステルイエロー
+    5: '#a29bfe', // パステルパープル
+    6: '#a4b0be'  // おじゃま
+};
+
+const ROT_OFFSET = [
+    { x: 0, y: -1 },
+    { x: 1, y: 0 },
+    { x: 0, y: 1 },
+    { x: -1, y: 0 }
+];
+
+const CHAIN_BONUS = [0, 0, 8, 16, 32, 64, 96, 128, 160, 192, 224, 256, 288, 320, 352, 384, 416, 448, 480, 512];
+const COLOR_BONUS = [0, 0, 3, 6, 12, 24];
+const GROUP_BONUS = [0, 0, 0, 0, 0, 2, 3, 4, 5, 6, 7, 10]; 
+
+const VOICES = [
+    "",
+    "えいっ！",
+    "ファイヤー！",
+    "アイスストーム！",
+    "ダイヤキュート！",
+    "ブレインダムド！",
+    "ジュガイム！",
+    "ばよえ〜ん！"
+];
+
+const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d');
+
+let lastTime = 0;
+
+const settings = {
+    handicap: 'normal',   
+    cpuDifficulty: 'normal',
+    ojamaRate: 120,       
+    marginTime: 96000,    // 96秒（標準仕様）
+    allClearBonus: true   
+};
+
+let matchState = 'home';
+let countdownTime = 0;
+let matchOverTimer = 0;
+let playTime = 0;         
+
+// ==========================================
+// きらめき破片パーティクル演出
+// ==========================================
+class Particle {
+    constructor(x, y, color) {
+        this.x = x;
+        this.y = y;
+        this.color = color;
+        this.vx = (Math.random() - 0.5) * 5;
+        this.vy = (Math.random() - 0.5) * 5 - 2.5; 
+        this.alpha = 1.0;
+        this.size = Math.random() * 3 + 3;
+    }
+    update(dt) {
+        this.x += this.vx;
+        this.y += this.vy;
+        this.vy += 0.15; 
+        this.alpha -= 0.025; 
+    }
+    draw(ctx) {
+        ctx.save();
+        ctx.fillStyle = this.color;
+        ctx.globalAlpha = Math.max(0, this.alpha);
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+    }
+}
+
+// ==========================================
+// 2. ボード（Board）クラスの定義
+// ==========================================
+class Board {
+    constructor(xOffset, isCPU) {
+        this.xOffset = xOffset; 
+        this.isCPU = isCPU;     
+        this.grid = Array.from({ length: ROWS }, () => Array(COLS).fill(0));
+        
+        this.currentPuyo = null;
+        this.nextQueue = [];
+        this.state = 'spawn';   
+        
+        this.score = 0;
+        this.displayScore = 0;  // ドラム式に増やすための現在の表示スコア
+        this.targetScore = 0;   // 目標スコア
+
+        this.chainCount = 0;
+        this.ojamaPool = 0;     
+        this.ojamaDisplay = 0;  
+
+        this.lastDropTime = 0;
+        this.dropInterval = 800; 
+        this.lockTimer = 0;      
+        this.lockDelay = 500;    
+        
+        this.stateTimer = 0;     
+        this.eraseList = [];     
+        this.rot = 0;            
+
+        this.opponent = null;    
+
+        this.allClearActive = false;
+        this.allClearTimer = 0;
+
+        this.voiceText = "";
+        this.voiceTimer = 0;
+        this.voiceAlpha = 1.0;
+        this.voiceY = 220;
+
+        this.ojamaPopups = [];
+
+        // 【新規UX】計算式を表示し、スコアへ吸い込まれるポップアップオブジェクト群
+        this.scorePopups = [];
+
+        this.cpuActionTimer = 0;
+        this.cpuActionInterval = 150; 
+        this.cpuTarget = null;        
+        this.colorVariety = 4; 
+
+        this.particles = []; 
+
+        this.init();
+    }
+
+    init() {
+        this.grid = Array.from({ length: ROWS }, () => Array(COLS).fill(0));
+        this.score = 0;
+        this.displayScore = 0;
+        this.targetScore = 0;
+        this.chainCount = 0;
+        this.ojamaPool = 0;
+        this.ojamaDisplay = 0;
+        this.state = 'spawn';
+        this.allClearActive = false;
+        this.allClearTimer = 0;
+        this.voiceText = "";
+        this.voiceTimer = 0;
+        this.particles = [];
+        this.ojamaPopups = [];
+        this.scorePopups = [];
+
+        this.colorVariety = 4; 
+        this.dropInterval = 800;
+
+        this.nextQueue = [
+            { axis: this.getRandomColor(this.colorVariety), child: this.getRandomColor(this.colorVariety) },
+            { axis: this.getRandomColor(this.colorVariety), child: this.getRandomColor(this.colorVariety) },
+            { axis: this.getRandomColor(this.colorVariety), child: this.getRandomColor(this.colorVariety) }
+        ];
+    }
+
+    getRandomColor(variety) {
+        return Math.floor(Math.random() * variety) + 1; 
+    }
+
+    isValidPos(x, y) {
+        return x >= 0 && x < COLS && y >= 0 && y < ROWS;
+    }
+
+    canMove(puyo, dx, dy) {
+        const nextAxisX = puyo.axis.x + dx;
+        const nextAxisY = puyo.axis.y + dy;
+        const nextChildX = puyo.child.x + dx;
+        const nextChildY = puyo.child.y + dy;
+
+        if (!this.isValidPos(nextAxisX, nextAxisY) || !this.isValidPos(nextChildX, nextChildY)) return false;
+        if (nextAxisY >= 0 && this.grid[nextAxisY][nextAxisX] !== 0) return false;
+        if (nextChildY >= 0 && this.grid[nextChildY][nextChildX] !== 0) return false;
+
+        return true;
+    }
+
+    move(dx, dy) {
+        if (this.state !== 'play') return false;
+        if (this.canMove(this.currentPuyo, dx, dy)) {
+            this.currentPuyo.axis.x += dx;
+            this.currentPuyo.axis.y += dy;
+            this.currentPuyo.child.x += dx;
+            this.currentPuyo.child.y += dy;
+            if (dy > 0) {
+                this.lockTimer = 0; 
+            }
+            return true;
+        }
+        return false;
+    }
+
+    rotate(dir) { 
+        if (this.state !== 'play') return;
+        const nextRot = (this.rot + dir + 4) % 4;
+        const ndx = ROT_OFFSET[nextRot].x;
+        const ndy = ROT_OFFSET[nextRot].y;
+
+        const axis = this.currentPuyo.axis;
+        const child = this.currentPuyo.child;
+
+        if (this.isValidPos(axis.x + ndx, axis.y + ndy) && 
+            (axis.y + ndy < 0 || this.grid[axis.y + ndy][axis.x + ndx] === 0)) {
+            child.x = axis.x + ndx;
+            child.y = axis.y + ndy;
+            this.rot = nextRot;
+            this.lockTimer = 0;
+            return;
+        }
+
+        const shiftsX = [-1, 1];
+        for (let sx of shiftsX) {
+            const ax = axis.x + sx;
+            const ay = axis.y;
+            const cx = ax + ndx;
+            const cy = ay + ndy;
+
+            if (this.isValidPos(ax, ay) && this.isValidPos(cx, cy)) {
+                if ((ay < 0 || this.grid[ay][ax] === 0) && (cy < 0 || this.grid[cy][cx] === 0)) {
+                    axis.x = ax;
+                    axis.y = ay;
+                    child.x = cx;
+                    child.y = cy;
+                    this.rot = nextRot;
+                    this.lockTimer = 0;
+                    return;
+                }
+            }
+        }
+
+        const ay = axis.y - 1;
+        const ax = axis.x;
+        const cx = ax + ndx;
+        const cy = ay + ndy;
+        if (this.isValidPos(ax, ay) && this.isValidPos(cx, cy)) {
+            if ((ay < 0 || this.grid[ay][ax] === 0) && (cy < 0 || this.grid[cy][cx] === 0)) {
+                axis.x = ax;
+                axis.y = ay;
+                child.x = cx;
+                child.y = cy;
+                this.rot = nextRot;
+                this.lockTimer = 0;
+                return;
+            }
+        }
+
+        const oppRot = (this.rot + 2) % 4;
+        const odx = ROT_OFFSET[oppRot].x;
+        const ody = ROT_OFFSET[oppRot].y;
+        if (this.isValidPos(axis.x + odx, axis.y + ody) && 
+            (axis.y + ody < 0 || this.grid[axis.y + ody][axis.x + odx] === 0)) {
+            child.x = odx + axis.x;
+            child.y = ody + axis.y;
+            this.rot = oppRot;
+            this.lockTimer = 0;
+            return;
+        }
+    }
+
+    update(dt) {
+        this.ojamaDisplay = this.ojamaPool; 
+
+        if (this.allClearActive) {
+            this.allClearTimer -= dt;
+            if (this.allClearTimer <= 0) {
+                this.allClearActive = false;
+            }
+        }
+
+        if (this.voiceTimer > 0) {
+            this.voiceTimer -= dt;
+            this.voiceAlpha = Math.min(1.0, this.voiceTimer / 300); 
+            this.voiceY = 220 - (1100 - this.voiceTimer) * 0.04; 
+        }
+
+        for (let i = this.ojamaPopups.length - 1; i >= 0; i--) {
+            this.ojamaPopups[i].timer -= dt;
+            this.ojamaPopups[i].yOffset -= dt * 0.04; 
+            if (this.ojamaPopups[i].timer <= 0) {
+                this.ojamaPopups.splice(i, 1);
+            }
+        }
+
+        // 【新規演出】計算式 ＆ 飛ぶスコアポップアップの更新
+        const targetScoreX = this.xOffset + (COLS * BLOCK_SIZE) / 2;
+        const targetScoreY = 638; // スコア数値のある下部座標
+
+        for (let i = this.scorePopups.length - 1; i >= 0; i--) {
+            const pop = this.scorePopups[i];
+            pop.timer -= dt;
+
+            if (pop.timer > 700) {
+                // 第一段階：その場で数式を表示しつつわずかに上昇
+                pop.px = pop.startX;
+                pop.py = pop.startY - (pop.maxTimer - pop.timer) * 0.05;
+            } else {
+                // 第二段階：スコアに向かって吸い込まれるように飛行
+                if (!pop.added) {
+                    this.targetScore += pop.result;
+                    this.score += pop.result;
+                    this.attackOpponent(pop.generatedOjama); // 飛行開始と同時におじゃま攻撃を確定
+                    pop.added = true;
+                }
+                let t = (700 - pop.timer) / 700; // 0 から 1 へ遷移
+                let easeT = t * t; // イージング（加速しながら落下）
+                pop.px = pop.startX + (targetScoreX - pop.startX) * easeT;
+                pop.py = (pop.startY - (pop.maxTimer - 700) * 0.05) + (targetScoreY - (pop.startY - (pop.maxTimer - 700) * 0.05)) * easeT;
+                pop.scale = 1.0 - 0.4 * easeT; // 吸い込まれながら少し縮小
+            }
+
+            if (pop.timer <= 0) {
+                this.scorePopups.splice(i, 1);
+            }
+        }
+
+        // ドラムロール式スコア増算
+        if (this.displayScore < this.targetScore) {
+            let diff = this.targetScore - this.displayScore;
+            let step = Math.ceil(diff / 8); 
+            this.displayScore += step;
+        }
+
+        for (let i = this.particles.length - 1; i >= 0; i--) {
+            this.particles[i].update(dt);
+            if (this.particles[i].alpha <= 0) {
+                this.particles.splice(i, 1);
+            }
+        }
+
+        switch (this.state) {
+            case 'spawn':
+                if (this.grid[1][2] !== 0) {
+                    this.state = 'gameover';
+                    break;
+                }
+                const next = this.nextQueue.shift();
+                this.nextQueue.push({ 
+                    axis: this.getRandomColor(this.colorVariety), 
+                    child: this.getRandomColor(this.colorVariety) 
+                });
+
+                this.currentPuyo = {
+                    axis: { x: 2, y: 2, color: next.axis },
+                    child: { x: 2, y: 1, color: next.child }
+                };
+                this.rot = 0; 
+                this.state = 'play';
+                this.lastDropTime = 0;
+                this.lockTimer = 0;
+                this.cpuTarget = null; 
+                break;
+
+            case 'play':
+                if (this.isCPU) {
+                    this.updateCPU(dt);
+                }
+                this.updatePlay(dt);
+                break;
+
+            case 'lock':
+                if (this.currentPuyo.axis.y >= 0) this.grid[this.currentPuyo.axis.y][this.currentPuyo.axis.x] = this.currentPuyo.axis.color;
+                if (this.currentPuyo.child.y >= 0) this.grid[this.currentPuyo.child.y][this.currentPuyo.child.x] = this.currentPuyo.child.color;
+                this.currentPuyo = null;
+                this.chainCount = 0;
+                this.state = 'drop';
+                this.stateTimer = 0;
+                break;
+
+            case 'drop':
+                this.stateTimer += dt;
+                if (this.stateTimer > 80) { 
+                    this.stateTimer = 0;
+                    const moved = this.applyGravityStep();
+                    if (!moved) {
+                        this.state = 'erase_check';
+                    }
+                }
+                break;
+
+            case 'erase_check':
+                const groups = this.findConnectedGroups();
+                if (groups.length > 0) {
+                    this.eraseList = [];
+                    groups.forEach(g => this.eraseList.push(...g));
+                    this.addAdjacentOjamasToErase();
+
+                    this.state = 'erase';
+                    this.stateTimer = 0;
+                    this.chainCount++;
+
+                    const voiceIndex = Math.min(this.chainCount, VOICES.length - 1);
+                    this.voiceText = VOICES[voiceIndex];
+                    this.voiceTimer = 1100; 
+                    this.voiceAlpha = 1.0;
+                    this.voiceY = 220;
+
+                    this.calculateScore(groups);
+                } else {
+                    if (settings.allClearBonus && this.checkAllClear()) {
+                        this.allClearActive = true;
+                        this.allClearTimer = 2500; 
+                        this.targetScore += 2100;        
+                        this.attackOpponent(30);   
+                    }
+
+                    if (this.ojamaPool > 0) {
+                        this.state = 'ojama';
+                    } else {
+                        this.state = 'spawn';
+                    }
+                }
+                break;
+
+            case 'erase':
+                this.stateTimer += dt;
+                
+                if (this.stateTimer > 310 && this.eraseList.length > 0) {
+                    this.triggerEraseParticles();
+                }
+
+                if (this.stateTimer > 350) {
+                    this.eraseList.forEach(p => {
+                        this.grid[p.y][p.x] = 0;
+                    });
+                    this.eraseList = [];
+                    this.state = 'drop'; 
+                    this.stateTimer = 0;
+                }
+                break;
+
+            case 'ojama':
+                this.dropOjama();
+                this.state = 'drop'; 
+                this.stateTimer = 0;
+                break;
+
+            case 'gameover':
+                break;
+        }
+    }
+
+    triggerEraseParticles() {
+        this.eraseList.forEach(p => {
+            if (this.grid[p.y][p.x] === 0) return;
+            const px = this.xOffset + p.x * BLOCK_SIZE + BLOCK_SIZE / 2;
+            const py = 100 + (p.y - 1) * BLOCK_SIZE + BLOCK_SIZE / 2;
+            const color = COLORS[this.grid[p.y][p.x]];
+            for (let i = 0; i < 5; i++) {
+                this.particles.push(new Particle(px, py, color));
+            }
+        });
+    }
+
+    updatePlay(dt) {
+        if (!this.lastDropTime) this.lastDropTime = 0;
+        
+        if (this.canMove(this.currentPuyo, 0, 1)) {
+            this.lastDropTime += dt;
+            if (this.lastDropTime > this.dropInterval) {
+                this.currentPuyo.axis.y += 1;
+                this.currentPuyo.child.y += 1;
+                this.lastDropTime = 0;
+            }
+        } else {
+            this.lockTimer += dt;
+            if (this.lockTimer >= this.lockDelay) {
+                this.state = 'lock';
+            }
+        }
+    }
+
+    applyGravityStep() {
+        let moved = false;
+        for (let x = 0; x < COLS; x++) {
+            for (let y = ROWS - 1; y > 0; y--) {
+                if (this.grid[y][x] === 0 && this.grid[y - 1][x] !== 0) {
+                    this.grid[y][x] = this.grid[y - 1][x];
+                    this.grid[y - 1][x] = 0;
+                    moved = true;
+                }
+            }
+        }
+        return moved;
+    }
+
+    checkAllClear() {
+        for (let y = 1; y < ROWS; y++) {
+            for (let x = 0; x < COLS; x++) {
+                if (this.grid[y][x] !== 0) return false;
+            }
+        }
+        return true;
+    }
+
+    findConnectedGroups() {
+        const visited = Array.from({ length: ROWS }, () => Array(COLS).fill(false));
+        const groups = [];
+
+        for (let y = 1; y < ROWS; y++) { 
+            for (let x = 0; x < COLS; x++) {
+                const color = this.grid[y][x];
+                if (color === 0 || color === 6 || visited[y][x]) continue;
+
+                const queue = [{ x, y }];
+                const currentGroup = [];
+                visited[y][x] = true;
+
+                while (queue.length > 0) {
+                    const cell = queue.shift();
+                    currentGroup.push(cell);
+
+                    const neighbors = [
+                        { x: cell.x + 1, y: cell.y },
+                        { x: cell.x - 1, y: cell.y },
+                        { x: cell.x, y: cell.y + 1 },
+                        { x: cell.x, y: cell.y - 1 }
+                    ];
+
+                    for (let n of neighbors) {
+                        if (this.isValidPos(n.x, n.y) && n.y >= 1) {
+                            if (!visited[n.y][n.x] && this.grid[n.y][n.x] === color) {
+                                visited[n.y][n.x] = true;
+                                queue.push(n);
+                            }
+                        }
+                    }
+                }
+
+                if (currentGroup.length >= 4) {
+                    groups.push(currentGroup);
+                }
+            }
+        }
+        return groups;
+    }
+
+    addAdjacentOjamasToErase() {
+        const ojamasToErase = [];
+        this.eraseList.forEach(pos => {
+            const neighbors = [
+                { x: pos.x + 1, y: pos.y },
+                { x: pos.x - 1, y: pos.y },
+                { x: pos.x, y: pos.y + 1 },
+                { x: pos.x, y: pos.y - 1 }
+            ];
+            neighbors.forEach(n => {
+                if (this.isValidPos(n.x, n.y)) {
+                    if (this.grid[n.y][n.x] === 6) { 
+                        if (!ojamasToErase.some(p => p.x === n.x && p.y === n.y)) {
+                            ojamasToErase.push(n);
+                        }
+                    }
+                }
+            });
+        });
+        this.eraseList.push(...ojamasToErase);
+    }
+
+    // 【本家風計算ポップアップの創出】
+    calculateScore(groups) {
+        let totalPuyos = 0;
+        let groupBonusSum = 0;
+        const colorsInChain = new Set();
+
+        let avgX = 0, avgY = 0;
+        let puyoCount = 0;
+
+        groups.forEach(group => {
+            totalPuyos += group.length;
+            const colIdx = this.grid[group[0].y][group[0].x];
+            colorsInChain.add(colIdx);
+
+            const bonusIdx = Math.min(group.length, 11);
+            groupBonusSum += GROUP_BONUS[bonusIdx];
+
+            // 平均位置算出用
+            group.forEach(p => {
+                avgX += p.x;
+                avgY += p.y;
+                puyoCount++;
+            });
+        });
+
+        const chainBonus = CHAIN_BONUS[Math.min(this.chainCount, CHAIN_BONUS.length - 1)];
+        const colorBonus = COLOR_BONUS[Math.min(colorsInChain.size, COLOR_BONUS.length - 1)];
+        
+        let bonusTotal = chainBonus + groupBonusSum + colorBonus;
+        if (bonusTotal === 0) bonusTotal = 1;
+
+        const pts = totalPuyos * 10 * bonusTotal;
+
+        // 計算式の発生座標
+        const cx = puyoCount > 0 ? avgX / puyoCount : 2;
+        const cy = puyoCount > 0 ? avgY / puyoCount : 5;
+        const startX = this.xOffset + cx * BLOCK_SIZE + BLOCK_SIZE / 2;
+        const startY = 100 + (cy - 1) * BLOCK_SIZE + BLOCK_SIZE / 2;
+
+        const basicPoints = totalPuyos * 10;
+        const rate = getCurrentOjamaRate();
+        let generatedOjama = Math.floor(pts / rate);
+
+        // スコア加算用ポップアップオブジェクトの生成 (スコアはまだ加算せず、数フレーム後に吸い込みをトリガー)
+        this.scorePopups.push({
+            startX: startX,
+            startY: startY,
+            px: startX,
+            py: startY,
+            basic: basicPoints,
+            multiplier: bonusTotal,
+            result: pts,
+            generatedOjama: generatedOjama,
+            timer: 1300,
+            maxTimer: 1300,
+            added: false,
+            scale: 1.0
+        });
+    }
+
+    attackOpponent(amount) {
+        if (!this.opponent) return;
+
+        if (this.ojamaPool > 0) {
+            if (this.ojamaPool >= amount) {
+                this.ojamaPool -= amount;
+                amount = 0;
+            } else {
+                amount -= this.ojamaPool;
+                this.ojamaPool = 0;
+            }
+        }
+
+        if (amount > 0) {
+            this.opponent.ojamaPool += amount;
+            this.opponent.ojamaPopups.push({
+                amount: amount,
+                timer: 900,
+                yOffset: 0
+            });
+        }
+    }
+
+    dropOjama() {
+        let amount = Math.min(this.ojamaPool, 30); 
+        this.ojamaPool -= amount;
+
+        const columns = [0, 1, 2, 3, 4, 5];
+        columns.sort(() => Math.random() - 0.5);
+
+        for (let i = 0; i < amount; i++) {
+            const x = columns[i % 6];
+            for (let y = 0; y < ROWS; y++) {
+                if (this.grid[y][x] === 0) {
+                    this.grid[y][x] = 6; 
+                    break;
+                }
+            }
+        }
+    }
+
+    updateCPU(dt) {
+        if (!this.cpuTarget) {
+            this.cpuTarget = this.getBestMove();
+        }
+
+        this.cpuActionTimer += dt;
+        if (this.cpuActionTimer >= this.cpuActionInterval) {
+            this.cpuActionTimer = 0;
+
+            if (this.rot !== this.cpuTarget.rot) {
+                this.rotate(1); 
+                return;
+            }
+
+            const currentX = this.currentPuyo.axis.x;
+            if (currentX < this.cpuTarget.x) {
+                this.move(1, 0); 
+            } else if (currentX > this.cpuTarget.x) {
+                this.move(-1, 0); 
+            } else {
+                this.move(0, 1);
+            }
+        }
+    }
+
+    getBestMove() {
+        let bestScore = -99999;
+        let bestX = 2;
+        let bestRot = 0;
+
+        for (let x = 0; x < COLS; x++) {
+            for (let r = 0; r < 4; r++) {
+                const score = this.evaluateMove(x, r);
+                if (score > bestScore) {
+                    bestScore = score;
+                    bestX = x;
+                    bestRot = r;
+                }
+            }
+        }
+
+        let randomChance = 0.1; 
+        if (settings.cpuDifficulty === 'easy') {
+            randomChance = 0.45;
+        } else if (settings.cpuDifficulty === 'hard') {
+            randomChance = 0.0;
+        }
+
+        if (Math.random() < randomChance) {
+            bestX = Math.floor(Math.random() * COLS);
+            bestRot = Math.floor(Math.random() * 4);
+        }
+        return { x: bestX, rot: bestRot };
+    }
+
+    evaluateMove(targetX, targetRot) {
+        const axisColor = this.currentPuyo.axis.color;
+        const childColor = this.currentPuyo.child.color;
+
+        const ndx = ROT_OFFSET[targetRot].x;
+        const ndy = ROT_OFFSET[targetRot].y;
+
+        if (targetX < 0 || targetX >= COLS) return -99999;
+        const childX = targetX + ndx;
+        if (childX < 0 || childX >= COLS) return -99999;
+
+        let axisY = ROWS - 1;
+        while (axisY >= 0 && this.grid[axisY][targetX] !== 0) {
+            axisY--;
+        }
+        let childY = ROWS - 1;
+        while (childY >= 0 && this.grid[childY][childX] !== 0) {
+            childY--;
+        }
+
+        if (targetX === childX) {
+            if (ndy === -1) { 
+                childY = axisY - 1;
+            } else if (ndy === 1) { 
+                axisY = childY - 1;
+            }
+        }
+
+        if (axisY < 1 || childY < 1) return -99999;
+
+        let score = 0;
+        const checkNeighbors = (x, y, color) => {
+            let matches = 0;
+            const neighbors = [
+                { x: x + 1, y }, { x: x - 1, y }, { x, y: y + 1 }, { x, y: y - 1 }
+            ];
+            neighbors.forEach(n => {
+                if (this.isValidPos(n.x, n.y) && this.grid[n.y][n.x] === color) {
+                    matches++;
+                }
+            });
+            return matches;
+        };
+
+        score += checkNeighbors(targetX, axisY, axisColor) * 25;
+        score += checkNeighbors(childX, childY, childColor) * 25;
+
+        const heightPenalty = (ROWS - axisY) + (ROWS - childY);
+        score -= heightPenalty * 8;
+
+        const flatBonus = (axisY + childY);
+        score += flatBonus * 2;
+
+        return score;
+    }
+
+    // ==========================================
+    // 4. UX重視・本家風グラフィック描画処理
+    // ==========================================
+    draw(ctx) {
+        const offset = this.xOffset;
+
+        // 【デザイン革新】プレイステージ全体の角丸クリッピング処理
+        ctx.save();
+        ctx.beginPath();
+        drawRoundedRect(ctx, offset, 100, COLS * BLOCK_SIZE, (ROWS - 1) * BLOCK_SIZE, 12);
+        ctx.clip(); // 内側をすべてクリップ
+
+        // クリーンなオフホワイト背景
+        ctx.fillStyle = '#fcfdfe';
+        ctx.fillRect(offset, 100, COLS * BLOCK_SIZE, (ROWS - 1) * BLOCK_SIZE);
+
+        // 薄く見えそうで見えないマス目の区切り
+        ctx.strokeStyle = '#f1f5f9';
+        ctx.lineWidth = 1;
+        for (let i = 1; i < COLS; i++) {
+            ctx.beginPath();
+            ctx.moveTo(offset + i * BLOCK_SIZE, 100);
+            ctx.lineTo(offset + i * BLOCK_SIZE, 100 + (ROWS - 1) * BLOCK_SIZE);
+            ctx.stroke();
+        }
+        for (let j = 1; j < ROWS - 1; j++) {
+            ctx.beginPath();
+            ctx.moveTo(offset, 100 + j * BLOCK_SIZE);
+            ctx.lineTo(offset + COLS * BLOCK_SIZE, 100 + j * BLOCK_SIZE);
+            ctx.stroke();
+        }
+
+        // 盤面ぷよ
+        for (let y = 1; y < ROWS; y++) {
+            for (let x = 0; x < COLS; x++) {
+                const colorId = this.grid[y][x];
+                if (colorId !== 0) {
+                    const px = offset + x * BLOCK_SIZE;
+                    const py = 100 + (y - 1) * BLOCK_SIZE;
+
+                    if (this.state === 'erase' && this.eraseList.some(p => p.x === x && p.y === y)) {
+                        const scale = Math.max(0, 1 - (this.stateTimer / 350));
+                        const pulse = Math.floor(Date.now() / 50) % 2 === 0;
+                        this.drawPuyoUnit(px, py, pulse ? '#ffffff' : COLORS[colorId], colorId, x, y, scale);
+                    } else {
+                        this.drawPuyoUnit(px, py, COLORS[colorId], colorId, x, y);
+                    }
+                }
+            }
+        }
+
+        // 本家窒息点の「×」マーク
+        const xMarkX = offset + 2 * BLOCK_SIZE + BLOCK_SIZE / 2;
+        const xMarkY = 100 + (1 - 1) * BLOCK_SIZE + BLOCK_SIZE / 2; 
+        if (this.grid[1][2] === 0) { 
+            ctx.save();
+            ctx.strokeStyle = 'rgba(255, 94, 98, 0.7)'; 
+            ctx.lineWidth = 4;
+            ctx.lineCap = 'round';
+            ctx.beginPath();
+            const size = BLOCK_SIZE * 0.28;
+            ctx.moveTo(xMarkX - size, xMarkY - size);
+            ctx.lineTo(xMarkX + size, xMarkY + size);
+            ctx.moveTo(xMarkX + size, xMarkY - size);
+            ctx.lineTo(xMarkX - size, xMarkY + size);
+            ctx.stroke();
+            ctx.restore();
+        }
+
+        // 操作中ぷよ
+        if (this.currentPuyo && this.state === 'play') {
+            const axis = this.currentPuyo.axis;
+            const child = this.currentPuyo.child;
+
+            if (axis.y >= 1) {
+                this.drawPuyoUnit(offset + axis.x * BLOCK_SIZE, 100 + (axis.y - 1) * BLOCK_SIZE, COLORS[axis.color], axis.color, axis.x, axis.y);
+            }
+            if (child.y >= 1) {
+                this.drawPuyoUnit(offset + child.x * BLOCK_SIZE, 100 + (child.y - 1) * BLOCK_SIZE, COLORS[child.color], child.color, child.x, child.y);
+            }
+        }
+
+        ctx.restore(); // クリッピング領域解除
+
+        // 外枠を描画
+        ctx.save();
+        ctx.strokeStyle = '#cbd5e1';
+        ctx.lineWidth = 4;
+        ctx.beginPath();
+        drawRoundedRect(ctx, offset, 100, COLS * BLOCK_SIZE, (ROWS - 1) * BLOCK_SIZE, 12);
+        ctx.stroke();
+        ctx.restore();
+
+        // おじゃま予告アイコン
+        this.drawOjamaIcons(offset);
+
+        // パーティクルの描画
+        this.particles.forEach(p => p.draw(ctx));
+
+        // 【新規UX】計算式 ＆ 飛ぶスコアポップアップの描画
+        this.scorePopups.forEach(pop => {
+            ctx.save();
+            ctx.translate(pop.px, pop.py);
+            ctx.scale(pop.scale, pop.scale);
+
+            ctx.strokeStyle = '#ffffff';
+            ctx.lineWidth = 6;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+
+            if (pop.timer > 700) {
+                // 第一段階：基本点×倍率 (例: 40 × 8)
+                ctx.fillStyle = '#ff9f1a';
+                ctx.font = 'bold 20px "Inter", sans-serif';
+                ctx.strokeText(`${pop.basic} × ${pop.multiplier}`, 0, 0);
+                ctx.fillText(`${pop.basic} × ${pop.multiplier}`, 0, 0);
+            } else {
+                // 第二段階：獲得点数 (例: +320)
+                ctx.fillStyle = '#ff5e62';
+                ctx.font = '900 24px monospace';
+                ctx.strokeText(`+${pop.result}`, 0, 0);
+                ctx.fillText(`+${pop.result}`, 0, 0);
+            }
+            ctx.restore();
+        });
+
+        // おじゃま送付ポップアップ
+        this.ojamaPopups.forEach(pop => {
+            ctx.save();
+            ctx.globalAlpha = Math.min(1.0, pop.timer / 200);
+            ctx.fillStyle = '#ff5e62';
+            ctx.strokeStyle = '#ffffff';
+            ctx.lineWidth = 4;
+            ctx.font = 'bold 20px monospace';
+            ctx.textAlign = 'center';
+            ctx.strokeText(`+${pop.amount}`, offset + (COLS * BLOCK_SIZE)/2, 60 + pop.yOffset);
+            ctx.fillText(`+${pop.amount}`, offset + (COLS * BLOCK_SIZE)/2, 60 + pop.yOffset);
+            ctx.restore();
+        });
+
+        // 【文字なし表示】洗練された7桁のゼロパディング数字のみ
+        ctx.fillStyle = '#1e293b';
+        ctx.font = '900 24px monospace'; 
+        ctx.textAlign = 'center';
+        const formattedScore = String(this.displayScore).padStart(7, '0');
+        ctx.fillText(formattedScore, offset + (COLS * BLOCK_SIZE) / 2, 638);
+
+        // 連鎖ボイステキスト
+        if (this.voiceTimer > 0 && this.voiceText !== "") {
+            ctx.save();
+            ctx.globalAlpha = this.voiceAlpha;
+            ctx.font = 'italic 900 28px "Helvetica Neue", Arial, sans-serif';
+            ctx.textAlign = 'center';
+            ctx.strokeStyle = '#ffffff';
+            ctx.lineWidth = 6;
+            ctx.fillStyle = '#ff9f1a';
+            const textX = offset + (COLS * BLOCK_SIZE) / 2;
+            ctx.strokeText(this.voiceText, textX, this.voiceY);
+            ctx.fillText(this.voiceText, textX, this.voiceY);
+            ctx.restore();
+        }
+
+        // 全消し表示
+        if (this.allClearActive) {
+            ctx.save();
+            ctx.fillStyle = 'rgba(255, 159, 26, 0.9)';
+            ctx.strokeStyle = '#ffffff';
+            ctx.lineWidth = 4;
+            ctx.font = 'bold 28px sans-serif';
+            ctx.textAlign = 'center';
+            const boardCenter = offset + (COLS * BLOCK_SIZE) / 2;
+            ctx.strokeText("全消し!", boardCenter, 300);
+            ctx.fillText("全消し!", boardCenter, 300);
+            ctx.restore();
+        }
+
+        // ゲームオーバー表示
+        if (this.state === 'gameover') {
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.85)';
+            ctx.fillRect(offset, 100, COLS * BLOCK_SIZE, (ROWS - 1) * BLOCK_SIZE);
+            ctx.fillStyle = '#ff5e62';
+            ctx.font = 'bold 36px sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText("LOSE", offset + (COLS * BLOCK_SIZE)/2, 340);
+        }
+
+        if (this.opponent && this.opponent.state === 'gameover') {
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+            ctx.fillRect(offset, 100, COLS * BLOCK_SIZE, (ROWS - 1) * BLOCK_SIZE);
+            ctx.fillStyle = '#56ab2f'; 
+            ctx.font = 'bold 36px sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText("WIN!", offset + (COLS * BLOCK_SIZE)/2, 340);
+        }
+    }
+
+    drawPuyoUnit(px, py, color, id, x, y, scale = 1.0) {
+        const cx = px + BLOCK_SIZE / 2;
+        const cy = py + BLOCK_SIZE / 2;
+        const r = (BLOCK_SIZE / 2 - 2) * scale;
+
+        let up = false, down = false, left = false, right = false;
+        if (id >= 1 && id <= 5 && y !== undefined && x !== undefined) {
+            up = (y > 1 && this.grid[y - 1][x] === id);
+            down = (y < ROWS - 1 && this.grid[y + 1][x] === id);
+            left = (x > 0 && this.grid[y][x - 1] === id);
+            right = (x < COLS - 1 && this.grid[y][x + 1] === id);
+        }
+
+        ctx.fillStyle = color;
+
+        if (id >= 1 && id <= 5) {
+            const bridgeW = BLOCK_SIZE * 0.72 * scale; 
+            const halfBS = (BLOCK_SIZE / 2) * scale;
+            
+            if (up) ctx.fillRect(cx - bridgeW / 2, cy - halfBS, bridgeW, halfBS);
+            if (down) ctx.fillRect(cx - bridgeW / 2, cy, bridgeW, halfBS);
+            if (left) ctx.fillRect(cx - halfBS, cy - bridgeW / 2, halfBS, bridgeW);
+            if (right) ctx.fillRect(cx, cy - bridgeW / 2, halfBS, bridgeW);
+        }
+
+        ctx.beginPath();
+        ctx.arc(cx, cy, r, 0, Math.PI * 2);
+        ctx.fill();
+
+        if (id !== 0 && color !== '#ffffff') {
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.45)';
+            ctx.beginPath();
+            ctx.arc(cx - r / 3.2, cy - r / 3.2, r / 3.5, 0, Math.PI * 2);
+            ctx.fill();
+        }
+
+        if (id >= 1 && id <= 5 && color !== '#ffffff') {
+            ctx.fillStyle = '#ffffff';
+            ctx.beginPath(); ctx.arc(cx - 5 * scale, cy, 5.5 * scale, 0, Math.PI * 2); ctx.fill();
+            ctx.beginPath(); ctx.arc(cx + 5 * scale, cy, 5.5 * scale, 0, Math.PI * 2); ctx.fill();
+            
+            ctx.fillStyle = '#2c3e50';
+            ctx.beginPath(); ctx.arc(cx - 5 * scale, cy, 3 * scale, 0, Math.PI * 2); ctx.fill();
+            ctx.beginPath(); ctx.arc(cx + 5 * scale, cy, 3 * scale, 0, Math.PI * 2); ctx.fill();
+            
+            ctx.fillStyle = '#ffffff';
+            ctx.beginPath(); ctx.arc(cx - 6 * scale, cy - 1.5 * scale, 1.2 * scale, 0, Math.PI * 2); ctx.fill();
+            ctx.beginPath(); ctx.arc(cx - 4 * scale, cy + 1 * scale, 0.6 * scale, 0, Math.PI * 2); ctx.fill();
+
+            ctx.beginPath(); ctx.arc(cx + 4 * scale, cy - 1.5 * scale, 1.2 * scale, 0, Math.PI * 2); ctx.fill();
+            ctx.beginPath(); ctx.arc(cx + 6 * scale, cy + 1 * scale, 0.6 * scale, 0, Math.PI * 2); ctx.fill();
+        } 
+        else if (id === 6 && color !== '#ffffff') {
+            ctx.strokeStyle = '#2c3e50';
+            ctx.lineWidth = 1.5 * scale;
+            ctx.fillStyle = '#fff';
+            ctx.beginPath(); ctx.arc(cx - 4 * scale, cy - 1 * scale, 4 * scale, 0, Math.PI * 2); ctx.fill();
+            ctx.beginPath(); ctx.arc(cx + 4 * scale, cy - 1 * scale, 4 * scale, 0, Math.PI * 2); ctx.fill();
+            ctx.stroke();
+
+            ctx.fillStyle = '#ff5e62'; 
+            ctx.beginPath(); ctx.arc(cx - 3 * scale, cy, 1.5 * scale, 0, Math.PI * 2); ctx.fill();
+            ctx.beginPath(); ctx.arc(cx + 3 * scale, cy, 1.5 * scale, 0, Math.PI * 2); ctx.fill();
+        }
+    }
+
+    drawOjamaIcons(offset) {
+        let n = this.ojamaDisplay;
+        if (n === 0) return;
+
+        const numCrown = Math.floor(n / 1440); n %= 1440; 
+        const numComet = Math.floor(n / 720);  n %= 720;  
+        const numMoon = Math.floor(n / 360);   n %= 360;  
+        const numStar = Math.floor(n / 180);   n %= 180;  
+        const numRock = Math.floor(n / 30);    n %= 30;   
+        const numBig = Math.floor(n / 6);      n %= 6;    
+        const numSmall = n;                               
+
+        let curX = offset + 15;
+        const iconY = 40; 
+
+        const drawCircleIcon = (cx, cy, radius, color, isBordered = false) => {
+            ctx.fillStyle = color;
+            ctx.beginPath();
+            ctx.arc(cx, cy, radius, 0, Math.PI * 2);
+            ctx.fill();
+            if (isBordered) {
+                ctx.strokeStyle = '#cbd5e1';
+                ctx.lineWidth = 1;
+                ctx.stroke();
+            }
+        };
+
+        for (let i = 0; i < Math.min(numCrown, 5); i++) {
+            ctx.fillStyle = '#ffd32a';
+            ctx.strokeStyle = '#ffa801';
+            ctx.lineWidth = 2;
+            const w = 24, h = 18;
+            ctx.beginPath();
+            ctx.moveTo(curX - w/2, iconY + h/2);
+            ctx.lineTo(curX + w/2, iconY + h/2);
+            ctx.lineTo(curX + w/2, iconY - h/4);
+            ctx.lineTo(curX + w/4, iconY + h/8);
+            ctx.lineTo(curX, iconY - h/2);
+            ctx.lineTo(curX - w/4, iconY + h/8);
+            ctx.lineTo(curX - w/2, iconY - h/4);
+            ctx.closePath();
+            ctx.fill(); ctx.stroke();
+            curX += 28;
+        }
+
+        for (let i = 0; i < Math.min(numComet, 5); i++) {
+            ctx.fillStyle = '#4ea8de';
+            ctx.beginPath();
+            ctx.moveTo(curX, iconY);
+            ctx.lineTo(curX - 18, iconY + 5);
+            ctx.lineTo(curX - 5, iconY + 18);
+            ctx.closePath(); ctx.fill();
+            drawCircleIcon(curX, iconY, 8, '#ffffff');
+            ctx.strokeStyle = '#4ea8de';
+            ctx.lineWidth = 2;
+            ctx.beginPath(); ctx.arc(curX, iconY, 8, 0, Math.PI*2); ctx.stroke();
+            curX += 24;
+        }
+
+        for (let i = 0; i < Math.min(numMoon, 5); i++) {
+            ctx.fillStyle = '#fbc531';
+            ctx.beginPath();
+            ctx.arc(curX, iconY, 10, Math.PI * 0.2, Math.PI * 1.8, true);
+            ctx.arc(curX + 5, iconY, 8, Math.PI * 1.6, Math.PI * 0.4, false);
+            ctx.closePath(); ctx.fill();
+            curX += 24;
+        }
+
+        for (let i = 0; i < Math.min(numStar, 6); i++) {
+            ctx.fillStyle = '#2bcbba';
+            let rot = Math.PI / 2 * 3;
+            let step = Math.PI / 5;
+            ctx.beginPath();
+            ctx.moveTo(curX, iconY - 10);
+            for (let k = 0; k < 5; k++) {
+                ctx.lineTo(curX + Math.cos(rot)*10, iconY + Math.sin(rot)*10);
+                rot += step;
+                ctx.lineTo(curX + Math.cos(rot)*4, iconY + Math.sin(rot)*4);
+                rot += step;
+            }
+            ctx.closePath(); ctx.fill();
+            curX += 24;
+        }
+
+        for (let i = 0; i < Math.min(numRock, 6); i++) {
+            drawCircleIcon(curX, iconY, 8, '#ff9f1a', true);
+            curX += 20;
+        }
+
+        for (let i = 0; i < Math.min(numBig, 6); i++) {
+            drawCircleIcon(curX, iconY, 6, '#cbd5e1', true);
+            curX += 16;
+        }
+
+        for (let i = 0; i < Math.min(numSmall, 12); i++) {
+            if (curX > offset + COLS*BLOCK_SIZE - 10) break;
+            drawCircleIcon(curX, iconY + 2, 4, '#a4b0be');
+            curX += 12;
+        }
+    }
+}
+
+// ==========================================
+// 5. ゲーム全体の管理・HUD・ループ
+// ==========================================
+
+const playerBoard = new Board(40, false);
+const cpuBoard = new Board(522, true); // 右側ボード位置を拡大サイズに追従
+
+playerBoard.opponent = cpuBoard;
+cpuBoard.opponent = playerBoard;
+
+function getCurrentOjamaRate() {
+    let rate = settings.ojamaRate;
+    if (matchState === 'playing' && settings.marginTime > 0 && playTime > settings.marginTime) {
+        const stages = Math.floor((playTime - settings.marginTime) / 16000);
+        rate = Math.max(1, Math.floor(settings.ojamaRate / Math.pow(2, stages)));
+    }
+    return rate;
+}
+
+function formatTime(ms) {
+    const totalSec = Math.floor(ms / 1000);
+    const m = Math.floor(totalSec / 60);
+    const s = totalSec % 60;
+    return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+}
+
+// 【デザイン革新】角丸で立体的なカプセル状NextプレビューHUD
+function drawHUD() {
+    ctx.fillStyle = '#f1f5f9'; 
+    ctx.fillRect(298, 0, 224, canvas.height);
+
+    ctx.strokeStyle = '#cbd5e1';
+    ctx.lineWidth = 3;
+    ctx.beginPath(); ctx.moveTo(298, 0); ctx.lineTo(298, canvas.height); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(522, 0); ctx.lineTo(522, canvas.height); ctx.stroke();
+
+    ctx.fillStyle = '#64748b';
+    ctx.font = 'bold 11px "Inter", sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText("MATCH TIME", 410, 35);
+    
+    ctx.fillStyle = (settings.marginTime > 0 && playTime > settings.marginTime) ? '#ff5e62' : '#1e293b';
+    ctx.font = '900 24px monospace';
+    ctx.fillText(formatTime(playTime), 410, 65);
+
+    // 1P NEXT ピル型カプセル
+    drawNextCapsule(345, 110, "1P NEXT", playerBoard.nextQueue);
+
+    // CPU NEXT ピル型カプセル
+    drawNextCapsule(475, 110, "CPU NEXT", cpuBoard.nextQueue);
+}
+
+function drawNextCapsule(cx, cy, label, queue) {
+    ctx.save();
+    
+    ctx.fillStyle = '#64748b';
+    ctx.font = 'bold 11px "Inter", sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText(label, cx, cy);
+
+    // プレミアム丸角ケース背景
+    const pw = 40;
+    const ph = 140;
+    const rx = cx - pw / 2;
+    const ry = cy + 15;
+
+    ctx.fillStyle = '#ffffff';
+    ctx.strokeStyle = '#e2e8f0';
+    ctx.lineWidth = 2;
+    drawRoundedRect(ctx, rx, ry, pw, ph, 20);
+    ctx.fill();
+    ctx.stroke();
+
+    // Next
+    if (queue[0]) {
+        drawNextPuyoUnit(cx, ry + 35, queue[0]);
+    }
+    // 区切り線
+    ctx.strokeStyle = '#f1f5f9';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(rx + 5, ry + 70);
+    ctx.lineTo(rx + pw - 5, ry + 70);
+    ctx.stroke();
+
+    // Double Next
+    if (queue[1]) {
+        drawNextPuyoUnit(cx, ry + 105, queue[1]);
+    }
+
+    ctx.restore();
+}
+
+function drawNextPuyoUnit(cx, cy, pair) {
+    const r = 11;
+    ctx.fillStyle = COLORS[pair.axis];
+    ctx.beginPath(); ctx.arc(cx, cy + r - 2, r, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = 'rgba(255,255,255,0.45)';
+    ctx.beginPath(); ctx.arc(cx - r/3, cy + r - 2 - r/3, r/4, 0, Math.PI * 2); ctx.fill();
+
+    ctx.fillStyle = COLORS[pair.child];
+    ctx.beginPath(); ctx.arc(cx, cy - r + 2, r, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = 'rgba(255,255,255,0.45)';
+    ctx.beginPath(); ctx.arc(cx - r/3, cy - r + 2 - r/3, r/4, 0, Math.PI * 2); ctx.fill();
+}
+
+// 汎用丸角短形パス生成関数
+function drawRoundedRect(ctx, x, y, width, height, radius) {
+    ctx.beginPath();
+    ctx.moveTo(x + radius, y);
+    ctx.lineTo(x + width - radius, y);
+    ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
+    ctx.lineTo(x + width, y + height - radius);
+    ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
+    ctx.lineTo(x + radius, y + height);
+    ctx.quadraticCurveTo(x, y + height, x, y + height - radius);
+    ctx.lineTo(x, y + radius);
+    ctx.quadraticCurveTo(x, y, x + radius, y);
+    ctx.closePath();
+}
+
+// MATCH STARTクリック時の処理
+document.getElementById('start-btn').addEventListener('click', () => {
+    settings.cpuDifficulty = document.getElementById('cpu-diff').value;
+
+    if (settings.cpuDifficulty === 'easy') {
+        cpuBoard.cpuActionInterval = 300; 
+    } else if (settings.cpuDifficulty === 'hard') {
+        cpuBoard.cpuActionInterval = 75;  
+    } else {
+        cpuBoard.cpuActionInterval = 150; 
+    }
+
+    playerBoard.init();
+    cpuBoard.init();
+
+    document.getElementById('home-screen').classList.add('hidden');
+
+    matchState = 'countdown';
+    countdownTime = 3000; 
+    playTime = 0;
+});
+
+window.addEventListener('keydown', (e) => {
+    if (playerBoard.state !== 'play' || matchState !== 'playing') return;
+    switch (e.key) {
+        case 'ArrowLeft': playerBoard.move(-1, 0); break;
+        case 'ArrowRight': playerBoard.move(1, 0); break;
+        case 'ArrowDown': playerBoard.move(0, 1); break;
+        case 'z': case 'Z': playerBoard.rotate(-1); break;
+        case 'x': case 'X': playerBoard.rotate(1); break;
+    }
+});
+
+// メインループ
+function loop(timestamp) {
+    if (!lastTime) lastTime = timestamp;
+    const dt = timestamp - lastTime;
+    lastTime = timestamp;
+
+    if (matchState === 'countdown') {
+        countdownTime -= dt;
+        if (countdownTime <= 0) {
+            matchState = 'playing';
+        }
+    } else if (matchState === 'playing') {
+        playTime += dt;
+        
+        if (countdownTime > -800) {
+            countdownTime -= dt;
+        }
+
+        playerBoard.update(dt);
+        cpuBoard.update(dt);
+
+        if (playerBoard.state === 'gameover' || cpuBoard.state === 'gameover') {
+            matchState = 'gameover';
+            matchOverTimer = 4000; 
+        }
+    } else if (matchState === 'gameover') {
+        matchOverTimer -= dt;
+        if (matchOverTimer <= 0) {
+            matchState = 'home';
+            document.getElementById('home-screen').classList.remove('hidden');
+        }
+    }
+
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = '#f8fafc';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    drawHUD();
+    playerBoard.draw(ctx);
+    cpuBoard.draw(ctx);
+
+    if (playerBoard.allClearActive || cpuBoard.allClearActive) {
+        ctx.fillStyle = 'rgba(255, 159, 26, 0.08)';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+    }
+
+    if (matchState === 'countdown') {
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        let numStr = "";
+        if (countdownTime > 2000) numStr = "3";
+        else if (countdownTime > 1000) numStr = "2";
+        else if (countdownTime > 0) numStr = "1";
+
+        const progress = countdownTime % 1000; 
+        let textScale = 1.0;
+        if (progress > 700) {
+            let f = (1000 - progress) / 300; 
+            textScale = f * 1.5; 
+        } else {
+            textScale = 1.5 - 0.5 * ((700 - progress) / 700);
+        }
+
+        ctx.save();
+        ctx.fillStyle = '#ff5e62';
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 10;
+        ctx.font = 'bold 80px "Helvetica Neue", Arial, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.translate(canvas.width / 2, canvas.height / 2);
+        ctx.scale(textScale, textScale);
+        ctx.strokeText(numStr, 0, 0);
+        ctx.fillText(numStr, 0, 0);
+        ctx.restore();
+    } else if (matchState === 'playing' && countdownTime > -800) {
+        const progress = (800 - Math.abs(countdownTime)) / 800; 
+        const scale = 1.6 - 0.6 * progress;
+
+        ctx.save();
+        ctx.fillStyle = '#56ab2f'; 
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 12;
+        ctx.font = 'bold 90px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.translate(canvas.width / 2, canvas.height / 2);
+        ctx.scale(scale, scale);
+        ctx.strokeText("GO!", 0, 0);
+        ctx.fillText("GO!", 0, 0);
+        ctx.restore();
+    }
+
+    requestAnimationFrame(loop);
+}
+
+// 起動初期描画
+drawHUD();
+playerBoard.draw(ctx);
+cpuBoard.draw(ctx);
+
+requestAnimationFrame(loop);
+
+	</script>
+</body>
+
+</html>
