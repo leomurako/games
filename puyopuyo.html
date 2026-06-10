@@ -1,223 +1,208 @@
 <!DOCTYPE html>
 <html lang="ja">
-
 <head>
-	<meta charset="UTF-8">
-	<title>PUYO VS CPU - MONOCHROME POP & CLASSIC SCORING</title>
-	<style>
-		/* 明るく爽やかで極めて上質なライトグラデーション背景 */
-		body {
-			background: radial-gradient(circle at 0% 0%, #e0f2fe 0%, #f3e8ff 50%, #fef3c7 100%);
-			color: #1e293b;
-			font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Hiragino Kaku Gothic ProN", sans-serif;
-			display: flex;
-			flex-direction: column;
-			align-items: center;
-			justify-content: center;
-			min-height: 100vh;
-			margin: 0;
-			overflow: hidden;
-			user-select: none;
-		}
-
-		h1 {
-			margin: 5px 0 10px 0;
-			font-size: 28px;
-			font-weight: 900;
-			letter-spacing: 2px;
-			color: #1e293b;
-			text-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
-		}
-
-		/* プレミアムなグラスモルフィズム風カードコンテナ */
-		#game-wrapper {
-			position: relative;
-			display: flex;
-			flex-direction: column;
-			align-items: center;
-			background: rgba(255, 255, 255, 0.75);
-			backdrop-filter: blur(25px);
-			padding: 24px;
-			border-radius: 32px;
-			box-shadow: 0 30px 60px rgba(15, 23, 42, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.8);
-			border: 1px solid rgba(255, 255, 255, 0.5);
-		}
-
-		canvas {
-			background-color: #f8fafc;
-			border-radius: 16px;
-			box-shadow: 0 10px 25px rgba(0, 0, 0, 0.03);
-		}
-
-		/* 極めてミニマルかつ滑らかに縮小・フェードアウトするホーム画面 */
-		#home-screen {
-			position: absolute;
-			top: 24px;
-			left: 24px;
-			width: 820px;
-			height: 660px;
-			background: rgba(255, 255, 255, 0.95);
-			display: flex;
-			flex-direction: column;
-			align-items: center;
-			justify-content: center;
-			z-index: 10;
-			border-radius: 16px;
-			box-shadow: 0 10px 40px rgba(0, 0, 0, 0.02);
-			transition: opacity 0.4s cubic-bezier(0.25, 0.8, 0.25, 1), transform 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
-			transform: scale(1);
-			opacity: 1;
-		}
-
-		#home-screen.hidden {
-			opacity: 0;
-			transform: scale(0.96);
-			pointer-events: none;
-		}
-
-		.main-logo {
-			font-size: 40px;
-			font-weight: 900;
-			color: #1e293b;
-			margin-bottom: 40px;
-			text-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
-			letter-spacing: 6px;
-			text-align: center;
-		}
-
-		.main-logo span {
-			background: linear-gradient(135deg, #ff5e62, #ff9f1a);
-			-webkit-background-clip: text;
-			-webkit-text-fill-color: transparent;
-		}
-
-		.option-group {
-			display: flex;
-			flex-direction: column;
-			width: 320px;
-			margin-bottom: 30px;
-		}
-
-		.option-group label {
-			font-size: 13px;
-			color: #64748b;
-			margin-bottom: 8px;
-			text-align: left;
-			text-transform: uppercase;
-			letter-spacing: 1.5px;
-			font-weight: bold;
-		}
-
-		.option-group select {
-			background: #f1f5f9;
-			color: #1e293b;
-			border: 2px solid #cbd5e1;
-			padding: 12px 16px;
-			border-radius: 12px;
-			font-size: 15px;
-			outline: none;
-			cursor: pointer;
-			box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
-			font-weight: bold;
-			transition: border-color 0.2s, box-shadow 0.2s;
-		}
-
-		.option-group select:focus {
-			border-color: #ffd32a;
-			box-shadow: 0 0 10px rgba(255, 211, 42, 0.4);
-		}
-
-		#start-btn {
-			background: linear-gradient(135deg, #ffd32a 0%, #ff9f1a 100%);
-			color: #1e293b;
-			border: none;
-			padding: 16px 64px;
-			font-size: 18px;
-			font-weight: 900;
-			border-radius: 50px;
-			cursor: pointer;
-			margin-top: 15px;
-			box-shadow: 0 8px 20px rgba(255, 159, 26, 0.35);
-			transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-			letter-spacing: 2px;
-			border: 2px solid rgba(255, 255, 255, 0.4);
-		}
-
-		#start-btn:hover {
-			transform: translateY(-4px) scale(1.05);
-			box-shadow: 0 10px 25px rgba(255, 159, 26, 0.5);
-		}
-
-		#start-btn:active {
-			transform: translateY(1px) scale(0.98);
-		}
-
-		#controls-info {
-			margin-top: 15px;
-			font-size: 12px;
-			color: #64748b;
-			text-align: center;
-			line-height: 1.6;
-			letter-spacing: 0.5px;
-		}
-
-		.key {
-			background: #fff;
-			border: 1px solid #cbd5e1;
-			padding: 2px 6px;
-			border-radius: 6px;
-			color: #1e293b;
-			font-weight: bold;
-			box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-		}
-	</style>
+    <meta charset="UTF-8">
+    <title>PUYO VS CPU/2P - CONTROL SWAPPED</title>
+    <style>
+        body {
+            background: radial-gradient(circle at 0% 0%, #e0f2fe 0%, #f3e8ff 50%, #fef3c7 100%);
+            color: #1e293b;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Hiragino Kaku Gothic ProN", sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            overflow: hidden;
+            user-select: none;
+        }
+        h1 {
+            margin: 5px 0 10px 0;
+            font-size: 28px;
+            font-weight: 900;
+            letter-spacing: 2px;
+            color: #1e293b;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.02);
+        }
+        #game-wrapper {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.75);
+            backdrop-filter: blur(25px);
+            padding: 24px;
+            border-radius: 32px;
+            box-shadow: 0 30px 60px rgba(15, 23, 42, 0.08), inset 0 1px 0 rgba(255,255,255,0.8);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+        }
+        canvas {
+            background-color: #f8fafc;
+            border-radius: 16px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.03);
+        }
+        #home-screen {
+            position: absolute;
+            top: 24px;
+            left: 24px;
+            width: 820px;
+            height: 660px;
+            background: rgba(255, 255, 255, 0.95);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 10;
+            border-radius: 16px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.02);
+            transition: opacity 0.4s cubic-bezier(0.25, 0.8, 0.25, 1), transform 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+            transform: scale(1);
+            opacity: 1;
+        }
+        #home-screen.hidden {
+            opacity: 0;
+            transform: scale(0.96);
+            pointer-events: none;
+        }
+        .main-logo {
+            font-size: 40px;
+            font-weight: 900;
+            color: #1e293b;
+            margin-bottom: 30px;
+            text-shadow: 0 4px 12px rgba(0,0,0,0.03);
+            letter-spacing: 6px;
+            text-align: center;
+        }
+        .main-logo span {
+            background: linear-gradient(135deg, #ff5e62, #ff9f1a);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .option-group {
+            display: flex;
+            flex-direction: column;
+            width: 320px;
+            margin-bottom: 20px;
+        }
+        .option-group label {
+            font-size: 13px;
+            color: #64748b;
+            margin-bottom: 8px;
+            text-align: left;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            font-weight: bold;
+        }
+        .option-group select {
+            background: #f1f5f9;
+            color: #1e293b;
+            border: 2px solid #cbd5e1;
+            padding: 12px 16px;
+            border-radius: 12px;
+            font-size: 15px;
+            outline: none;
+            cursor: pointer;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+            font-weight: bold;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+        .option-group select:focus {
+            border-color: #ffd32a;
+            box-shadow: 0 0 10px rgba(255, 211, 42, 0.4);
+        }
+        #start-btn {
+            background: linear-gradient(135deg, #ffd32a 0%, #ff9f1a 100%);
+            color: #1e293b;
+            border: none;
+            padding: 16px 64px;
+            font-size: 18px;
+            font-weight: 900;
+            border-radius: 50px;
+            cursor: pointer;
+            margin-top: 15px;
+            box-shadow: 0 8px 20px rgba(255, 159, 26, 0.35);
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            letter-spacing: 2px;
+            border: 2px solid rgba(255, 255, 255, 0.4);
+        }
+        #start-btn:hover {
+            transform: translateY(-4px) scale(1.05);
+            box-shadow: 0 10px 25px rgba(255, 159, 26, 0.5);
+        }
+        #start-btn:active {
+            transform: translateY(1px) scale(0.98);
+        }
+        #controls-info {
+            margin-top: 15px;
+            font-size: 12px;
+            color: #64748b;
+            text-align: center;
+            line-height: 1.6;
+            letter-spacing: 0.5px;
+        }
+        .key {
+            background: #fff;
+            border: 1px solid #cbd5e1;
+            padding: 2px 6px;
+            border-radius: 6px;
+            color: #1e293b;
+            font-weight: bold;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+    </style>
 </head>
-
 <body>
 
-	<h1>PUYO VS CPU</h1>
-	<div id="game-wrapper">
-		<canvas id="gameCanvas" width="820" height="660"></canvas>
-
-		<div id="home-screen">
-			<div class="main-logo">PUYO <span>VS CPU</span></div>
-
-			<div class="option-group">
-				<label for="cpu-diff">CPの強さ（難易度）:</label>
-				<select id="cpu-diff">
-                <option value="easy">甘口</option>
-                <option value="normal" selected>中辛</option>
-                <option value="hard">辛口</option>
+<h1>PUYO MULTIPLAYER</h1>
+<div id="game-wrapper">
+    <canvas id="gameCanvas" width="820" height="660"></canvas>
+    
+    <div id="home-screen">
+        <div class="main-logo">PUYO <span>MATCHING</span></div>
+        
+        <div class="option-group">
+            <label for="game-mode">ゲームモード:</label>
+            <select id="game-mode">
+                <option value="vs-cpu" selected>VS CPU (コンピューター戦)</option>
+                <option value="vs-2p">VS 2P (ローカル2人対戦)</option>
             </select>
-			</div>
+        </div>
 
-			<button id="start-btn">MATCH START</button>
-		</div>
-	</div>
+        <div class="option-group" id="cpu-diff-group">
+            <label for="cpu-diff">CPの強さ（難易度）:</label>
+            <select id="cpu-diff">
+                <option value="easy">甘口 (動きがのんびりで、配置を失敗する)</option>
+                <option value="normal" selected>中辛 (普通の速度で着実に連鎖を狙う)</option>
+                <option value="hard">辛口 (高速で動き、無駄なく最適に組む)</option>
+            </select>
+        </div>
 
-	<div id="controls-info">
-		【PLAYER操作】 移動: <span class="key">←</span> <span class="key">→</span> |
-		高速落下: <span class="key">↓</span> |
-		左回転: <span class="key">Z</span> |
-		右回転: <span class="key">X</span>
-	</div>
+        <button id="start-btn">MATCH START</button>
+    </div>
+</div>
 
-	<script>
-		// ==========================================
-// 1. 定数と明るいポップ調カラーの定義
+<div id="controls-info">
+    【左画面操作（WASD）】 移動: <span class="key">A</span> <span class="key">D</span> | 高速落下: <span class="key">S</span> | 左回転: <span class="key">Q</span> | 右回転: <span class="key">E</span><br>
+    【右画面操作（矢印）】 移動: <span class="key">←</span> <span class="key">→</span> | 高速落下: <span class="key">↓</span> | 左回転: <span class="key">Z</span> | 右回転: <span class="key">X</span> (CPU戦時は自動操作)
+</div>
+
+<script>
+// ==========================================
+// 1. 定数とカラー定義
 // ==========================================
 const COLS = 6;
 const ROWS = 13;          
-const BLOCK_SIZE = 43;    // 各ステージを約23%拡大
+const BLOCK_SIZE = 43;    
 
 const COLORS = {
     0: 'transparent',
-    1: '#ff5e62', // パステルレッド
-    2: '#4ea8de', // パステルブルー
-    3: '#56ab2f', // パステルグリーン
-    4: '#fbc531', // パステルイエロー
-    5: '#a29bfe', // パステルパープル
-    6: '#a4b0be'  // おじゃま
+    1: '#ff5e62', 
+    2: '#4ea8de', 
+    3: '#56ab2f', 
+    4: '#fbc531', 
+    5: '#a29bfe', 
+    6: '#a4b0be'  
 };
 
 const ROT_OFFSET = [
@@ -251,7 +236,7 @@ const settings = {
     handicap: 'normal',   
     cpuDifficulty: 'normal',
     ojamaRate: 120,       
-    marginTime: 96000,    // 96秒（標準仕様）
+    marginTime: 96000,    
     allClearBonus: true   
 };
 
@@ -261,7 +246,7 @@ let matchOverTimer = 0;
 let playTime = 0;         
 
 // ==========================================
-// きらめき破片パーティクル演出
+// パーティクル演出クラス
 // ==========================================
 class Particle {
     constructor(x, y, color) {
@@ -304,8 +289,8 @@ class Board {
         this.state = 'spawn';   
         
         this.score = 0;
-        this.displayScore = 0;  // ドラム式に増やすための現在の表示スコア
-        this.targetScore = 0;   // 目標スコア
+        this.displayScore = 0;  
+        this.targetScore = 0;   
 
         this.chainCount = 0;
         this.ojamaPool = 0;     
@@ -331,8 +316,6 @@ class Board {
         this.voiceY = 220;
 
         this.ojamaPopups = [];
-
-        // 【新規UX】計算式を表示し、スコアへ吸い込まれるポップアップオブジェクト群
         this.scorePopups = [];
 
         this.cpuActionTimer = 0;
@@ -499,31 +482,28 @@ class Board {
             }
         }
 
-        // 【新規演出】計算式 ＆ 飛ぶスコアポップアップの更新
         const targetScoreX = this.xOffset + (COLS * BLOCK_SIZE) / 2;
-        const targetScoreY = 638; // スコア数値のある下部座標
+        const targetScoreY = 638; 
 
         for (let i = this.scorePopups.length - 1; i >= 0; i--) {
             const pop = this.scorePopups[i];
             pop.timer -= dt;
 
             if (pop.timer > 700) {
-                // 第一段階：その場で数式を表示しつつわずかに上昇
                 pop.px = pop.startX;
                 pop.py = pop.startY - (pop.maxTimer - pop.timer) * 0.05;
             } else {
-                // 第二段階：スコアに向かって吸い込まれるように飛行
                 if (!pop.added) {
                     this.targetScore += pop.result;
                     this.score += pop.result;
-                    this.attackOpponent(pop.generatedOjama); // 飛行開始と同時におじゃま攻撃を確定
+                    this.attackOpponent(pop.generatedOjama); 
                     pop.added = true;
                 }
-                let t = (700 - pop.timer) / 700; // 0 から 1 へ遷移
-                let easeT = t * t; // イージング（加速しながら落下）
+                let t = (700 - pop.timer) / 700; 
+                let easeT = t * t; 
                 pop.px = pop.startX + (targetScoreX - pop.startX) * easeT;
                 pop.py = (pop.startY - (pop.maxTimer - 700) * 0.05) + (targetScoreY - (pop.startY - (pop.maxTimer - 700) * 0.05)) * easeT;
-                pop.scale = 1.0 - 0.4 * easeT; // 吸い込まれながら少し縮小
+                pop.scale = 1.0 - 0.4 * easeT; 
             }
 
             if (pop.timer <= 0) {
@@ -531,7 +511,6 @@ class Board {
             }
         }
 
-        // ドラムロール式スコア増算
         if (this.displayScore < this.targetScore) {
             let diff = this.targetScore - this.displayScore;
             let step = Math.ceil(diff / 8); 
@@ -774,7 +753,6 @@ class Board {
         this.eraseList.push(...ojamasToErase);
     }
 
-    // 【本家風計算ポップアップの創出】
     calculateScore(groups) {
         let totalPuyos = 0;
         let groupBonusSum = 0;
@@ -791,7 +769,6 @@ class Board {
             const bonusIdx = Math.min(group.length, 11);
             groupBonusSum += GROUP_BONUS[bonusIdx];
 
-            // 平均位置算出用
             group.forEach(p => {
                 avgX += p.x;
                 avgY += p.y;
@@ -807,7 +784,6 @@ class Board {
 
         const pts = totalPuyos * 10 * bonusTotal;
 
-        // 計算式の発生座標
         const cx = puyoCount > 0 ? avgX / puyoCount : 2;
         const cy = puyoCount > 0 ? avgY / puyoCount : 5;
         const startX = this.xOffset + cx * BLOCK_SIZE + BLOCK_SIZE / 2;
@@ -817,7 +793,6 @@ class Board {
         const rate = getCurrentOjamaRate();
         let generatedOjama = Math.floor(pts / rate);
 
-        // スコア加算用ポップアップオブジェクトの生成 (スコアはまだ加算せず、数フレーム後に吸い込みをトリガー)
         this.scorePopups.push({
             startX: startX,
             startY: startY,
@@ -986,23 +961,17 @@ class Board {
         return score;
     }
 
-    // ==========================================
-    // 4. UX重視・本家風グラフィック描画処理
-    // ==========================================
     draw(ctx) {
         const offset = this.xOffset;
 
-        // 【デザイン革新】プレイステージ全体の角丸クリッピング処理
         ctx.save();
         ctx.beginPath();
         drawRoundedRect(ctx, offset, 100, COLS * BLOCK_SIZE, (ROWS - 1) * BLOCK_SIZE, 12);
-        ctx.clip(); // 内側をすべてクリップ
+        ctx.clip(); 
 
-        // クリーンなオフホワイト背景
         ctx.fillStyle = '#fcfdfe';
         ctx.fillRect(offset, 100, COLS * BLOCK_SIZE, (ROWS - 1) * BLOCK_SIZE);
 
-        // 薄く見えそうで見えないマス目の区切り
         ctx.strokeStyle = '#f1f5f9';
         ctx.lineWidth = 1;
         for (let i = 1; i < COLS; i++) {
@@ -1018,7 +987,6 @@ class Board {
             ctx.stroke();
         }
 
-        // 盤面ぷよ
         for (let y = 1; y < ROWS; y++) {
             for (let x = 0; x < COLS; x++) {
                 const colorId = this.grid[y][x];
@@ -1037,7 +1005,7 @@ class Board {
             }
         }
 
-        // 本家窒息点の「×」マーク
+        // ×印の窒息判定
         const xMarkX = offset + 2 * BLOCK_SIZE + BLOCK_SIZE / 2;
         const xMarkY = 100 + (1 - 1) * BLOCK_SIZE + BLOCK_SIZE / 2; 
         if (this.grid[1][2] === 0) { 
@@ -1055,7 +1023,6 @@ class Board {
             ctx.restore();
         }
 
-        // 操作中ぷよ
         if (this.currentPuyo && this.state === 'play') {
             const axis = this.currentPuyo.axis;
             const child = this.currentPuyo.child;
@@ -1068,9 +1035,8 @@ class Board {
             }
         }
 
-        ctx.restore(); // クリッピング領域解除
+        ctx.restore(); 
 
-        // 外枠を描画
         ctx.save();
         ctx.strokeStyle = '#cbd5e1';
         ctx.lineWidth = 4;
@@ -1079,13 +1045,10 @@ class Board {
         ctx.stroke();
         ctx.restore();
 
-        // おじゃま予告アイコン
         this.drawOjamaIcons(offset);
 
-        // パーティクルの描画
         this.particles.forEach(p => p.draw(ctx));
 
-        // 【新規UX】計算式 ＆ 飛ぶスコアポップアップの描画
         this.scorePopups.forEach(pop => {
             ctx.save();
             ctx.translate(pop.px, pop.py);
@@ -1097,13 +1060,11 @@ class Board {
             ctx.textBaseline = 'middle';
 
             if (pop.timer > 700) {
-                // 第一段階：基本点×倍率 (例: 40 × 8)
                 ctx.fillStyle = '#ff9f1a';
                 ctx.font = 'bold 20px "Inter", sans-serif';
                 ctx.strokeText(`${pop.basic} × ${pop.multiplier}`, 0, 0);
                 ctx.fillText(`${pop.basic} × ${pop.multiplier}`, 0, 0);
             } else {
-                // 第二段階：獲得点数 (例: +320)
                 ctx.fillStyle = '#ff5e62';
                 ctx.font = '900 24px monospace';
                 ctx.strokeText(`+${pop.result}`, 0, 0);
@@ -1112,7 +1073,6 @@ class Board {
             ctx.restore();
         });
 
-        // おじゃま送付ポップアップ
         this.ojamaPopups.forEach(pop => {
             ctx.save();
             ctx.globalAlpha = Math.min(1.0, pop.timer / 200);
@@ -1126,14 +1086,12 @@ class Board {
             ctx.restore();
         });
 
-        // 【文字なし表示】洗練された7桁のゼロパディング数字のみ
         ctx.fillStyle = '#1e293b';
         ctx.font = '900 24px monospace'; 
         ctx.textAlign = 'center';
         const formattedScore = String(this.displayScore).padStart(7, '0');
         ctx.fillText(formattedScore, offset + (COLS * BLOCK_SIZE) / 2, 638);
 
-        // 連鎖ボイステキスト
         if (this.voiceTimer > 0 && this.voiceText !== "") {
             ctx.save();
             ctx.globalAlpha = this.voiceAlpha;
@@ -1148,7 +1106,6 @@ class Board {
             ctx.restore();
         }
 
-        // 全消し表示
         if (this.allClearActive) {
             ctx.save();
             ctx.fillStyle = 'rgba(255, 159, 26, 0.9)';
@@ -1162,7 +1119,6 @@ class Board {
             ctx.restore();
         }
 
-        // ゲームオーバー表示
         if (this.state === 'gameover') {
             ctx.fillStyle = 'rgba(255, 255, 255, 0.85)';
             ctx.fillRect(offset, 100, COLS * BLOCK_SIZE, (ROWS - 1) * BLOCK_SIZE);
@@ -1355,7 +1311,7 @@ class Board {
 // ==========================================
 
 const playerBoard = new Board(40, false);
-const cpuBoard = new Board(522, true); // 右側ボード位置を拡大サイズに追従
+const cpuBoard = new Board(522, true); 
 
 playerBoard.opponent = cpuBoard;
 cpuBoard.opponent = playerBoard;
@@ -1376,12 +1332,11 @@ function formatTime(ms) {
     return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
 }
 
-// 【デザイン革新】角丸で立体的なカプセル状NextプレビューHUD
 function drawHUD() {
     ctx.fillStyle = '#f1f5f9'; 
     ctx.fillRect(298, 0, 224, canvas.height);
 
-    ctx.strokeStyle = '#cbd5e1';
+    ctx.strokeStyle = '#e2e8f0';
     ctx.lineWidth = 3;
     ctx.beginPath(); ctx.moveTo(298, 0); ctx.lineTo(298, canvas.height); ctx.stroke();
     ctx.beginPath(); ctx.moveTo(522, 0); ctx.lineTo(522, canvas.height); ctx.stroke();
@@ -1398,8 +1353,9 @@ function drawHUD() {
     // 1P NEXT ピル型カプセル
     drawNextCapsule(345, 110, "1P NEXT", playerBoard.nextQueue);
 
-    // CPU NEXT ピル型カプセル
-    drawNextCapsule(475, 110, "CPU NEXT", cpuBoard.nextQueue);
+    // CPU / 2P の切り替え表示
+    const board2Label = cpuBoard.isCPU ? "CPU NEXT" : "2P NEXT";
+    drawNextCapsule(475, 110, board2Label, cpuBoard.nextQueue);
 }
 
 function drawNextCapsule(cx, cy, label, queue) {
@@ -1410,7 +1366,6 @@ function drawNextCapsule(cx, cy, label, queue) {
     ctx.textAlign = 'center';
     ctx.fillText(label, cx, cy);
 
-    // プレミアム丸角ケース背景
     const pw = 40;
     const ph = 140;
     const rx = cx - pw / 2;
@@ -1423,11 +1378,9 @@ function drawNextCapsule(cx, cy, label, queue) {
     ctx.fill();
     ctx.stroke();
 
-    // Next
     if (queue[0]) {
         drawNextPuyoUnit(cx, ry + 35, queue[0]);
     }
-    // 区切り線
     ctx.strokeStyle = '#f1f5f9';
     ctx.lineWidth = 1;
     ctx.beginPath();
@@ -1435,7 +1388,6 @@ function drawNextCapsule(cx, cy, label, queue) {
     ctx.lineTo(rx + pw - 5, ry + 70);
     ctx.stroke();
 
-    // Double Next
     if (queue[1]) {
         drawNextPuyoUnit(cx, ry + 105, queue[1]);
     }
@@ -1456,7 +1408,6 @@ function drawNextPuyoUnit(cx, cy, pair) {
     ctx.beginPath(); ctx.arc(cx - r/3, cy - r + 2 - r/3, r/4, 0, Math.PI * 2); ctx.fill();
 }
 
-// 汎用丸角短形パス生成関数
 function drawRoundedRect(ctx, x, y, width, height, radius) {
     ctx.beginPath();
     ctx.moveTo(x + radius, y);
@@ -1471,16 +1422,32 @@ function drawRoundedRect(ctx, x, y, width, height, radius) {
     ctx.closePath();
 }
 
+document.getElementById('game-mode').addEventListener('change', (e) => {
+    const cpuDiffGroup = document.getElementById('cpu-diff-group');
+    if (e.target.value === 'vs-2p') {
+        cpuDiffGroup.style.display = 'none';
+    } else {
+        cpuDiffGroup.style.display = 'flex';
+    }
+});
+
 // MATCH STARTクリック時の処理
 document.getElementById('start-btn').addEventListener('click', () => {
-    settings.cpuDifficulty = document.getElementById('cpu-diff').value;
+    const mode = document.getElementById('game-mode').value;
 
-    if (settings.cpuDifficulty === 'easy') {
-        cpuBoard.cpuActionInterval = 300; 
-    } else if (settings.cpuDifficulty === 'hard') {
-        cpuBoard.cpuActionInterval = 75;  
+    if (mode === 'vs-2p') {
+        cpuBoard.isCPU = false; 
     } else {
-        cpuBoard.cpuActionInterval = 150; 
+        cpuBoard.isCPU = true; 
+        settings.cpuDifficulty = document.getElementById('cpu-diff').value;
+
+        if (settings.cpuDifficulty === 'easy') {
+            cpuBoard.cpuActionInterval = 300; 
+        } else if (settings.cpuDifficulty === 'hard') {
+            cpuBoard.cpuActionInterval = 75;  
+        } else {
+            cpuBoard.cpuActionInterval = 150; 
+        }
     }
 
     playerBoard.init();
@@ -1493,14 +1460,30 @@ document.getElementById('start-btn').addEventListener('click', () => {
     playTime = 0;
 });
 
+// 操作キーの受け取り
 window.addEventListener('keydown', (e) => {
-    if (playerBoard.state !== 'play' || matchState !== 'playing') return;
-    switch (e.key) {
-        case 'ArrowLeft': playerBoard.move(-1, 0); break;
-        case 'ArrowRight': playerBoard.move(1, 0); break;
-        case 'ArrowDown': playerBoard.move(0, 1); break;
-        case 'z': case 'Z': playerBoard.rotate(-1); break;
-        case 'x': case 'X': playerBoard.rotate(1); break;
+    if (matchState !== 'playing') return;
+
+    // 【操作反転】1P（左ボード）：WASD操作
+    if (playerBoard.state === 'play') {
+        switch (e.key) {
+            case 'a': case 'A': playerBoard.move(-1, 0); break;
+            case 'd': case 'D': playerBoard.move(1, 0); break;
+            case 's': case 'S': playerBoard.move(0, 1); break;
+            case 'q': case 'Q': playerBoard.rotate(-1); break;
+            case 'e': case 'E': playerBoard.rotate(1); break;
+        }
+    }
+
+    // 【操作反転】2P（右ボード）：矢印キー操作 (CPUでない時のみ有効化)
+    if (cpuBoard.state === 'play' && !cpuBoard.isCPU) {
+        switch (e.key) {
+            case 'ArrowLeft': cpuBoard.move(-1, 0); break;
+            case 'ArrowRight': cpuBoard.move(1, 0); break;
+            case 'ArrowDown': cpuBoard.move(0, 1); break;
+            case 'z': case 'Z': cpuBoard.rotate(-1); break;
+            case 'x': case 'X': cpuBoard.rotate(1); break;
+        }
     }
 });
 
@@ -1608,7 +1591,6 @@ cpuBoard.draw(ctx);
 
 requestAnimationFrame(loop);
 
-	</script>
+</script>
 </body>
-
 </html>
