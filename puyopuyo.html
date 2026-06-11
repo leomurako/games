@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <title>PUYO VS CPU/2P - CONTROL SWAPPED</title>
+    <title>PUYO MULTIPLAYER - DYNAMIC CONTROLS</title>
     <style>
         body {
             background: radial-gradient(circle at 0% 0%, #e0f2fe 0%, #f3e8ff 50%, #fef3c7 100%);
@@ -158,6 +158,7 @@
 <div id="game-wrapper">
     <canvas id="gameCanvas" width="820" height="660"></canvas>
     
+    <!-- ホーム設定画面 -->
     <div id="home-screen">
         <div class="main-logo">PUYO <span>MATCHING</span></div>
         
@@ -183,8 +184,7 @@
 </div>
 
 <div id="controls-info">
-    【左画面操作（WASD）】 移動: <span class="key">A</span> <span class="key">D</span> | 高速落下: <span class="key">S</span> | 左回転: <span class="key">Q</span> | 右回転: <span class="key">E</span><br>
-    【右画面操作（矢印）】 移動: <span class="key">←</span> <span class="key">→</span> | 高速落下: <span class="key">↓</span> | 左回転: <span class="key">Z</span> | 右回転: <span class="key">X</span> (CPU戦時は自動操作)
+    <!-- JavaScriptで動的に説明が書き換わります -->
 </div>
 
 <script>
@@ -1005,7 +1005,6 @@ class Board {
             }
         }
 
-        // ×印の窒息判定
         const xMarkX = offset + 2 * BLOCK_SIZE + BLOCK_SIZE / 2;
         const xMarkY = 100 + (1 - 1) * BLOCK_SIZE + BLOCK_SIZE / 2; 
         if (this.grid[1][2] === 0) { 
@@ -1422,13 +1421,32 @@ function drawRoundedRect(ctx, x, y, width, height, radius) {
     ctx.closePath();
 }
 
+// 動的操作説明の書き換え関数
+function updateControlsText(mode) {
+    const controlsDiv = document.getElementById('controls-info');
+    if (mode === 'vs-2p') {
+        controlsDiv.innerHTML = `
+            【1P操作（左画面：WASD操作）】 移動: <span class="key">A</span> <span class="key">D</span> | 高速落下: <span class="key">S</span> | 左回転: <span class="key">Q</span> | 右回転: <span class="key">E</span><br>
+            【2P操作（右画面：矢印操作）】 移動: <span class="key">←</span> <span class="key">→</span> | 高速落下: <span class="key">↓</span> | 左回転: <span class="key">Z</span> | 右回転: <span class="key">X</span>
+        `;
+    } else {
+        controlsDiv.innerHTML = `
+            【操作方法（左画面）】 移動: <span class="key">←</span> <span class="key">→</span> | 高速落下: <span class="key">↓</span> | 左回転: <span class="key">Z</span> | 右回転: <span class="key">X</span><br>
+            （右画面のCPUは自動操作されます）
+        `;
+    }
+}
+
+// ホームメニューのセレクトボックス連動
 document.getElementById('game-mode').addEventListener('change', (e) => {
     const cpuDiffGroup = document.getElementById('cpu-diff-group');
-    if (e.target.value === 'vs-2p') {
+    const mode = e.target.value;
+    if (mode === 'vs-2p') {
         cpuDiffGroup.style.display = 'none';
     } else {
         cpuDiffGroup.style.display = 'flex';
     }
+    updateControlsText(mode);
 });
 
 // MATCH STARTクリック時の処理
@@ -1464,26 +1482,47 @@ document.getElementById('start-btn').addEventListener('click', () => {
 window.addEventListener('keydown', (e) => {
     if (matchState !== 'playing') return;
 
-    // 【操作反転】1P（左ボード）：WASD操作
-    if (playerBoard.state === 'play') {
-        switch (e.key) {
-            case 'a': case 'A': playerBoard.move(-1, 0); break;
-            case 'd': case 'D': playerBoard.move(1, 0); break;
-            case 's': case 'S': playerBoard.move(0, 1); break;
-            case 'q': case 'Q': playerBoard.rotate(-1); break;
-            case 'e': case 'E': playerBoard.rotate(1); break;
-        }
-    }
+    const isVS2P = !cpuBoard.isCPU; // 2人対戦モードであるか判定
 
-    // 【操作反転】2P（右ボード）：矢印キー操作 (CPUでない時のみ有効化)
-    if (cpuBoard.state === 'play' && !cpuBoard.isCPU) {
-        switch (e.key) {
-            case 'ArrowLeft': cpuBoard.move(-1, 0); break;
-            case 'ArrowRight': cpuBoard.move(1, 0); break;
-            case 'ArrowDown': cpuBoard.move(0, 1); break;
-            case 'z': case 'Z': cpuBoard.rotate(-1); break;
-            case 'x': case 'X': cpuBoard.rotate(1); break;
+    if (isVS2P) {
+        // ==========================================
+        // 【VS 2P モード時のキー配置】
+        // ==========================================
+        // 1P（左画面）：WASD操作
+        if (playerBoard.state === 'play') {
+            switch (e.key) {
+                case 'a': case 'A': playerBoard.move(-1, 0); break;
+                case 'd': case 'D': playerBoard.move(1, 0); break;
+                case 's': case 'S': playerBoard.move(0, 1); break;
+                case 'q': case 'Q': playerBoard.rotate(-1); break;
+                case 'e': case 'E': playerBoard.rotate(1); break;
+            }
         }
+        // 2P（右画面）：矢印キー操作
+        if (cpuBoard.state === 'play') {
+            switch (e.key) {
+                case 'ArrowLeft': cpuBoard.move(-1, 0); break;
+                case 'ArrowRight': cpuBoard.move(1, 0); break;
+                case 'ArrowDown': cpuBoard.move(0, 1); break;
+                case 'z': case 'Z': cpuBoard.rotate(-1); break;
+                case 'x': case 'X': cpuBoard.rotate(1); break;
+            }
+        }
+    } else {
+        // ==========================================
+        // 【VS CPU モード時のキー配置（1人プレイ）】
+        // ==========================================
+        // プレイヤー（左画面）：矢印キー操作に変更
+        if (playerBoard.state === 'play') {
+            switch (e.key) {
+                case 'ArrowLeft': playerBoard.move(-1, 0); break;
+                case 'ArrowRight': playerBoard.move(1, 0); break;
+                case 'ArrowDown': playerBoard.move(0, 1); break;
+                case 'z': case 'Z': playerBoard.rotate(-1); break;
+                case 'x': case 'X': playerBoard.rotate(1); break;
+            }
+        }
+        // 右画面（CPU）は自動処理
     }
 });
 
@@ -1584,7 +1623,8 @@ function loop(timestamp) {
     requestAnimationFrame(loop);
 }
 
-// 起動初期描画
+// 起動初期設定
+updateControlsText('vs-cpu');
 drawHUD();
 playerBoard.draw(ctx);
 cpuBoard.draw(ctx);
