@@ -1,0 +1,1427 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NEON BATTLE TETRIS</title>
+  <style>
+    :root {
+      --bg-color: #0d0d12;
+      --panel-bg: rgba(20, 20, 30, 0.7);
+      --border-color: rgba(0, 240, 255, 0.3);
+      --neon-cyan: #00f0f0;
+      --neon-purple: #bd00ff;
+      --text-color: #ffffff;
+      --font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background: radial-gradient(circle, #181824 0%, var(--bg-color) 100%);
+      color: var(--text-color);
+      font-family: var(--font-family);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      overflow-x: hidden;
+    }
+
+    /* タイトルとヘッダー */
+    header {
+      margin-top: 15px;
+      margin-bottom: 10px;
+      text-align: center;
+    }
+
+    h1 {
+      font-size: 2.2rem;
+      letter-spacing: 4px;
+      text-transform: uppercase;
+      text-shadow: 0 0 10px var(--neon-cyan), 0 0 20px var(--neon-purple);
+      color: #fff;
+    }
+
+    /* 全体コンテナ */
+    #game-layout {
+      display: flex;
+      gap: 30px;
+      justify-content: center;
+      align-items: flex-start;
+      width: 100%;
+      max-width: 1100px;
+      padding: 10px;
+    }
+
+    /* ボード単体の包み */
+    .board-wrapper {
+      background: var(--panel-bg);
+      border: 1px solid var(--border-color);
+      box-shadow: 0 0 20px rgba(0, 240, 255, 0.15), inset 0 0 15px rgba(255, 255, 255, 0.02);
+      border-radius: 12px;
+      padding: 15px;
+      backdrop-filter: blur(10px);
+      display: flex;
+      gap: 15px;
+      position: relative;
+    }
+
+    /* メインキャンバス */
+    .canvas-container {
+      position: relative;
+    }
+
+    canvas.main-board {
+      border: 2px solid rgba(255, 255, 255, 0.05);
+      border-radius: 6px;
+      background: rgba(5, 5, 8, 0.9);
+      box-shadow: inset 0 0 20px rgba(0,0,0,0.8);
+      display: block;
+    }
+
+    /* サイド情報パネル */
+    .side-panel {
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+      width: 120px;
+    }
+
+    .info-box {
+      background: rgba(0, 0, 0, 0.4);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 6px;
+      padding: 8px;
+      text-align: center;
+    }
+
+    .info-title {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      color: rgba(255, 255, 255, 0.6);
+      margin-bottom: 4px;
+      letter-spacing: 1px;
+    }
+
+    .info-value {
+      font-size: 1.2rem;
+      font-weight: bold;
+      color: var(--neon-cyan);
+      text-shadow: 0 0 5px rgba(0, 240, 255, 0.5);
+    }
+
+    canvas.mini-board {
+      background: rgba(0, 0, 0, 0.5);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      border-radius: 4px;
+      display: block;
+      margin: 0 auto;
+    }
+
+    /* ボードタイトル（PLAYER/CPU） */
+    .board-label {
+      position: absolute;
+      top: -25px;
+      left: 15px;
+      font-size: 1rem;
+      font-weight: bold;
+      letter-spacing: 2px;
+      text-shadow: 0 0 8px rgba(255, 255, 255, 0.5);
+    }
+
+    #player-wrapper .board-label {
+      color: var(--neon-cyan);
+    }
+
+    #cpu-wrapper .board-label {
+      color: var(--neon-purple);
+    }
+
+    /* メニュー＆モーダル */
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(10, 10, 15, 0.95);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+      backdrop-filter: blur(8px);
+      transition: opacity 0.3s ease;
+    }
+
+    .modal-content {
+      background: rgba(20, 20, 35, 0.9);
+      border: 2px solid var(--neon-cyan);
+      box-shadow: 0 0 30px var(--neon-cyan);
+      border-radius: 16px;
+      padding: 40px;
+      width: 450px;
+      text-align: center;
+    }
+
+    .modal-content h2 {
+      font-size: 2rem;
+      margin-bottom: 25px;
+      text-transform: uppercase;
+      letter-spacing: 3px;
+      color: #fff;
+      text-shadow: 0 0 10px var(--neon-cyan);
+    }
+
+    .menu-group {
+      margin-bottom: 20px;
+      text-align: left;
+    }
+
+    .menu-group label {
+      display: block;
+      font-size: 0.85rem;
+      color: rgba(255, 255, 255, 0.6);
+      margin-bottom: 8px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    /* トグルボタン（モード・難易度選択） */
+    .btn-toggle-group {
+      display: flex;
+      gap: 10px;
+    }
+
+    .btn-toggle {
+      flex: 1;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: #ccc;
+      padding: 10px;
+      font-size: 0.9rem;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .btn-toggle:hover {
+      background: rgba(255, 255, 255, 0.1);
+    }
+
+    .btn-toggle.active {
+      background: rgba(0, 240, 255, 0.2);
+      border-color: var(--neon-cyan);
+      color: #fff;
+      box-shadow: 0 0 10px rgba(0, 240, 255, 0.3);
+    }
+
+    .btn-start {
+      width: 100%;
+      background: linear-gradient(45deg, var(--neon-cyan), var(--neon-purple));
+      border: none;
+      color: #fff;
+      padding: 14px;
+      font-size: 1.1rem;
+      font-weight: bold;
+      border-radius: 8px;
+      cursor: pointer;
+      margin-top: 15px;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      box-shadow: 0 0 15px rgba(189, 0, 255, 0.4);
+      transition: transform 0.1s, box-shadow 0.2s;
+    }
+
+    .btn-start:hover {
+      box-shadow: 0 0 25px rgba(189, 0, 255, 0.7);
+    }
+
+    .btn-start:active {
+      transform: scale(0.98);
+    }
+
+    /* 操作ヘルプ */
+    .controls-help {
+      margin-top: 15px;
+      background: var(--panel-bg);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      border-radius: 8px;
+      padding: 10px;
+      width: 100%;
+      max-width: 650px;
+      display: flex;
+      justify-content: space-around;
+      font-size: 0.75rem;
+      color: rgba(255, 255, 255, 0.5);
+    }
+
+    .controls-help div span {
+      color: var(--neon-cyan);
+      font-weight: bold;
+    }
+
+    /* ポーズ状態などのインジケータ */
+    .status-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(5, 5, 8, 0.85);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 10;
+      border-radius: 12px;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s;
+    }
+
+    .status-overlay.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .status-text {
+      font-size: 2rem;
+      font-weight: bold;
+      text-transform: uppercase;
+      letter-spacing: 4px;
+      text-shadow: 0 0 10px var(--neon-cyan);
+      margin-bottom: 10px;
+    }
+
+    .status-subtext {
+      font-size: 0.9rem;
+      color: rgba(255, 255, 255, 0.6);
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>NEON BATTLE TETRIS</h1>
+  </header>
+
+  <div id="game-layout">
+    <!-- PLAYER 1 AREA -->
+    <div class="board-wrapper" id="player-wrapper">
+      <div class="board-label">PLAYER 1</div>
+      <div class="canvas-container">
+        <canvas id="player-canvas" class="main-board" width="300" height="600"></canvas>
+      </div>
+      <div class="side-panel">
+        <div class="info-box">
+          <div class="info-title">Hold</div>
+          <canvas id="player-hold" class="mini-board" width="80" height="80"></canvas>
+        </div>
+        <div class="info-box">
+          <div class="info-title">Next</div>
+          <canvas id="player-next" class="mini-board" width="80" height="80"></canvas>
+        </div>
+        <div class="info-box">
+          <div class="info-title">Score</div>
+          <div class="info-value" id="player-score">0</div>
+        </div>
+        <div class="info-box">
+          <div class="info-title">Lines</div>
+          <div class="info-value" id="player-lines">0</div>
+        </div>
+        <div class="info-box">
+          <div class="info-title">Level</div>
+          <div class="info-value" id="player-level">1</div>
+        </div>
+      </div>
+      <div class="status-overlay" id="player-status-overlay">
+        <div class="status-text" id="player-status-title">PAUSED</div>
+        <div class="status-subtext" id="player-status-desc">Press ESC to Resume</div>
+      </div>
+    </div>
+
+    <!-- CPU AREA (デフォルト非表示) -->
+    <div class="board-wrapper" id="cpu-wrapper" style="display: none;">
+      <div class="board-label" id="cpu-label">CPU (Lv. 普通)</div>
+      <div class="canvas-container">
+        <canvas id="cpu-canvas" class="main-board" width="300" height="600"></canvas>
+      </div>
+      <div class="side-panel">
+        <div class="info-box">
+          <div class="info-title">Hold</div>
+          <canvas id="cpu-hold" class="mini-board" width="80" height="80"></canvas>
+        </div>
+        <div class="info-box">
+          <div class="info-title">Next</div>
+          <canvas id="cpu-next" class="mini-board" width="80" height="80"></canvas>
+        </div>
+        <div class="info-box">
+          <div class="info-title">Score</div>
+          <div class="info-value" id="cpu-score">0</div>
+        </div>
+        <div class="info-box">
+          <div class="info-title">Lines</div>
+          <div class="info-value" id="cpu-lines">0</div>
+        </div>
+        <div class="info-box">
+          <div class="info-title">Level</div>
+          <div class="info-value" id="cpu-level">1</div>
+        </div>
+      </div>
+      <div class="status-overlay" id="cpu-status-overlay">
+        <div class="status-text" id="cpu-status-title">WAITING</div>
+        <div class="status-subtext">CPU is ready</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 操作方法ヘルプ -->
+  <div class="controls-help">
+    <div><span>← → / ↓</span> : 左右移動 / ソフトドロップ</div>
+    <div><span>SPACE / ↑</span> : ハードドロップ / 右回転</div>
+    <div><span>Z / X</span> : 左回転 / 右回転</div>
+    <div><span>SHIFT / C</span> : ホールド</div>
+    <div><span>ESC / P</span> : 一時停止</div>
+  </div>
+
+  <!-- メニューモーダル -->
+  <div class="modal-overlay" id="menu-modal">
+    <div class="modal-content">
+      <h2>Select Mode</h2>
+      
+      <div class="menu-group">
+        <label>Game Mode</label>
+        <div class="btn-toggle-group">
+          <button class="btn-toggle active" id="mode-solo" onclick="setMode('solo')">Solo Mode</button>
+          <button class="btn-toggle" id="mode-vs" onclick="setMode('vs')">VS CPU</button>
+        </div>
+      </div>
+
+      <div class="menu-group" id="difficulty-group" style="display: none;">
+        <label>CPU Difficulty</label>
+        <div class="btn-toggle-group">
+          <button class="btn-toggle" id="diff-easy" onclick="setDiff('easy')">甘口</button>
+          <button class="btn-toggle active" id="diff-normal" onclick="setDiff('normal')">普通</button>
+          <button class="btn-toggle" id="diff-hard" onclick="setDiff('hard')">激辛</button>
+        </div>
+      </div>
+
+      <button class="btn-start" onclick="startGame()">Battle Start</button>
+    </div>
+  </div>
+
+  <script>
+    // --- 音響システム（Web Audio API） ---
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    function playSound(type) {
+      if (audioCtx.state === 'suspended') {
+        audioCtx.resume();
+      }
+      try {
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+
+        if (type === 'move') {
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(150, audioCtx.currentTime);
+          gain.gain.setValueAtTime(0.04, audioCtx.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.08);
+          osc.start();
+          osc.stop(audioCtx.currentTime + 0.08);
+        } else if (type === 'rotate') {
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(220, audioCtx.currentTime);
+          osc.frequency.exponentialRampToValueAtTime(320, audioCtx.currentTime + 0.06);
+          gain.gain.setValueAtTime(0.04, audioCtx.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.06);
+          osc.start();
+          osc.stop(audioCtx.currentTime + 0.06);
+        } else if (type === 'clear') {
+          osc.type = 'square';
+          osc.frequency.setValueAtTime(440, audioCtx.currentTime);
+          osc.frequency.linearRampToValueAtTime(880, audioCtx.currentTime + 0.18);
+          gain.gain.setValueAtTime(0.06, audioCtx.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.22);
+          osc.start();
+          osc.stop(audioCtx.currentTime + 0.22);
+        } else if (type === 'tspin') {
+          osc.type = 'sawtooth';
+          osc.frequency.setValueAtTime(260, audioCtx.currentTime);
+          osc.frequency.linearRampToValueAtTime(1100, audioCtx.currentTime + 0.3);
+          gain.gain.setValueAtTime(0.08, audioCtx.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.35);
+          osc.start();
+          osc.stop(audioCtx.currentTime + 0.35);
+        } else if (type === 'gameover') {
+          osc.type = 'sawtooth';
+          osc.frequency.setValueAtTime(280, audioCtx.currentTime);
+          osc.frequency.exponentialRampToValueAtTime(50, audioCtx.currentTime + 0.5);
+          gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.5);
+          osc.start();
+          osc.stop(audioCtx.currentTime + 0.5);
+        }
+      } catch (e) {
+        // 音声が再生できない場合のハンドリング
+      }
+    }
+
+    // --- 定数と設定 ---
+    const COLS = 10;
+    const ROWS = 20;
+    const CELL_SIZE = 30; // 300px * 600px
+
+    const SHAPES = {
+      'I': [[0,0,0,0], [1,1,1,1], [0,0,0,0], [0,0,0,0]],
+      'O': [[1,1], [1,1]],
+      'T': [[0,1,0], [1,1,1], [0,0,0]],
+      'S': [[0,1,1], [1,1,0], [0,0,0]],
+      'Z': [[1,1,0], [0,1,1], [0,0,0]],
+      'J': [[1,0,0], [1,1,1], [0,0,0]],
+      'L': [[0,0,1], [1,1,1], [0,0,0]]
+    };
+
+    const COLORS = {
+      'I': '#00f0f0', // Cyan
+      'O': '#f0f000', // Yellow
+      'T': '#a000f0', // Purple
+      'S': '#00f000', // Green
+      'Z': '#f00000', // Red
+      'J': '#0000f0', // Blue
+      'L': '#f0a000', // Orange
+      'G': '#7f8c8d'  // Garbage block (Gray)
+    };
+
+    // --- ゲーム設定管理 ---
+    let activeMode = 'solo'; // 'solo' or 'vs'
+    let difficulty = 'normal'; // 'easy', 'normal', 'hard'
+    let playerGameInstance = null;
+    let cpuGameInstance = null;
+
+    function setMode(mode) {
+      activeMode = mode;
+      document.getElementById('mode-solo').classList.toggle('active', mode === 'solo');
+      document.getElementById('mode-vs').classList.toggle('active', mode === 'vs');
+      document.getElementById('difficulty-group').style.display = (mode === 'vs') ? 'block' : 'none';
+    }
+
+    function setDiff(diff) {
+      difficulty = diff;
+      document.getElementById('diff-easy').classList.toggle('active', diff === 'easy');
+      document.getElementById('diff-normal').classList.toggle('active', diff === 'normal');
+      document.getElementById('diff-hard').classList.toggle('active', diff === 'hard');
+      let diffStr = diff === 'easy' ? '甘口' : diff === 'normal' ? '普通' : '激辛';
+      document.getElementById('cpu-label').innerText = `CPU (Lv. ${diffStr})`;
+    }
+
+    function startGame() {
+      document.getElementById('menu-modal').style.display = 'none';
+      if (audioCtx.state === 'suspended') audioCtx.resume();
+
+      // 初期化
+      if (playerGameInstance) playerGameInstance.destroy();
+      if (cpuGameInstance) cpuGameInstance.destroy();
+
+      const pCanvas = document.getElementById('player-canvas');
+      const pHold = document.getElementById('player-hold');
+      const pNext = document.getElementById('player-next');
+
+      playerGameInstance = new TetrisGame(pCanvas, pHold, pNext, false);
+
+      if (activeMode === 'vs') {
+        document.getElementById('cpu-wrapper').style.display = 'flex';
+        const cCanvas = document.getElementById('cpu-canvas');
+        const cHold = document.getElementById('cpu-hold');
+        const cNext = document.getElementById('cpu-next');
+
+        cpuGameInstance = new TetrisGame(cCanvas, cHold, cNext, true, difficulty);
+        
+        // お互いをお邪魔ブロック送信のターゲットとして紐付け
+        playerGameInstance.opponent = cpuGameInstance;
+        cpuGameInstance.opponent = playerGameInstance;
+        
+        cpuGameInstance.start();
+      } else {
+        document.getElementById('cpu-wrapper').style.display = 'none';
+      }
+
+      playerGameInstance.start();
+    }
+
+    // --- テトリス ゲームエンジン クラス ---
+    class TetrisGame {
+      constructor(canvas, holdCanvas, nextCanvas, isCpu = false, cpuDiff = 'normal') {
+        this.canvas = canvas;
+        this.ctx = canvas.getContext('2d');
+        this.holdCanvas = holdCanvas;
+        this.holdCtx = holdCanvas.getContext('2d');
+        this.nextCanvas = nextCanvas;
+        this.nextCtx = nextCanvas.getContext('2d');
+
+        this.isCpu = isCpu;
+        this.cpuDiff = cpuDiff;
+        this.opponent = null; // 対戦相手参照
+
+        this.reset();
+      }
+
+      reset() {
+        this.grid = Array.from({ length: ROWS }, () => Array(COLS).fill(0));
+        this.score = 0;
+        this.lines = 0;
+        this.level = 1;
+        this.gameOver = false;
+        this.isPaused = false;
+
+        this.bag = [];
+        this.currentPieceMatrix = null;
+        this.currentPieceType = null;
+        this.currentPieceX = 0;
+        this.currentPieceY = 0;
+        this.rotationState = 0;
+
+        this.holdPiece = null;
+        this.canHold = true;
+        this.nextQueue = [];
+
+        this.lastActionWasRotation = false; // T-Spin判定用
+
+        // 自然落下タイマー
+        this.dropCounter = 0;
+        this.dropInterval = 1000; // ms
+
+        // 特殊エフェクト表示用
+        this.feedbackText = "";
+        this.feedbackTimer = 0;
+
+        // CPU関連のパラメーター
+        this.aiTargetMove = null;
+        this.aiTimer = 0;
+        this.aiSpeedInterval = this.getCpuSpeed(); // アクション間のラグ
+
+        // 初期生成
+        this.refillBag();
+        for (let i = 0; i < 4; i++) {
+          this.nextQueue.push(this.pullFromBag());
+        }
+        this.spawnPiece();
+        this.updateHUD();
+      }
+
+      getCpuSpeed() {
+        if (this.cpuDiff === 'easy') return 300; // 移動ディレイ（遅め）
+        if (this.cpuDiff === 'normal') return 120; // 標準
+        return 35; // 高速
+      }
+
+      getHeuristicNoise() {
+        if (this.cpuDiff === 'easy') return 350; // ミス多め
+        if (this.cpuDiff === 'normal') return 55; // たまに甘い
+        return 0; // 最適解（完璧）
+      }
+
+      start() {
+        this.isRunning = true;
+        this.lastTime = performance.now();
+        this.animate = (time) => {
+          if (!this.isRunning) return;
+          const deltaTime = time - this.lastTime;
+          this.lastTime = time;
+
+          if (!this.isPaused && !this.gameOver) {
+            this.update(deltaTime);
+          }
+          this.draw();
+          requestAnimationFrame(this.animate);
+        };
+        requestAnimationFrame(this.animate);
+
+        if (!this.isCpu) {
+          window.addEventListener('keydown', this.handleInput);
+        }
+      }
+
+      destroy() {
+        this.isRunning = false;
+        if (!this.isCpu) {
+          window.removeEventListener('keydown', this.handleInput);
+        }
+      }
+
+      refillBag() {
+        const types = ['I', 'O', 'T', 'S', 'Z', 'J', 'L'];
+        // シャッフル
+        for (let i = types.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [types[i], types[j]] = [types[j], types[i]];
+        }
+        this.bag = types;
+      }
+
+      pullFromBag() {
+        if (this.bag.length === 0) {
+          this.refillBag();
+        }
+        return this.bag.pop();
+      }
+
+      spawnPiece() {
+        this.currentPieceType = this.nextQueue.shift();
+        this.nextQueue.push(this.pullFromBag());
+        this.currentPieceMatrix = SHAPES[this.currentPieceType];
+        
+        // 生成位置
+        this.currentPieceX = Math.floor((COLS - this.currentPieceMatrix[0].length) / 2);
+        this.currentPieceY = this.currentPieceType === 'I' ? -1 : 0;
+        this.rotationState = 0;
+        this.canHold = true;
+        this.lastActionWasRotation = false;
+
+        // 生成時にすでに衝突している場合はゲームオーバー
+        if (!this.isValidPosition(this.currentPieceX, this.currentPieceY, this.currentPieceMatrix)) {
+          this.triggerGameOver();
+        }
+
+        // CPUの場合、ここ次の一手の最善のターゲットをAI計算する
+        if (this.isCpu && !this.gameOver) {
+          this.aiTargetMove = this.getBestMove();
+          this.aiTimer = 0;
+        }
+      }
+
+      // --- 衝突検知システム ---
+      isValidPosition(offsetX, offsetY, matrix) {
+        for (let r = 0; r < matrix.length; r++) {
+          for (let c = 0; c < matrix[r].length; c++) {
+            if (matrix[r][c]) {
+              const targetX = offsetX + c;
+              const targetY = offsetY + r;
+
+              if (targetX < 0 || targetX >= COLS || targetY >= ROWS) {
+                return false;
+              }
+              if (targetY >= 0 && this.grid[targetY][targetX] !== 0) {
+                return false;
+              }
+            }
+          }
+        }
+        return true;
+      }
+
+      // --- キーボード入力 & CPU行動 ---
+      handleInput = (e) => {
+        if (this.isPaused || this.gameOver) {
+          if (e.key === 'Escape' || e.key === 'p' || e.key === 'P') {
+            this.togglePause();
+          }
+          return;
+        }
+
+        switch (e.key) {
+          case 'ArrowLeft':
+            this.moveLeft();
+            break;
+          case 'ArrowRight':
+            this.moveRight();
+            break;
+          case 'ArrowDown':
+            this.moveDown();
+            break;
+          case 'ArrowUp':
+          case 'x':
+          case 'X':
+            this.rotatePiece(1); // 右回転
+            break;
+          case 'z':
+          case 'Z':
+            this.rotatePiece(-1); // 左回転
+            break;
+          case ' ':
+            this.hardDrop();
+            break;
+          case 'Shift':
+          case 'c':
+          case 'C':
+            this.hold();
+            break;
+          case 'Escape':
+          case 'p':
+          case 'P':
+            this.togglePause();
+            break;
+        }
+      };
+
+      moveLeft() {
+        if (this.isValidPosition(this.currentPieceX - 1, this.currentPieceY, this.currentPieceMatrix)) {
+          this.currentPieceX--;
+          this.lastActionWasRotation = false;
+          playSound('move');
+          return true;
+        }
+        return false;
+      }
+
+      moveRight() {
+        if (this.isValidPosition(this.currentPieceX + 1, this.currentPieceY, this.currentPieceMatrix)) {
+          this.currentPieceX++;
+          this.lastActionWasRotation = false;
+          playSound('move');
+          return true;
+        }
+        return false;
+      }
+
+      moveDown() {
+        if (this.isValidPosition(this.currentPieceX, this.currentPieceY + 1, this.currentPieceMatrix)) {
+          this.currentPieceY++;
+          this.dropCounter = 0;
+          this.lastActionWasRotation = false;
+          return true;
+        }
+        this.lockPiece();
+        return false;
+      }
+
+      // 簡易 Wall Kick (壁や他ブロックを検知し左右・上に少し避けて回転判定)
+      rotatePiece(dir) {
+        const nextMatrix = this.rotateMatrix(this.currentPieceMatrix, dir);
+        const originalX = this.currentPieceX;
+        const originalY = this.currentPieceY;
+
+        // Kick パターン試行
+        const kickOffsets = [
+          [0, 0],   // 基準
+          [-1, 0],  // 左1
+          [1, 0],   // 右1
+          [0, -1],  // 上1（地面キック）
+          [-2, 0],  // 左2（Iミノ用）
+          [2, 0]    // 右2
+        ];
+
+        for (const [kx, ky] of kickOffsets) {
+          if (this.isValidPosition(originalX + kx, originalY + ky, nextMatrix)) {
+            this.currentPieceX = originalX + kx;
+            this.currentPieceY = originalY + ky;
+            this.currentPieceMatrix = nextMatrix;
+            this.rotationState = (this.rotationState + (dir === 1 ? 1 : 3)) % 4;
+            this.lastActionWasRotation = true;
+            playSound('rotate');
+            return true;
+          }
+        }
+        return false;
+      }
+
+      rotateMatrix(matrix, dir) {
+        const N = matrix.length;
+        const result = Array.from({ length: N }, () => Array(N).fill(0));
+        if (dir === 1) { // 時計回り
+          for (let r = 0; r < N; r++) {
+            for (let c = 0; c < N; c++) {
+              result[c][N - 1 - r] = matrix[r][c];
+            }
+          }
+        } else { // 反時計回り
+          for (let r = 0; r < N; r++) {
+            for (let c = 0; c < N; c++) {
+              result[N - 1 - c][r] = matrix[r][c];
+            }
+          }
+        }
+        return result;
+      }
+
+      hardDrop() {
+        let count = 0;
+        while (this.isValidPosition(this.currentPieceX, this.currentPieceY + 1, this.currentPieceMatrix)) {
+          this.currentPieceY++;
+          count++;
+        }
+        this.score += count * 2;
+        this.lockPiece();
+        playSound('clear');
+      }
+
+      hold() {
+        if (!this.canHold) return;
+        
+        playSound('rotate');
+        const nextHold = this.currentPieceType;
+        if (this.holdPiece === null) {
+          this.holdPiece = nextHold;
+          this.spawnPiece();
+        } else {
+          const temp = this.holdPiece;
+          this.holdPiece = nextHold;
+          this.currentPieceType = temp;
+          this.currentPieceMatrix = SHAPES[this.currentPieceType];
+          this.currentPieceX = Math.floor((COLS - this.currentPieceMatrix[0].length) / 2);
+          this.currentPieceY = this.currentPieceType === 'I' ? -1 : 0;
+          this.rotationState = 0;
+          this.canHold = false;
+          this.lastActionWasRotation = false;
+
+          if (this.isCpu) {
+            this.aiTargetMove = this.getBestMove();
+            this.aiTimer = 0;
+          }
+        }
+        this.updateHUD();
+      }
+
+      // --- 固定・ライン消去・お邪魔システム ---
+      lockPiece() {
+        // フィールドへマージ
+        let isTspin = false;
+        if (this.currentPieceType === 'T' && this.lastActionWasRotation) {
+          isTspin = this.checkTspin();
+        }
+
+        for (let r = 0; r < this.currentPieceMatrix.length; r++) {
+          for (let c = 0; c < this.currentPieceMatrix[r].length; c++) {
+            if (this.currentPieceMatrix[r][c]) {
+              const targetY = this.currentPieceY + r;
+              const targetX = this.currentPieceX + c;
+              if (targetY >= 0 && targetY < ROWS) {
+                this.grid[targetY][targetX] = this.currentPieceType;
+              }
+            }
+          }
+        }
+
+        const clearedLines = this.clearLines();
+        
+        // 得点・フィードバック・お邪魔ブロック計算
+        this.handleScoreAndGarbage(clearedLines, isTspin);
+
+        this.spawnPiece();
+        this.updateHUD();
+      }
+
+      // T-Spin 3コーナー判定 (Tの周囲4マスのうち3マス以上が埋まっていれば成立)
+      checkTspin() {
+        const cx = this.currentPieceX + 1; // Tの中心X
+        const cy = this.currentPieceY + 1; // Tの中心Y
+        let occupiedCorners = 0;
+
+        const corners = [
+          [cx - 1, cy - 1], // 左上
+          [cx + 1, cy - 1], // 右上
+          [cx - 1, cy + 1], // 左下
+          [cx + 1, cy + 1]  // 右下
+        ];
+
+        for (const [x, y] of corners) {
+          if (x < 0 || x >= COLS || y >= ROWS) {
+            occupiedCorners++; // 壁や底も埋まっている判定
+          } else if (y >= 0 && this.grid[y][x] !== 0) {
+            occupiedCorners++;
+          }
+        }
+        return occupiedCorners >= 3;
+      }
+
+      clearLines() {
+        let cleared = 0;
+        for (let r = ROWS - 1; r >= 0; r--) {
+          if (this.grid[r].every(cell => cell !== 0)) {
+            this.grid.splice(r, 1);
+            this.grid.unshift(Array(COLS).fill(0));
+            cleared++;
+            r++; // 再判定
+          }
+        }
+        return cleared;
+      }
+
+      handleScoreAndGarbage(cleared, isTspin) {
+        let points = 0;
+        let garbageToSend = 0;
+        let message = "";
+
+        if (isTspin) {
+          if (cleared === 0) {
+            points = 400 * this.level;
+            message = "T-SPIN";
+            playSound('tspin');
+          } else if (cleared === 1) {
+            points = 800 * this.level;
+            garbageToSend = 2;
+            message = "T-SPIN SINGLE";
+            playSound('tspin');
+          } else if (cleared === 2) {
+            points = 1200 * this.level;
+            garbageToSend = 4;
+            message = "T-SPIN DOUBLE";
+            playSound('tspin');
+          } else if (cleared === 3) {
+            points = 1600 * this.level;
+            garbageToSend = 6;
+            message = "T-SPIN TRIPLE";
+            playSound('tspin');
+          }
+        } else {
+          if (cleared === 1) {
+            points = 100 * this.level;
+            playSound('clear');
+          } else if (cleared === 2) {
+            points = 300 * this.level;
+            garbageToSend = 1;
+            playSound('clear');
+          } else if (cleared === 3) {
+            points = 500 * this.level;
+            garbageToSend = 2;
+            playSound('clear');
+          } else if (cleared === 4) {
+            points = 800 * this.level;
+            garbageToSend = 4;
+            message = "TETRIS";
+            playSound('clear');
+            playSound('tspin'); // 4列消しを強調
+          }
+        }
+
+        if (points > 0) {
+          this.score += points;
+          this.lines += cleared;
+          this.level = Math.floor(this.lines / 10) + 1;
+          this.dropInterval = Math.max(100, 1000 - (this.level - 1) * 100);
+
+          if (message) {
+            this.feedbackText = message;
+            this.feedbackTimer = 60; // 60フレーム表示
+          }
+        }
+
+        // 対戦モード時の攻撃処理
+        if (garbageToSend > 0 && this.opponent && !this.opponent.gameOver) {
+          this.opponent.receiveGarbage(garbageToSend);
+        }
+      }
+
+      receiveGarbage(lines) {
+        for (let l = 0; l < lines; l++) {
+          this.grid.shift(); // 最上部を捨てる
+          const row = Array(COLS).fill('G');
+          const gapIndex = Math.floor(Math.random() * COLS);
+          row[gapIndex] = 0; // 穴あきお邪魔行
+          this.grid.push(row);
+        }
+        playSound('gameover'); // 攻撃を受けた演出
+      }
+
+      // --- CPU 思考アルゴリズム (AI Heuristics) ---
+      getBestMove() {
+        let bestScore = -Infinity;
+        let bestMove = { hold: false, rot: 0, x: 0 };
+
+        // 1. 現ミノでの全パターン評価
+        const normalEval = this.evaluateAllPositions(this.currentPieceMatrix);
+        if (normalEval.score > bestScore) {
+          bestScore = normalEval.score;
+          bestMove = { hold: false, rot: normalEval.rot, x: normalEval.x };
+        }
+
+        // 2. ホールド時の全パターン評価（可能な場合）
+        if (this.canHold) {
+          const projectedHoldType = this.holdPiece ? this.holdPiece : this.nextQueue[0];
+          const projectedMatrix = SHAPES[projectedHoldType];
+          const holdEval = this.evaluateAllPositions(projectedMatrix);
+          
+          // ホールドが有利ならホールドを使用
+          if (holdEval.score > bestScore) {
+            bestScore = holdEval.score;
+            bestMove = { hold: true, rot: holdEval.rot, x: holdEval.x };
+          }
+        }
+
+        return bestMove;
+      }
+
+      // 特定のミノ形態に対し、全横位置、全回転方向への設置を試行評価する
+      evaluateAllPositions(baseMatrix) {
+        let bestScore = -Infinity;
+        let bestRot = 0;
+        let bestX = 0;
+
+        for (let rot = 0; rot < 4; rot++) {
+          let matrix = baseMatrix;
+          for (let r = 0; r < rot; r++) {
+            matrix = this.rotateMatrix(matrix, 1);
+          }
+
+          // 設置可能な最小X、最大Xを探索
+          for (let x = -3; x < COLS + 3; x++) {
+            if (this.isValidPosition(x, 0, matrix)) {
+              // 落下地点を取得
+              let y = 0;
+              while (this.isValidPosition(x, y + 1, matrix)) {
+                y++;
+              }
+
+              // スコア計算
+              const score = this.calculateHeuristic(x, y, matrix);
+              if (score > bestScore) {
+                bestScore = score;
+                bestRot = rot;
+                bestX = x;
+              }
+            }
+          }
+        }
+
+        return { score: bestScore, rot: bestRot, x: bestX };
+      }
+
+      calculateHeuristic(targetX, targetY, matrix) {
+        // フィールド盤面の仮想コピー作成
+        const tempGrid = this.grid.map(row => [...row]);
+
+        // 仮想配置
+        for (let r = 0; r < matrix.length; r++) {
+          for (let c = 0; c < matrix[r].length; c++) {
+            if (matrix[r][c]) {
+              const ty = targetY + r;
+              const tx = targetX + c;
+              if (ty >= 0 && ty < ROWS && tx >= 0 && tx < COLS) {
+                tempGrid[ty][tx] = 1;
+              }
+            }
+          }
+        }
+
+        // 仮想消去
+        let cleared = 0;
+        for (let r = ROWS - 1; r >= 0; r--) {
+          if (tempGrid[r].every(cell => cell !== 0)) {
+            tempGrid.splice(r, 1);
+            tempGrid.unshift(Array(COLS).fill(0));
+            cleared++;
+            r++;
+          }
+        }
+
+        // 特徴量の測定
+        // 1. 各列の高さ
+        const heights = Array(COLS).fill(0);
+        for (let c = 0; c < COLS; c++) {
+          for (let r = 0; r < ROWS; r++) {
+            if (tempGrid[r][c] !== 0) {
+              heights[c] = ROWS - r;
+              break;
+            }
+          }
+        }
+
+        // 総合高
+        const aggHeight = heights.reduce((a, b) => a + b, 0);
+        // 最大高
+        const maxHeight = Math.max(...heights);
+
+        // 2. 穴の数（上にブロックがある空マス）
+        let holes = 0;
+        for (let c = 0; c < COLS; c++) {
+          let blockFound = false;
+          for (let r = 0; r < ROWS; r++) {
+            if (tempGrid[r][c] !== 0) {
+              blockFound = true;
+            } else if (blockFound && tempGrid[r][c] === 0) {
+              holes++;
+            }
+          }
+        }
+
+        // 3. 凹凸（隣接する列同士の高さの差の総和）
+        let bumpiness = 0;
+        for (let c = 0; c < COLS - 1; c++) {
+          bumpiness += Math.abs(heights[c] - heights[c + 1]);
+        }
+
+        // 評価モデル重みづけ
+        const wHeight = -7.5;
+        const wLines = 100.0;
+        const wHoles = -45.0;
+        const wBumpiness = -4.0;
+
+        let score = (aggHeight * wHeight) + (cleared * wLines) + (holes * wHoles) + (bumpiness * wBumpiness);
+
+        // 難易度調整用：甘口、普通の場合は乱数を混ぜてミスを誘発させる
+        const noise = this.getHeuristicNoise();
+        if (noise > 0) {
+          score += (Math.random() - 0.5) * noise;
+        }
+
+        return score;
+      }
+
+      // --- 更新ロジック ---
+      update(deltaTime) {
+        if (this.isCpu) {
+          // CPUの操作処理（アクションタイマーに従う）
+          this.aiTimer += deltaTime;
+          if (this.aiTimer >= this.aiSpeedInterval) {
+            this.aiTimer = 0;
+            this.processCpuAction();
+          }
+        } else {
+          // プレイヤーの自然落下処理
+          this.dropCounter += deltaTime;
+          if (this.dropCounter >= this.dropInterval) {
+            this.moveDown();
+          }
+        }
+
+        // テキストフェードアウト用
+        if (this.feedbackTimer > 0) {
+          this.feedbackTimer--;
+        }
+      }
+
+      processCpuAction() {
+        if (!this.aiTargetMove) return;
+
+        // 1. ホールド要求があれば即座に使用
+        if (this.aiTargetMove.hold) {
+          this.hold();
+          return;
+        }
+
+        // 2. 向き（回転状態）の調整
+        if (this.rotationState !== this.aiTargetMove.rot) {
+          this.rotatePiece(1);
+          return;
+        }
+
+        // 3. 左右座標の調整
+        if (this.currentPieceX < this.aiTargetMove.x) {
+          this.moveRight();
+          return;
+        } else if (this.currentPieceX > this.aiTargetMove.x) {
+          this.moveLeft();
+          return;
+        }
+
+        // 4. 回転・移動ともにバッチリならハードドロップ
+        this.hardDrop();
+      }
+
+      // --- ポーズ & ゲームオーバー制御 ---
+      togglePause() {
+        this.isPaused = !this.isPaused;
+        const overlay = document.getElementById(this.isCpu ? 'cpu-status-overlay' : 'player-status-overlay');
+        const title = document.getElementById(this.isCpu ? 'cpu-status-title' : 'player-status-title');
+        const desc = document.getElementById(this.isCpu ? 'cpu-status-desc' : 'player-status-desc');
+
+        if (this.isPaused) {
+          overlay.classList.add('active');
+          if (title) title.innerText = "PAUSED";
+          if (desc) desc.innerText = "Press ESC / P to Resume";
+        } else {
+          overlay.classList.remove('active');
+        }
+
+        // 相手もシンクロしてポーズ
+        if (this.opponent && this.opponent.isPaused !== this.isPaused) {
+          this.opponent.togglePause();
+        }
+      }
+
+      triggerGameOver() {
+        this.gameOver = true;
+        playSound('gameover');
+        
+        const overlay = document.getElementById(this.isCpu ? 'cpu-status-overlay' : 'player-status-overlay');
+        const title = document.getElementById(this.isCpu ? 'cpu-status-title' : 'player-status-title');
+        const desc = document.getElementById(this.isCpu ? 'cpu-status-desc' : 'player-status-desc');
+
+        overlay.classList.add('active');
+        
+        if (this.isCpu) {
+          if (title) title.innerText = "LOSE (CPU)";
+          if (desc) desc.innerText = "PLAYER 1 WIN!";
+          
+          // プレイヤー側を勝利で終了
+          if (this.opponent && !this.opponent.gameOver) {
+            this.opponent.triggerGameWin();
+          }
+        } else {
+          if (title) title.innerText = "GAME OVER";
+          if (desc) desc.innerText = activeMode === 'vs' ? "CPU WIN!" : "Try Again!";
+          
+          if (this.opponent && !this.opponent.gameOver) {
+            this.opponent.triggerGameWin();
+          }
+        }
+      }
+
+      triggerGameWin() {
+        this.gameOver = true;
+        const overlay = document.getElementById(this.isCpu ? 'cpu-status-overlay' : 'player-status-overlay');
+        const title = document.getElementById(this.isCpu ? 'cpu-status-title' : 'player-status-title');
+        const desc = document.getElementById(this.isCpu ? 'cpu-status-desc' : 'player-status-desc');
+
+        overlay.classList.add('active');
+        if (title) title.innerText = "WINNER!";
+        if (desc) desc.innerText = this.isCpu ? "CPU was victorious" : "You beat the CPU!";
+      }
+
+      updateHUD() {
+        const idPrefix = this.isCpu ? 'cpu-' : 'player-';
+        const scoreElem = document.getElementById(`${idPrefix}score`);
+        const linesElem = document.getElementById(`${idPrefix}lines`);
+        const levelElem = document.getElementById(`${idPrefix}level`);
+
+        if (scoreElem) scoreElem.innerText = this.score;
+        if (linesElem) linesElem.innerText = this.lines;
+        if (levelElem) levelElem.innerText = this.level;
+
+        // NEXT / HOLD ミニキャンバス描画
+        this.drawMini(this.holdCtx, this.holdPiece);
+        this.drawMini(this.nextCtx, this.nextQueue[0]);
+      }
+
+      // --- 描画処理 ---
+      draw() {
+        this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+
+        // 1. 背景グリッドラインの描画 (サイバー調)
+        this.ctx.strokeStyle = 'rgba(255, 255, 255, 0.03)';
+        this.ctx.lineWidth = 1;
+        for (let c = 0; c <= COLS; c++) {
+          this.ctx.beginPath();
+          this.ctx.moveTo(c * CELL_SIZE, 0);
+          this.ctx.lineTo(c * CELL_SIZE, this.canvas.height);
+          this.ctx.stroke();
+        }
+        for (let r = 0; r <= ROWS; r++) {
+          this.ctx.beginPath();
+          this.ctx.moveTo(0, r * CELL_SIZE);
+          this.ctx.lineTo(this.canvas.width, r * CELL_SIZE);
+          this.ctx.stroke();
+        }
+
+        // 2. フィールド固定済みブロックの描画
+        for (let r = 0; r < ROWS; r++) {
+          for (let c = 0; c < COLS; c++) {
+            if (this.grid[r][c] !== 0) {
+              this.drawBlock(this.ctx, c, r, COLORS[this.grid[r][c]]);
+            }
+          }
+        }
+
+        // 3. ゴーストブロックの描画 (落下予測地点)
+        if (this.currentPieceMatrix && !this.gameOver) {
+          let ghostY = this.currentPieceY;
+          while (this.isValidPosition(this.currentPieceX, ghostY + 1, this.currentPieceMatrix)) {
+            ghostY++;
+          }
+          this.drawPiece(this.ctx, this.currentPieceX, ghostY, this.currentPieceMatrix, COLORS[this.currentPieceType], true);
+        }
+
+        // 4. 現在操作中ミノの描画
+        if (this.currentPieceMatrix && !this.gameOver) {
+          this.drawPiece(this.ctx, this.currentPieceX, this.currentPieceY, this.currentPieceMatrix, COLORS[this.currentPieceType]);
+        }
+
+        // 5. T-Spin / Tetris等のフィードバック文字列の描画
+        if (this.feedbackTimer > 0 && this.feedbackText) {
+          this.ctx.save();
+          this.ctx.font = 'bold 20px ' + varStyles('--font-family');
+          this.ctx.fillStyle = '#fff';
+          this.ctx.shadowColor = varStyles('--neon-cyan');
+          this.ctx.shadowBlur = 12;
+          this.ctx.textAlign = 'center';
+          const opacity = Math.min(1, this.feedbackTimer / 20);
+          this.ctx.globalAlpha = opacity;
+          this.ctx.fillText(this.feedbackText, this.canvas.width / 2, this.canvas.height / 2 - 30);
+          this.ctx.restore();
+        }
+      }
+
+      drawPiece(ctx, x, y, matrix, color, isGhost = false) {
+        for (let r = 0; r < matrix.length; r++) {
+          for (let c = 0; c < matrix[r].length; c++) {
+            if (matrix[r][c]) {
+              const drawY = y + r;
+              if (drawY >= 0) {
+                this.drawBlock(ctx, x + c, drawY, color, isGhost);
+              }
+            }
+          }
+        }
+      }
+
+      drawBlock(ctx, x, y, color, isGhost = false) {
+        ctx.save();
+        if (isGhost) {
+          // ゴーストは細い枠線
+          ctx.strokeStyle = color;
+          ctx.lineWidth = 1.5;
+          ctx.strokeRect(x * CELL_SIZE + 2, y * CELL_SIZE + 2, CELL_SIZE - 4, CELL_SIZE - 4);
+        } else {
+          // ネオンスタイルの角丸ブロック
+          ctx.fillStyle = color;
+          ctx.shadowColor = color;
+          ctx.shadowBlur = 6;
+          ctx.beginPath();
+          ctx.roundRect(x * CELL_SIZE + 1.5, y * CELL_SIZE + 1.5, CELL_SIZE - 3, CELL_SIZE - 3, 4);
+          ctx.fill();
+
+          // ブロック立体感のハイライト（上部に薄い白色）
+          ctx.fillStyle = 'rgba(255, 255, 255, 0.25)';
+          ctx.beginPath();
+          ctx.roundRect(x * CELL_SIZE + 3, y * CELL_SIZE + 3, CELL_SIZE - 6, (CELL_SIZE - 6) / 3, 2);
+          ctx.fill();
+        }
+        ctx.restore();
+      }
+
+      drawMini(ctx, type) {
+        ctx.clearRect(0, 0, 80, 80);
+        if (!type) return;
+
+        const matrix = SHAPES[type];
+        const color = COLORS[type];
+        const size = 15; // ミニボード内のセルサイズ
+
+        // 中央配置のためのオフセット算出
+        const w = matrix[0].length * size;
+        const h = matrix.length * size;
+        const offsetX = (80 - w) / 2;
+        const offsetY = (80 - h) / 2;
+
+        ctx.save();
+        ctx.fillStyle = color;
+        ctx.shadowColor = color;
+        ctx.shadowBlur = 4;
+
+        for (let r = 0; r < matrix.length; r++) {
+          for (let c = 0; c < matrix[r].length; c++) {
+            if (matrix[r][c]) {
+              ctx.beginPath();
+              ctx.roundRect(offsetX + c * size + 1, offsetY + r * size + 1, size - 2, size - 2, 2.5);
+              ctx.fill();
+            }
+          }
+        }
+        ctx.restore();
+      }
+    }
+
+    // CSS変数からフォント等のスタイルを取得するヘルパー
+    function varStyles(v) {
+      return getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+    }
+  </script>
+</body>
+</html>
