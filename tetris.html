@@ -3,12 +3,12 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>NEON BATTLE TETRIS</title>
+  <title>NEON BATTLE TETRIS - PERFECT EDITION</title>
   <style>
     :root {
-      --bg-color: #0d0d12;
-      --panel-bg: rgba(20, 20, 30, 0.7);
-      --border-color: rgba(0, 240, 255, 0.3);
+      --bg-color: #0c0c10;
+      --panel-bg: rgba(18, 18, 28, 0.75);
+      --border-color: rgba(0, 240, 255, 0.25);
       --neon-cyan: #00f0f0;
       --neon-purple: #bd00ff;
       --text-color: #ffffff;
@@ -22,7 +22,7 @@
     }
 
     body {
-      background: radial-gradient(circle, #181824 0%, var(--bg-color) 100%);
+      background: radial-gradient(circle, #1a1a26 0%, var(--bg-color) 100%);
       color: var(--text-color);
       font-family: var(--font-family);
       min-height: 100vh;
@@ -33,7 +33,6 @@
       overflow-x: hidden;
     }
 
-    /* タイトルとヘッダー */
     header {
       margin-top: 15px;
       margin-bottom: 10px;
@@ -48,7 +47,6 @@
       color: #fff;
     }
 
-    /* 全体コンテナ */
     #game-layout {
       display: flex;
       gap: 30px;
@@ -59,7 +57,6 @@
       padding: 10px;
     }
 
-    /* ボード単体の包み */
     .board-wrapper {
       background: var(--panel-bg);
       border: 1px solid var(--border-color);
@@ -72,7 +69,6 @@
       position: relative;
     }
 
-    /* メインキャンバス */
     .canvas-container {
       position: relative;
     }
@@ -80,12 +76,11 @@
     canvas.main-board {
       border: 2px solid rgba(255, 255, 255, 0.05);
       border-radius: 6px;
-      background: rgba(5, 5, 8, 0.9);
+      background: rgba(5, 5, 8, 0.95);
       box-shadow: inset 0 0 20px rgba(0,0,0,0.8);
       display: block;
     }
 
-    /* サイド情報パネル */
     .side-panel {
       display: flex;
       flex-direction: column;
@@ -95,7 +90,7 @@
 
     .info-box {
       background: rgba(0, 0, 0, 0.4);
-      border: 1px solid rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.08);
       border-radius: 6px;
       padding: 8px;
       text-align: center;
@@ -124,7 +119,6 @@
       margin: 0 auto;
     }
 
-    /* ボードタイトル（PLAYER/CPU） */
     .board-label {
       position: absolute;
       top: -25px;
@@ -143,7 +137,6 @@
       color: var(--neon-purple);
     }
 
-    /* メニュー＆モーダル */
     .modal-overlay {
       position: fixed;
       top: 0;
@@ -192,7 +185,6 @@
       letter-spacing: 1px;
     }
 
-    /* トグルボタン（モード・難易度選択） */
     .btn-toggle-group {
       display: flex;
       gap: 10px;
@@ -246,7 +238,6 @@
       transform: scale(0.98);
     }
 
-    /* 操作ヘルプ */
     .controls-help {
       margin-top: 15px;
       background: var(--panel-bg);
@@ -266,7 +257,6 @@
       font-weight: bold;
     }
 
-    /* ポーズ状態などのインジケータ */
     .status-overlay {
       position: absolute;
       top: 0;
@@ -346,7 +336,7 @@
       </div>
     </div>
 
-    <!-- CPU AREA (デフォルト非表示) -->
+    <!-- CPU AREA -->
     <div class="board-wrapper" id="cpu-wrapper" style="display: none;">
       <div class="board-label" id="cpu-label">CPU (Lv. 普通)</div>
       <div class="canvas-container">
@@ -381,7 +371,6 @@
     </div>
   </div>
 
-  <!-- 操作方法ヘルプ -->
   <div class="controls-help">
     <div><span>← → / ↓</span> : 左右移動 / ソフトドロップ</div>
     <div><span>SPACE / ↑</span> : ハードドロップ / 右回転</div>
@@ -470,14 +459,14 @@
           osc.stop(audioCtx.currentTime + 0.5);
         }
       } catch (e) {
-        // 音声が再生できない場合のハンドリング
+        // 音声制限対応
       }
     }
 
     // --- 定数と設定 ---
     const COLS = 10;
     const ROWS = 20;
-    const CELL_SIZE = 30; // 300px * 600px
+    const CELL_SIZE = 30;
 
     const SHAPES = {
       'I': [[0,0,0,0], [1,1,1,1], [0,0,0,0], [0,0,0,0]],
@@ -490,19 +479,44 @@
     };
 
     const COLORS = {
-      'I': '#00f0f0', // Cyan
-      'O': '#f0f000', // Yellow
-      'T': '#a000f0', // Purple
-      'S': '#00f000', // Green
-      'Z': '#f00000', // Red
-      'J': '#0000f0', // Blue
-      'L': '#f0a000', // Orange
-      'G': '#7f8c8d'  // Garbage block (Gray)
+      'I': '#00f0f0',
+      'O': '#f0f000',
+      'T': '#a000f0',
+      'S': '#00f000',
+      'Z': '#f00000',
+      'J': '#0000f0',
+      'L': '#f0a000',
+      'G': '#7f8c8d'
+    };
+
+    // --- 本格SRS (Super Rotation System) 転送用テーブル ---
+    // (x, y) 座標定義：ガイドライン座標(xは右+, yは上+)を、グリッド座標(xは右+, yは下+)に変換。
+    // そのため y 軸の数値をすべて正負反転しています。
+    const KICKS_JLSTZ = {
+      "0->1": [[0,0], [-1,0], [-1,-1], [0,2], [-1,2]],
+      "1->0": [[0,0], [1,0], [1,1], [0,-2], [1,-2]],
+      "1->2": [[0,0], [1,0], [1,1], [0,-2], [1,-2]],
+      "2->1": [[0,0], [-1,0], [-1,-1], [0,2], [-1,2]],
+      "2->3": [[0,0], [1,0], [1,-1], [0,2], [1,2]],
+      "3->2": [[0,0], [-1,0], [-1,1], [0,-2], [-1,-2]],
+      "3->0": [[0,0], [-1,0], [-1,1], [0,-2], [-1,-2]],
+      "0->3": [[0,0], [1,0], [1,-1], [0,2], [1,2]]
+    };
+
+    const KICKS_I = {
+      "0->1": [[0,0], [-2,0], [1,0], [-2,1], [1,-2]],
+      "1->0": [[0,0], [2,0], [-1,0], [2,-1], [-1,2]],
+      "1->2": [[0,0], [-1,0], [2,0], [-1,-2], [2,1]],
+      "2->1": [[0,0], [1,0], [-2,0], [1,2], [-2,-1]],
+      "2->3": [[0,0], [2,0], [-1,0], [2,-1], [-1,2]],
+      "3->2": [[0,0], [-2,0], [1,0], [-2,1], [1,-2]],
+      "3->0": [[0,0], [1,0], [-2,0], [1,2], [-2,-1]],
+      "0->3": [[0,0], [-1,0], [2,0], [-1,-2], [2,1]]
     };
 
     // --- ゲーム設定管理 ---
-    let activeMode = 'solo'; // 'solo' or 'vs'
-    let difficulty = 'normal'; // 'easy', 'normal', 'hard'
+    let activeMode = 'solo';
+    let difficulty = 'normal';
     let playerGameInstance = null;
     let cpuGameInstance = null;
 
@@ -526,7 +540,6 @@
       document.getElementById('menu-modal').style.display = 'none';
       if (audioCtx.state === 'suspended') audioCtx.resume();
 
-      // 初期化
       if (playerGameInstance) playerGameInstance.destroy();
       if (cpuGameInstance) cpuGameInstance.destroy();
 
@@ -543,11 +556,8 @@
         const cNext = document.getElementById('cpu-next');
 
         cpuGameInstance = new TetrisGame(cCanvas, cHold, cNext, true, difficulty);
-        
-        // お互いをお邪魔ブロック送信のターゲットとして紐付け
         playerGameInstance.opponent = cpuGameInstance;
         cpuGameInstance.opponent = playerGameInstance;
-        
         cpuGameInstance.start();
       } else {
         document.getElementById('cpu-wrapper').style.display = 'none';
@@ -568,7 +578,7 @@
 
         this.isCpu = isCpu;
         this.cpuDiff = cpuDiff;
-        this.opponent = null; // 対戦相手参照
+        this.opponent = null;
 
         this.reset();
       }
@@ -586,28 +596,32 @@
         this.currentPieceType = null;
         this.currentPieceX = 0;
         this.currentPieceY = 0;
-        this.rotationState = 0;
+        this.rotationState = 0; // 0, 1(R), 2, 3(L)
 
         this.holdPiece = null;
         this.canHold = true;
         this.nextQueue = [];
 
-        this.lastActionWasRotation = false; // T-Spin判定用
+        this.lastActionWasRotation = false;
 
         // 自然落下タイマー
         this.dropCounter = 0;
         this.dropInterval = 1000; // ms
 
-        // 特殊エフェクト表示用
+        // Lock Delay (固着猶予) 関連
+        this.lockDelayTimer = null; // 接地中の時間計測(ms)
+        this.lockDelayResets = 0;   // 接地中の行動(回転・移動)回数カウント
+        this.highestY = 0;          // 現在のミノの最高到達落下地点（ステップリセット判定用）
+
+        // 特殊表示フィードバック
         this.feedbackText = "";
         this.feedbackTimer = 0;
 
-        // CPU関連のパラメーター
+        // CPU関連
         this.aiTargetMove = null;
         this.aiTimer = 0;
-        this.aiSpeedInterval = this.getCpuSpeed(); // アクション間のラグ
+        this.aiSpeedInterval = this.getCpuSpeed();
 
-        // 初期生成
         this.refillBag();
         for (let i = 0; i < 4; i++) {
           this.nextQueue.push(this.pullFromBag());
@@ -617,15 +631,15 @@
       }
 
       getCpuSpeed() {
-        if (this.cpuDiff === 'easy') return 300; // 移動ディレイ（遅め）
-        if (this.cpuDiff === 'normal') return 120; // 標準
-        return 35; // 高速
+        if (this.cpuDiff === 'easy') return 300;
+        if (this.cpuDiff === 'normal') return 120;
+        return 35;
       }
 
       getHeuristicNoise() {
-        if (this.cpuDiff === 'easy') return 350; // ミス多め
-        if (this.cpuDiff === 'normal') return 55; // たまに甘い
-        return 0; // 最適解（完璧）
+        if (this.cpuDiff === 'easy') return 350;
+        if (this.cpuDiff === 'normal') return 55;
+        return 0;
       }
 
       start() {
@@ -658,7 +672,6 @@
 
       refillBag() {
         const types = ['I', 'O', 'T', 'S', 'Z', 'J', 'L'];
-        // シャッフル
         for (let i = types.length - 1; i > 0; i--) {
           const j = Math.floor(Math.random() * (i + 1));
           [types[i], types[j]] = [types[j], types[i]];
@@ -678,26 +691,27 @@
         this.nextQueue.push(this.pullFromBag());
         this.currentPieceMatrix = SHAPES[this.currentPieceType];
         
-        // 生成位置
         this.currentPieceX = Math.floor((COLS - this.currentPieceMatrix[0].length) / 2);
         this.currentPieceY = this.currentPieceType === 'I' ? -1 : 0;
         this.rotationState = 0;
         this.canHold = true;
         this.lastActionWasRotation = false;
 
-        // 生成時にすでに衝突している場合はゲームオーバー
+        // Lock Delay の初期化
+        this.lockDelayTimer = null;
+        this.lockDelayResets = 0;
+        this.highestY = this.currentPieceY;
+
         if (!this.isValidPosition(this.currentPieceX, this.currentPieceY, this.currentPieceMatrix)) {
           this.triggerGameOver();
         }
 
-        // CPUの場合、ここ次の一手の最善のターゲットをAI計算する
         if (this.isCpu && !this.gameOver) {
           this.aiTargetMove = this.getBestMove();
           this.aiTimer = 0;
         }
       }
 
-      // --- 衝突検知システム ---
       isValidPosition(offsetX, offsetY, matrix) {
         for (let r = 0; r < matrix.length; r++) {
           for (let c = 0; c < matrix[r].length; c++) {
@@ -715,6 +729,20 @@
           }
         }
         return true;
+      }
+
+      isGrounded() {
+        return !this.isValidPosition(this.currentPieceX, this.currentPieceY + 1, this.currentPieceMatrix);
+      }
+
+      // 接地中の行動時に固着猶予（500ms）をリセットする処理 (Step Reset / Move Reset 15回制限)
+      resetLockDelay() {
+        if (this.isGrounded()) {
+          if (this.lockDelayResets < 15) {
+            this.lockDelayTimer = 0;
+            this.lockDelayResets++;
+          }
+        }
       }
 
       // --- キーボード入力 & CPU行動 ---
@@ -765,6 +793,7 @@
         if (this.isValidPosition(this.currentPieceX - 1, this.currentPieceY, this.currentPieceMatrix)) {
           this.currentPieceX--;
           this.lastActionWasRotation = false;
+          this.resetLockDelay();
           playSound('move');
           return true;
         }
@@ -775,6 +804,7 @@
         if (this.isValidPosition(this.currentPieceX + 1, this.currentPieceY, this.currentPieceMatrix)) {
           this.currentPieceX++;
           this.lastActionWasRotation = false;
+          this.resetLockDelay();
           playSound('move');
           return true;
         }
@@ -786,35 +816,44 @@
           this.currentPieceY++;
           this.dropCounter = 0;
           this.lastActionWasRotation = false;
+
+          // ミノが前回の最大高さより下に落ちた（Step）場合、リセットカウンターをリセット
+          if (this.currentPieceY > this.highestY) {
+            this.highestY = this.currentPieceY;
+            this.lockDelayResets = 0; 
+          }
           return true;
         }
-        this.lockPiece();
         return false;
       }
 
-      // 簡易 Wall Kick (壁や他ブロックを検知し左右・上に少し避けて回転判定)
+      // --- SRS 壁キック付き回転システム ---
       rotatePiece(dir) {
+        if (this.currentPieceType === 'O') return false; // Oミノは回転・キックを行わない
+
+        const nextRotationState = (this.rotationState + (dir === 1 ? 1 : 3)) % 4;
         const nextMatrix = this.rotateMatrix(this.currentPieceMatrix, dir);
-        const originalX = this.currentPieceX;
-        const originalY = this.currentPieceY;
 
-        // Kick パターン試行
-        const kickOffsets = [
-          [0, 0],   // 基準
-          [-1, 0],  // 左1
-          [1, 0],   // 右1
-          [0, -1],  // 上1（地面キック）
-          [-2, 0],  // 左2（Iミノ用）
-          [2, 0]    // 右2
-        ];
+        // ミノ種別に応じてキックパターンを切り替え
+        const isI = this.currentPieceType === 'I';
+        const kickKey = `${this.rotationState}->${nextRotationState}`;
+        const kicks = isI ? KICKS_I[kickKey] : KICKS_JLSTZ[kickKey];
 
-        for (const [kx, ky] of kickOffsets) {
-          if (this.isValidPosition(originalX + kx, originalY + ky, nextMatrix)) {
-            this.currentPieceX = originalX + kx;
-            this.currentPieceY = originalY + ky;
+        if (!kicks) return false;
+
+        // 全テストパターンを順に判定
+        for (let i = 0; i < kicks.length; i++) {
+          const [kx, ky] = kicks[i];
+          const targetX = this.currentPieceX + kx;
+          const targetY = this.currentPieceY + ky;
+
+          if (this.isValidPosition(targetX, targetY, nextMatrix)) {
+            this.currentPieceX = targetX;
+            this.currentPieceY = targetY;
             this.currentPieceMatrix = nextMatrix;
-            this.rotationState = (this.rotationState + (dir === 1 ? 1 : 3)) % 4;
+            this.rotationState = nextRotationState;
             this.lastActionWasRotation = true;
+            this.resetLockDelay();
             playSound('rotate');
             return true;
           }
@@ -871,6 +910,11 @@
           this.canHold = false;
           this.lastActionWasRotation = false;
 
+          // Lock Delay の初期化
+          this.lockDelayTimer = null;
+          this.lockDelayResets = 0;
+          this.highestY = this.currentPieceY;
+
           if (this.isCpu) {
             this.aiTargetMove = this.getBestMove();
             this.aiTimer = 0;
@@ -881,12 +925,15 @@
 
       // --- 固定・ライン消去・お邪魔システム ---
       lockPiece() {
-        // フィールドへマージ
         let isTspin = false;
+        let isTspinMini = false;
         if (this.currentPieceType === 'T' && this.lastActionWasRotation) {
-          isTspin = this.checkTspin();
+          const tspinResult = this.checkTspinType();
+          isTspin = tspinResult.regular;
+          isTspinMini = tspinResult.mini;
         }
 
+        // グリッドへマージ
         for (let r = 0; r < this.currentPieceMatrix.length; r++) {
           for (let c = 0; c < this.currentPieceMatrix[r].length; c++) {
             if (this.currentPieceMatrix[r][c]) {
@@ -900,35 +947,55 @@
         }
 
         const clearedLines = this.clearLines();
-        
-        // 得点・フィードバック・お邪魔ブロック計算
-        this.handleScoreAndGarbage(clearedLines, isTspin);
-
+        this.handleScoreAndGarbage(clearedLines, isTspin, isTspinMini);
         this.spawnPiece();
         this.updateHUD();
       }
 
-      // T-Spin 3コーナー判定 (Tの周囲4マスのうち3マス以上が埋まっていれば成立)
-      checkTspin() {
-        const cx = this.currentPieceX + 1; // Tの中心X
-        const cy = this.currentPieceY + 1; // Tの中心Y
+      // T-Spin & T-Spin Mini の判別
+      checkTspinType() {
+        const cx = this.currentPieceX + 1; // 3x3の中心座標
+        const cy = this.currentPieceY + 1;
         let occupiedCorners = 0;
 
         const corners = [
-          [cx - 1, cy - 1], // 左上
-          [cx + 1, cy - 1], // 右上
-          [cx - 1, cy + 1], // 左下
-          [cx + 1, cy + 1]  // 右下
+          [cx - 1, cy - 1], // TL (0)
+          [cx + 1, cy - 1], // TR (1)
+          [cx + 1, cy + 1], // BR (2)
+          [cx - 1, cy + 1]  // BL (3)
         ];
 
-        for (const [x, y] of corners) {
-          if (x < 0 || x >= COLS || y >= ROWS) {
-            occupiedCorners++; // 壁や底も埋まっている判定
-          } else if (y >= 0 && this.grid[y][x] !== 0) {
-            occupiedCorners++;
+        // 各角が埋まっているかチェック
+        const isOccupied = corners.map(([x, y]) => {
+          if (x < 0 || x >= COLS || y >= ROWS) return true;
+          if (y >= 0 && this.grid[y][x] !== 0) return true;
+          return false;
+        });
+
+        occupiedCorners = isOccupied.filter(v => v).length;
+
+        if (occupiedCorners >= 3) {
+          // ガイドライン定義に基づく「フラット側の2角が埋まっているか」をチェック
+          // rotationState: 0(上向き), 1(右向き), 2(下向き), 3(左向き)
+          let flatCornersOccupied = false;
+          if (this.rotationState === 0) {
+            flatCornersOccupied = isOccupied[0] && isOccupied[1]; // TL & TR
+          } else if (this.rotationState === 1) {
+            flatCornersOccupied = isOccupied[1] && isOccupied[2]; // TR & BR
+          } else if (this.rotationState === 2) {
+            flatCornersOccupied = isOccupied[2] && isOccupied[3]; // BR & BL
+          } else if (this.rotationState === 3) {
+            flatCornersOccupied = isOccupied[3] && isOccupied[0]; // BL & TL
+          }
+
+          if (flatCornersOccupied) {
+            return { regular: true, mini: false };
+          } else {
+            return { regular: false, mini: true }; // 条件を満たさない3角埋まりはMini判定
           }
         }
-        return occupiedCorners >= 3;
+
+        return { regular: false, mini: false };
       }
 
       clearLines() {
@@ -938,13 +1005,13 @@
             this.grid.splice(r, 1);
             this.grid.unshift(Array(COLS).fill(0));
             cleared++;
-            r++; // 再判定
+            r++;
           }
         }
         return cleared;
       }
 
-      handleScoreAndGarbage(cleared, isTspin) {
+      handleScoreAndGarbage(cleared, isTspin, isTspinMini) {
         let points = 0;
         let garbageToSend = 0;
         let message = "";
@@ -970,6 +1037,22 @@
             message = "T-SPIN TRIPLE";
             playSound('tspin');
           }
+        } else if (isTspinMini) {
+          if (cleared === 0) {
+            points = 100 * this.level;
+            message = "T-SPIN MINI";
+            playSound('tspin');
+          } else if (cleared === 1) {
+            points = 200 * this.level;
+            garbageToSend = 1;
+            message = "T-SPIN MINI SINGLE";
+            playSound('tspin');
+          } else if (cleared === 2) {
+            points = 400 * this.level;
+            garbageToSend = 2;
+            message = "T-SPIN MINI DOUBLE";
+            playSound('tspin');
+          }
         } else {
           if (cleared === 1) {
             points = 100 * this.level;
@@ -987,7 +1070,7 @@
             garbageToSend = 4;
             message = "TETRIS";
             playSound('clear');
-            playSound('tspin'); // 4列消しを強調
+            playSound('tspin');
           }
         }
 
@@ -999,11 +1082,10 @@
 
           if (message) {
             this.feedbackText = message;
-            this.feedbackTimer = 60; // 60フレーム表示
+            this.feedbackTimer = 60;
           }
         }
 
-        // 対戦モード時の攻撃処理
         if (garbageToSend > 0 && this.opponent && !this.opponent.gameOver) {
           this.opponent.receiveGarbage(garbageToSend);
         }
@@ -1011,13 +1093,13 @@
 
       receiveGarbage(lines) {
         for (let l = 0; l < lines; l++) {
-          this.grid.shift(); // 最上部を捨てる
+          this.grid.shift();
           const row = Array(COLS).fill('G');
           const gapIndex = Math.floor(Math.random() * COLS);
-          row[gapIndex] = 0; // 穴あきお邪魔行
+          row[gapIndex] = 0;
           this.grid.push(row);
         }
-        playSound('gameover'); // 攻撃を受けた演出
+        playSound('gameover');
       }
 
       // --- CPU 思考アルゴリズム (AI Heuristics) ---
@@ -1025,20 +1107,17 @@
         let bestScore = -Infinity;
         let bestMove = { hold: false, rot: 0, x: 0 };
 
-        // 1. 現ミノでの全パターン評価
         const normalEval = this.evaluateAllPositions(this.currentPieceMatrix);
         if (normalEval.score > bestScore) {
           bestScore = normalEval.score;
           bestMove = { hold: false, rot: normalEval.rot, x: normalEval.x };
         }
 
-        // 2. ホールド時の全パターン評価（可能な場合）
         if (this.canHold) {
           const projectedHoldType = this.holdPiece ? this.holdPiece : this.nextQueue[0];
           const projectedMatrix = SHAPES[projectedHoldType];
           const holdEval = this.evaluateAllPositions(projectedMatrix);
           
-          // ホールドが有利ならホールドを使用
           if (holdEval.score > bestScore) {
             bestScore = holdEval.score;
             bestMove = { hold: true, rot: holdEval.rot, x: holdEval.x };
@@ -1048,7 +1127,6 @@
         return bestMove;
       }
 
-      // 特定のミノ形態に対し、全横位置、全回転方向への設置を試行評価する
       evaluateAllPositions(baseMatrix) {
         let bestScore = -Infinity;
         let bestRot = 0;
@@ -1060,16 +1138,13 @@
             matrix = this.rotateMatrix(matrix, 1);
           }
 
-          // 設置可能な最小X、最大Xを探索
           for (let x = -3; x < COLS + 3; x++) {
             if (this.isValidPosition(x, 0, matrix)) {
-              // 落下地点を取得
               let y = 0;
               while (this.isValidPosition(x, y + 1, matrix)) {
                 y++;
               }
 
-              // スコア計算
               const score = this.calculateHeuristic(x, y, matrix);
               if (score > bestScore) {
                 bestScore = score;
@@ -1084,10 +1159,8 @@
       }
 
       calculateHeuristic(targetX, targetY, matrix) {
-        // フィールド盤面の仮想コピー作成
         const tempGrid = this.grid.map(row => [...row]);
 
-        // 仮想配置
         for (let r = 0; r < matrix.length; r++) {
           for (let c = 0; c < matrix[r].length; c++) {
             if (matrix[r][c]) {
@@ -1100,7 +1173,6 @@
           }
         }
 
-        // 仮想消去
         let cleared = 0;
         for (let r = ROWS - 1; r >= 0; r--) {
           if (tempGrid[r].every(cell => cell !== 0)) {
@@ -1111,8 +1183,6 @@
           }
         }
 
-        // 特徴量の測定
-        // 1. 各列の高さ
         const heights = Array(COLS).fill(0);
         for (let c = 0; c < COLS; c++) {
           for (let r = 0; r < ROWS; r++) {
@@ -1123,12 +1193,8 @@
           }
         }
 
-        // 総合高
         const aggHeight = heights.reduce((a, b) => a + b, 0);
-        // 最大高
-        const maxHeight = Math.max(...heights);
 
-        // 2. 穴の数（上にブロックがある空マス）
         let holes = 0;
         for (let c = 0; c < COLS; c++) {
           let blockFound = false;
@@ -1141,13 +1207,11 @@
           }
         }
 
-        // 3. 凹凸（隣接する列同士の高さの差の総和）
         let bumpiness = 0;
         for (let c = 0; c < COLS - 1; c++) {
           bumpiness += Math.abs(heights[c] - heights[c + 1]);
         }
 
-        // 評価モデル重みづけ
         const wHeight = -7.5;
         const wLines = 100.0;
         const wHoles = -45.0;
@@ -1155,7 +1219,6 @@
 
         let score = (aggHeight * wHeight) + (cleared * wLines) + (holes * wHoles) + (bumpiness * wBumpiness);
 
-        // 難易度調整用：甘口、普通の場合は乱数を混ぜてミスを誘発させる
         const noise = this.getHeuristicNoise();
         if (noise > 0) {
           score += (Math.random() - 0.5) * noise;
@@ -1167,21 +1230,35 @@
       // --- 更新ロジック ---
       update(deltaTime) {
         if (this.isCpu) {
-          // CPUの操作処理（アクションタイマーに従う）
           this.aiTimer += deltaTime;
           if (this.aiTimer >= this.aiSpeedInterval) {
             this.aiTimer = 0;
             this.processCpuAction();
           }
         } else {
-          // プレイヤーの自然落下処理
+          // 通常の自然落下
           this.dropCounter += deltaTime;
           if (this.dropCounter >= this.dropInterval) {
+            this.dropCounter = 0;
             this.moveDown();
           }
         }
 
-        // テキストフェードアウト用
+        // Lock Delay (固着猶予時間) の計測
+        if (this.isGrounded()) {
+          if (this.lockDelayTimer === null) {
+            this.lockDelayTimer = 0;
+          }
+          this.lockDelayTimer += deltaTime;
+          
+          // 500ms(0.5秒)経過で自動ロック
+          if (this.lockDelayTimer >= 500) {
+            this.lockPiece();
+          }
+        } else {
+          this.lockDelayTimer = null;
+        }
+
         if (this.feedbackTimer > 0) {
           this.feedbackTimer--;
         }
@@ -1190,19 +1267,16 @@
       processCpuAction() {
         if (!this.aiTargetMove) return;
 
-        // 1. ホールド要求があれば即座に使用
         if (this.aiTargetMove.hold) {
           this.hold();
           return;
         }
 
-        // 2. 向き（回転状態）の調整
         if (this.rotationState !== this.aiTargetMove.rot) {
           this.rotatePiece(1);
           return;
         }
 
-        // 3. 左右座標の調整
         if (this.currentPieceX < this.aiTargetMove.x) {
           this.moveRight();
           return;
@@ -1211,11 +1285,9 @@
           return;
         }
 
-        // 4. 回転・移動ともにバッチリならハードドロップ
         this.hardDrop();
       }
 
-      // --- ポーズ & ゲームオーバー制御 ---
       togglePause() {
         this.isPaused = !this.isPaused;
         const overlay = document.getElementById(this.isCpu ? 'cpu-status-overlay' : 'player-status-overlay');
@@ -1230,7 +1302,6 @@
           overlay.classList.remove('active');
         }
 
-        // 相手もシンクロしてポーズ
         if (this.opponent && this.opponent.isPaused !== this.isPaused) {
           this.opponent.togglePause();
         }
@@ -1249,15 +1320,12 @@
         if (this.isCpu) {
           if (title) title.innerText = "LOSE (CPU)";
           if (desc) desc.innerText = "PLAYER 1 WIN!";
-          
-          // プレイヤー側を勝利で終了
           if (this.opponent && !this.opponent.gameOver) {
             this.opponent.triggerGameWin();
           }
         } else {
           if (title) title.innerText = "GAME OVER";
           if (desc) desc.innerText = activeMode === 'vs' ? "CPU WIN!" : "Try Again!";
-          
           if (this.opponent && !this.opponent.gameOver) {
             this.opponent.triggerGameWin();
           }
@@ -1285,7 +1353,6 @@
         if (linesElem) linesElem.innerText = this.lines;
         if (levelElem) levelElem.innerText = this.level;
 
-        // NEXT / HOLD ミニキャンバス描画
         this.drawMini(this.holdCtx, this.holdPiece);
         this.drawMini(this.nextCtx, this.nextQueue[0]);
       }
@@ -1294,7 +1361,7 @@
       draw() {
         this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
 
-        // 1. 背景グリッドラインの描画 (サイバー調)
+        // 背景グリッド
         this.ctx.strokeStyle = 'rgba(255, 255, 255, 0.03)';
         this.ctx.lineWidth = 1;
         for (let c = 0; c <= COLS; c++) {
@@ -1310,7 +1377,7 @@
           this.ctx.stroke();
         }
 
-        // 2. フィールド固定済みブロックの描画
+        // 固定済みブロック
         for (let r = 0; r < ROWS; r++) {
           for (let c = 0; c < COLS; c++) {
             if (this.grid[r][c] !== 0) {
@@ -1319,7 +1386,7 @@
           }
         }
 
-        // 3. ゴーストブロックの描画 (落下予測地点)
+        // ゴーストブロック（落下予測プレビュー）
         if (this.currentPieceMatrix && !this.gameOver) {
           let ghostY = this.currentPieceY;
           while (this.isValidPosition(this.currentPieceX, ghostY + 1, this.currentPieceMatrix)) {
@@ -1328,12 +1395,12 @@
           this.drawPiece(this.ctx, this.currentPieceX, ghostY, this.currentPieceMatrix, COLORS[this.currentPieceType], true);
         }
 
-        // 4. 現在操作中ミノの描画
+        // 操作中ミノ
         if (this.currentPieceMatrix && !this.gameOver) {
           this.drawPiece(this.ctx, this.currentPieceX, this.currentPieceY, this.currentPieceMatrix, COLORS[this.currentPieceType]);
         }
 
-        // 5. T-Spin / Tetris等のフィードバック文字列の描画
+        // 特殊文字フィードバック
         if (this.feedbackTimer > 0 && this.feedbackText) {
           this.ctx.save();
           this.ctx.font = 'bold 20px ' + varStyles('--font-family');
@@ -1364,12 +1431,10 @@
       drawBlock(ctx, x, y, color, isGhost = false) {
         ctx.save();
         if (isGhost) {
-          // ゴーストは細い枠線
           ctx.strokeStyle = color;
           ctx.lineWidth = 1.5;
           ctx.strokeRect(x * CELL_SIZE + 2, y * CELL_SIZE + 2, CELL_SIZE - 4, CELL_SIZE - 4);
         } else {
-          // ネオンスタイルの角丸ブロック
           ctx.fillStyle = color;
           ctx.shadowColor = color;
           ctx.shadowBlur = 6;
@@ -1377,7 +1442,6 @@
           ctx.roundRect(x * CELL_SIZE + 1.5, y * CELL_SIZE + 1.5, CELL_SIZE - 3, CELL_SIZE - 3, 4);
           ctx.fill();
 
-          // ブロック立体感のハイライト（上部に薄い白色）
           ctx.fillStyle = 'rgba(255, 255, 255, 0.25)';
           ctx.beginPath();
           ctx.roundRect(x * CELL_SIZE + 3, y * CELL_SIZE + 3, CELL_SIZE - 6, (CELL_SIZE - 6) / 3, 2);
@@ -1392,9 +1456,8 @@
 
         const matrix = SHAPES[type];
         const color = COLORS[type];
-        const size = 15; // ミニボード内のセルサイズ
+        const size = 15;
 
-        // 中央配置のためのオフセット算出
         const w = matrix[0].length * size;
         const h = matrix.length * size;
         const offsetX = (80 - w) / 2;
@@ -1418,7 +1481,6 @@
       }
     }
 
-    // CSS変数からフォント等のスタイルを取得するヘルパー
     function varStyles(v) {
       return getComputedStyle(document.documentElement).getPropertyValue(v).trim();
     }
