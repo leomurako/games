@@ -1,0 +1,3865 @@
+<!doctype html><html><head></head><body><!DOCTYPE html>
+<html lang="ja">
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>kÉìS®øÔ¸«£’ßÛπ ÏŸÎ
+P2˚+”¸‡åhH</title>
+	<style>
+		/* hSÑjÍª√»h;bDcqDnh:-ö */
+		* {
+			box-sizing: border-box;
+		}
+
+		body {
+			margin: 0;
+			padding: 0 10px 10px 10px;
+			background-color: #3d2b1f;
+			font-family: 'Hiragino Kaku Gothic ProN', Meiryo, sans-serif;
+			display: flex;
+			flex-direction: column;
+			align-items: center;
+			color: #3d1f05;
+			user-select: none;
+			min-height: 100vh;
+			width: 100%;
+		}
+
+		/* ÿ√¿¸nEí;bkè[ã */
+		.global-header {
+			width: 100%;
+			max-width: 1200px;
+			display: flex;
+			justify-content: space-between;
+			align-items: center;
+			background: #f7ebc6;
+			padding: clamp(6px, 1vh, 12px) clamp(10px, 1.5vw, 20px);
+			border-radius: 0 0 14px 16px;
+			font-weight: 900;
+			border: 4px solid #3d1f05;
+			border-top: none;
+			box-shadow: 0 3px 8px rgba(0, 0, 0, 0.3);
+			margin-bottom: 8px;
+		}
+
+		.header-resources {
+			display: flex;
+			gap: clamp(10px, 1.5vw, 25px);
+		}
+
+		.resource-badge {
+			background: #fff;
+			padding: clamp(4px, 0.8vh, 10px) clamp(10px, 1.2vw, 20px);
+			border: 3px solid #3d1f05;
+			border-radius: 20px;
+			display: flex;
+			align-items: center;
+			font-size: clamp(0.8rem, 0.7rem + 0.5vw, 1.1rem);
+		}
+
+		.xp-text {
+			color: #00aa88;
+			margin-left: 5px;
+		}
+
+		.cf-text {
+			color: #e02271;
+			margin-left: 5px;
+		}
+
+		/* ·§ÛπØÍ¸ÛnÏπ›Û∑÷˚’ÎπØÍ¸Û */
+		.screen {
+			width: 100%;
+			max-width: 1200px;
+			background: #fff8e7;
+			border: 6px solid #3d1f05;
+			border-radius: 24px;
+			padding: clamp(12px, 2vw, 24px);
+			box-sizing: border-box;
+			box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+			position: relative;
+			flex: 1;
+			display: flex;
+			flex-direction: column;
+		}
+
+		h2 {
+			margin-top: 0;
+			margin-bottom: 10px;
+			font-size: clamp(1.2rem, 1rem + 1vw, 1.8rem);
+			text-align: center;
+			background: #f5c542;
+			color: #3d1f05;
+			border: 4px solid #3d1f05;
+			border-radius: 12px;
+			padding: clamp(6px, 1.2vw, 14px);
+			box-shadow: 0 3px 0 #b38612;
+			text-shadow: 1px 1px 0 #fff;
+		}
+
+		/* ‹øÛ^í;bn'MUkè[π±¸ÍÛ∞ */
+		button {
+			background: #f7ebc6;
+			color: #3d1f05;
+			border: 4px solid #3d1f05;
+			border-radius: 12px;
+			padding: clamp(8px, 1.2vw, 16px) clamp(12px, 2vw, 24px);
+			font-weight: 900;
+			font-size: clamp(0.85rem, 0.75rem + 0.6vw, 1.3rem);
+			cursor: pointer;
+			box-shadow: 0 5px 0 #3d1f05;
+			transition: all 0.1s ease;
+		}
+
+		button:hover:not(:disabled) {
+			background: #fff;
+		}
+
+		button:active:not(:disabled) {
+			transform: translateY(4px);
+			box-shadow: 0 1px 0 #3d1f05;
+		}
+
+		button:disabled {
+			background: #ccc !important;
+			color: #888 !important;
+			border-color: #777 !important;
+			box-shadow: 0 3px 0 #777 !important;
+			cursor: not-allowed;
+		}
+
+		.btn-primary {
+			background: #f5c542;
+			box-shadow: 0 5px 0 #b38612;
+		}
+
+		.btn-primary:hover:not(:disabled) {
+			background: #ffe385;
+		}
+
+		.btn-danger {
+			background: #ff4d4d;
+			color: #fff;
+			box-shadow: 0 5px 0 #990000;
+		}
+
+		/* 1. €¸‡;b */
+		.home-layout {
+			display: flex;
+			flex-direction: column;
+			align-items: center;
+			gap: 15px;
+			width: 100%;
+			flex: 1;
+			justify-content: center;
+		}
+
+		#baseIllustCvs {
+			background: #fff;
+			border: 3px solid #3d1f05;
+			border-radius: 16px;
+			width: 100%;
+			max-width: 600px;
+			height: auto;
+			aspect-ratio: 400 / 150;
+		}
+
+		.home-buttons {
+			display: grid;
+			grid-template-columns: 1fr 1fr;
+			gap: clamp(10px, 1.5vw, 20px);
+			width: 100%;
+			max-width: 800px;
+		}
+
+		.home-buttons button {
+			padding: clamp(14px, 2.5vh, 24px);
+			font-size: clamp(1rem, 0.8rem + 0.8vw, 1.5rem);
+			letter-spacing: 1px;
+		}
+
+		/* 2. ﬁ√◊xû;b */
+		.map-layout {
+			display: flex;
+			gap: 15px;
+			background: #f0e2be;
+			padding: 10px;
+			border-radius: 16px;
+			border: 4px solid #3d1f05;
+			flex: 1;
+			width: 100%;
+		}
+
+		@media (max-width: 768px) {
+			.map-layout {
+				flex-direction: column;
+			}
+
+			.map-scroll-container {
+				width: 100% !important;
+				height: 300px !important;
+			}
+		}
+
+		.map-scroll-container {
+			flex: 2;
+			height: 55vh;
+			min-height: 350px;
+			overflow: auto;
+			border: 3px solid #3d1f05;
+			border-radius: 12px;
+			background: #b2ebf2;
+		}
+
+		.map-scroll-container::-webkit-scrollbar {
+			width: 12px;
+			height: 12px;
+		}
+
+		.map-scroll-container::-webkit-scrollbar-track {
+			background: #f7ebc6;
+			border-top: 3px solid #3d1f05;
+		}
+
+		.map-scroll-container::-webkit-scrollbar-thumb {
+			background: #d4af37;
+			border: 3px solid #3d1f05;
+			border-radius: 6px;
+		}
+
+		#mapCanvas {
+			background: #b2ebf2;
+			display: block;
+		}
+
+		.stage-info-panel {
+			flex: 1;
+			background: #fff;
+			border: 3px solid #3d1f05;
+			border-radius: 12px;
+			padding: 12px;
+			display: flex;
+			flex-direction: column;
+			justify-content: space-between;
+			box-shadow: inset 0 3px 6px rgba(0, 0, 0, 0.1);
+			max-height: 55vh;
+			overflow-y: auto;
+		}
+
+		.stage-info-title {
+			font-size: clamp(1.1rem, 1rem + 0.5vw, 1.6rem);
+			font-weight: 900;
+			border-bottom: 3px solid #f5c542;
+			padding-bottom: 3px;
+			margin-bottom: 10px;
+		}
+
+		/* 3. —Ô¸¢√◊ */
+		.powerup-container {
+			display: grid;
+			grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+			gap: 12px;
+			max-height: 58vh;
+			overflow-y: auto;
+			padding-right: 5px;
+			flex: 1;
+		}
+
+		.powerup-card {
+			background: #fff;
+			border: 4px solid #3d1f05;
+			border-radius: 16px;
+			padding: 12px;
+			display: flex;
+			flex-direction: column;
+			justify-content: space-between;
+			box-shadow: 0 4px 0 rgba(0, 0, 0, 0.15);
+		}
+
+		.powerup-card button {
+			padding: clamp(8px, 1.5vh, 16px);
+			font-size: clamp(0.9rem, 0.8rem + 0.4vw, 1.2rem);
+		}
+
+		.card-top {
+			display: flex;
+			gap: 10px;
+			margin-bottom: 10px;
+		}
+
+		.cat-preview-box {
+			width: 65px;
+			height: 65px;
+			background: #eaeaea;
+			border: 3px solid #3d1f05;
+			border-radius: 10px;
+			overflow: hidden;
+			display: flex;
+			justify-content: center;
+			align-items: center;
+		}
+
+		.card-info {
+			flex: 1;
+		}
+
+		.card-level {
+			background: #3d1f05;
+			color: #fff;
+			font-size: 0.75rem;
+			padding: 1px 5px;
+			border-radius: 4px;
+			display: inline-block;
+			margin-bottom: 2px;
+		}
+
+		/* 4. ¨¡„;b */
+		.gacha-box {
+			background: #f0e2be;
+			border: 4px solid #3d1f05;
+			border-radius: 16px;
+			padding: 20px;
+			text-align: center;
+			flex: 1;
+			display: flex;
+			flex-direction: column;
+			justify-content: center;
+			align-items: center;
+		}
+
+		#gachaAnimOverlay,
+		#evolutionOverlay {
+			position: fixed;
+			top: 0;
+			left: 0;
+			width: 100vw;
+			height: 100vh;
+			background: rgba(0, 0, 0, 0.85);
+			z-index: 1000;
+			display: none;
+			justify-content: center;
+			align-items: center;
+			flex-direction: column;
+		}
+
+		.capsule {
+			width: 100px;
+			height: 100px;
+			border-radius: 50%;
+			border: 6px solid #3d1f05;
+			position: relative;
+			background: linear-gradient(to bottom, #ff3333 50%, #fff 50%);
+			box-shadow: 0 10px 20px rgba(0, 0, 0, 0.5);
+		}
+
+		.capsule-line {
+			position: absolute;
+			width: 100%;
+			height: 6px;
+			background: #3d1f05;
+			top: calc(50% - 3px);
+			left: 0;
+		}
+
+		.shake-anim {
+			animation: shake 1.2s infinite;
+		}
+
+		.burst-anim {
+			animation: burst 0.4s forwards;
+		}
+
+		@keyframes shake {
+			0% {
+				transform: rotate(0deg) scale(1);
+			}
+
+			10% {
+				transform: rotate(15deg);
+			}
+
+			20% {
+				transform: rotate(-15deg);
+			}
+
+			30% {
+				transform: rotate(15deg);
+			}
+
+			40% {
+				transform: rotate(-15deg) scale(1.1);
+			}
+
+			50% {
+				transform: rotate(20deg);
+			}
+
+			60% {
+				transform: rotate(-20deg);
+			}
+
+			70% {
+				transform: rotate(15deg);
+			}
+
+			80% {
+				transform: rotate(-15deg);
+			}
+
+			90% {
+				transform: rotate(5deg) scale(1.2);
+			}
+
+			100% {
+				transform: rotate(0deg) scale(1.2);
+			}
+		}
+
+		@keyframes burst {
+			0% {
+				transform: scale(1.2);
+				filter: brightness(1);
+				opacity: 1;
+			}
+
+			50% {
+				transform: scale(1.8);
+				filter: brightness(2);
+				opacity: 0.9;
+			}
+
+			100% {
+				transform: scale(0);
+				filter: brightness(5);
+				opacity: 0;
+			}
+		}
+
+		.reveal-card {
+			background: #fff8e7;
+			border: 6px solid #3d1f05;
+			border-radius: 24px;
+			padding: 24px;
+			width: 480px;
+			text-align: center;
+			box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+			transform: scale(0.5);
+			opacity: 0;
+			transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+		}
+
+		.reveal-card.show {
+			transform: scale(1);
+			opacity: 1;
+		}
+
+		.reveal-badge {
+			background: #ff3399;
+			color: #fff;
+			font-weight: bold;
+			padding: 4px 12px;
+			border-radius: 12px;
+			border: 3px solid #3d1f05;
+			display: inline-block;
+			margin-top: -15px;
+			box-shadow: 0 3px 0 #3d1f05;
+		}
+
+		/* 5. &ÿ;b & πØÌ¸Î≥Û∆  */
+		.battle-canvas-wrapper {
+			width: 100%;
+			overflow-x: auto;
+			border: 5px solid #3d1f05;
+			border-radius: 16px;
+			background-color: #87CEEB;
+			box-shadow: inset 0 4px 10px rgba(0, 0, 0, 0.3);
+			margin-bottom: 8px;
+		}
+
+		/* πØÌ¸Î–¸n´πøﬁ§∫ */
+		.battle-canvas-wrapper::-webkit-scrollbar {
+			height: 12px;
+		}
+
+		.battle-canvas-wrapper::-webkit-scrollbar-track {
+			background: #f7ebc6;
+			border-top: 3px solid #3d1f05;
+			border-radius: 0 0 12px 12px;
+		}
+
+		.battle-canvas-wrapper::-webkit-scrollbar-thumb {
+			background: #d4af37;
+			border: 3px solid #3d1f05;
+			border-radius: 6px;
+		}
+
+		#gameCanvas {
+			background-color: #87CEEB;
+			width: 1600px;
+			/* w›‚’ÿ’£¸Î…x·5 */
+			height: 300px;
+			display: block;
+		}
+
+		.battle-ui {
+			background: #f7ebc6;
+			border: 4px solid #3d1f05;
+			padding: 10px;
+			border-radius: 16px;
+			margin-top: 8px;
+		}
+
+		.status-bar {
+			display: flex;
+			justify-content: space-between;
+			align-items: center;
+			margin-bottom: 8px;
+		}
+
+		/* &ÿ;bπÌ√»≥Û∆ í5◊2∞Í√…˙ök76èö */
+		.slot-container {
+			display: grid;
+			grid-template-columns: repeat(5, 1fr);
+			grid-template-rows: repeat(2, auto);
+			gap: clamp(4px, 1vw, 10px);
+			width: 100%;
+			padding: 4px;
+			box-sizing: border-box;
+		}
+
+		.slot {
+			box-sizing: border-box;
+			display: flex;
+			flex-direction: column;
+			align-items: center;
+			background: #fff;
+			/* «’©Î»Ão */
+			border: 3px solid #3d1f05;
+			border-radius: 12px;
+			padding: 4px;
+			position: relative;
+			width: 100%;
+			aspect-ratio: 2 / 1;
+			justify-content: center;
+			transition: background-color 0.15s ease;
+		}
+
+		.slot cb-bg-cat {
+			pointer-events: none;
+		}
+
+		.slot button {
+			width: 100%;
+			height: 100%;
+			display: flex;
+			flex-direction: column;
+			justify-content: center;
+			align-items: center;
+			font-size: clamp(0.7rem, 0.6rem + 0.4vw, 1.1rem);
+			border: none;
+			background: transparent;
+			box-shadow: none;
+			padding: 0;
+		}
+
+		.slot button:active:not(:disabled) {
+			transform: translateY(2px);
+		}
+
+		/* Ïö†‹øÛn^;'Bdisabled	(«∂§Ûèö */
+		.slot button:disabled {
+			background: transparent !important;
+			color: #3d1f05 !important;
+			/* ∆≠π»nñç'íÿO›d */
+			border: none !important;
+			box-shadow: none !important;
+			cursor: not-allowed;
+		}
+
+		/* ^;'BkÇ°<ƒr	íœ√≠Í≠ÅãàFk˙ö */
+		.slot button:disabled span {
+			color: #b38612 !important;
+		}
+
+		.cooldown-overlay {
+			position: absolute;
+			top: 0;
+			left: 0;
+			right: 0;
+			bottom: 0;
+			background: transparent;
+			/* óUíÕmZÃorÍSíprk	Ù */
+			color: #ff3333;
+			display: flex;
+			justify-content: center;
+			align-items: center;
+			font-size: clamp(0.9rem, 0.8rem + 0.5vw, 1.3rem);
+			font-weight: 900;
+			pointer-events: none;
+			border-radius: 8px;
+			display: none;
+			text-shadow: 1px 1px 1px #fff, -1px -1px 1px #fff, 1px -1px 1px #fff, -1px 1px 1px #fff;
+		}
+
+		/* ≠„ÈØø¸Ë;b(nÏ§¢¶»øt */
+		#deckSlotsGrid {
+			display: grid;
+			grid-template-columns: repeat(5, 1fr);
+			grid-template-rows: repeat(2, auto);
+			gap: 6px;
+			background: #f0e2be;
+			padding: 8px;
+			border-radius: 12px;
+			border: 3px solid #3d1f05;
+			width: 100%;
+		}
+
+		#warehouseGrid {
+			display: grid;
+			grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+			gap: 6px;
+			max-height: 180px;
+			overflow-y: auto;
+			background: #fff;
+			padding: 8px;
+			border-radius: 12px;
+			border: 3px solid #3d1f05;
+			width: 100%;
+		}
+
+		.nav-buttons {
+			margin-top: auto;
+			padding-top: 10px;
+			display: flex;
+			justify-content: flex-end;
+		}
+	</style>
+</head>
+
+<body>
+
+	<!-- qÿ√¿¸ -->
+	<div class="global-header">
+		<div class="header-resources">
+			<div class="resource-badge">L$(XP): <span id="headerXp" class="xp-text">0</span></div>
+			<div class="resource-badge">Õ≥6: <span id="headerCf" class="cf-text">0</span></div>
+		</div>
+		<div>
+			<button onclick="resetData()" style="padding: 4px 8px; font-size: 0.75rem; background: #666; color:#fff; border-color:#3d1f05; box-shadow: 0 3px 0 #3d1f05;"></button>
+		</div>
+	</div>
+
+	<!-- 1. €¸‡;b -->
+	<div id="homeScreen" class="screen">
+		<h2>kÉìS'\& ˙0·ÀÂ¸</h2>
+		<div class="home-layout">
+			<canvas id="baseIllustCvs" width="400" height="150"></canvas>
+
+			<div class="home-buttons">
+				<button class="btn-primary" onclick="switchScreen('mapScreen')">fxûÂ,Ë	</button>
+				<button onclick="switchScreen('deckScreen')">≠„ÈØø¸Ë</button>
+				<button onclick="switchScreen('powerupScreen')">ÏŸÎ¢√◊≤	</button>
+				<button onclick="switchScreen('gachaScreen')">¨¡„¨¡„</button>
+			</div>
+		</div>
+	</div>
+
+	<!-- 2. ﬁ√◊xû;b -->
+	<div id="mapScreen" class="screen" style="display:none;">
+		<h2 id="mapHeaderTitle">Â,Ë]ﬁ0π</h2>
+		<div style="margin-bottom:8px; font-size:0.8rem; color:#666; text-align:center;">
+			;¶Î»ÈÔ§…2Dﬁ√◊…È√∞˚πØÌ¸ÎgÂ,ˆí·å~Y
+		</div>
+		<div class="map-layout">
+
+			<div id="mapScrollContainer" class="map-scroll-container">
+				<canvas id="mapCanvas" width="1800" height="900"></canvas>
+			</div>
+
+			<!-- s0—ÕÎ -->
+			<div class="stage-info-panel">
+				<div>
+					<div id="stageInfoTitle" class="stage-info-title">w</div>
+					<p id="stageInfoDesc" style="font-size:0.8rem; color:#555; margin:3px 0;">JŒnEõíJä=h[</p>
+					<div style="font-size:0.8rem; color:#444; margin-top:5px;">
+						<div>Œ 'HP: <span id="stageInfoHp" style="font-weight:bold;">1000</span></div>
+						<div>ØÍ¢XP: <span id="stageInfoXp" class="xp-text" style="font-weight:bold;">500</span></div>
+						<div>ØÍ¢6: <span id="stageInfoCf" class="cf-text" style="font-weight:bold;">50</span></div>
+					</div>
+				</div>
+				<button id="stageLaunchBtn" class="btn-primary" style="width:100%; font-size:1.1rem; padding:10px; margin-bottom: 5px;" onclick="launchSelectedStage()">&ÿãÀ</button>
+			</div>
+		</div>
+		<div class="nav-buttons" style="gap: 10px; display: flex; width: 100%;">
+			<button class="btn-primary" onclick="openTreasureModal()" style="background:#d4af37; border-color:#3d1f05; box-shadow:0 5px 0 #b38612;">JùÛQ</button>
+			<button onclick="switchScreen('homeScreen')">˙0k;ã</button>
+		</div>
+	</div>
+
+	<!-- 3. —Ô¸¢√◊ -->
+	<div id="powerupScreen" class="screen" style="display:none;">
+		<h2>Õ≥˙0—Ô¸¢√◊</h2>
+
+		<!-- ≤hΩ-JŒ˝õn´∆¥Í‚ø÷ -->
+		<div style="display: flex; gap: 10px; justify-content: center; margin-bottom: 12px; width: 100%;">
+			<button id="tabPuCats" class="btn-primary" onclick="switchPowerUpCategory('cats')" style="flex: 1; max-width: 250px; font-size: 1rem; padding: 10px 0;">kÉìS≤</button>
+			<button id="tabPuBase" onclick="switchPowerUpCategory('base')" style="flex: 1; max-width: 250px; font-size: 1rem; padding: 10px 0;">Ω-˚Œ˝õ7</button>
+		</div>
+
+		<div id="powerupScrollArea" class="powerup-container">
+			<!-- ’Ñ´¸… -->
+		</div>
+		<div class="nav-buttons">
+			<button onclick="switchScreen('homeScreen')">˙0k;ã</button>
+		</div>
+	</div>
+
+	<!-- 4. ≠„ÈØø¸Ë;b -->
+	<div id="deckScreen" class="screen" style="display:none; gap: 8px;">
+		<h2 style="margin-bottom: 5px;">≠„ÈØø¸Ë˚˝õ∫ç</h2>
+		<div style="font-size:0.75rem; color:#555; text-align:center; margin-bottom: 4px;">
+			
+nπÌ√»(110)íø√◊WfKân	´nkÉìSíxûWfeåˇH~Y
+		</div>
+
+		<!-- 
+µ®Í¢ -->
+		<div style="display: flex; gap: 15px; width: 100%; flex-wrap: wrap;">
+
+			<!-- Êt«√≠ËπÌ√» (5◊2∞Í√…) -->
+			<div style="flex: 1.2; min-width: 300px;">
+				<div style="font-weight: 900; font-size: 0.85rem; margin-bottom: 4px; color: #3d1f05;">∂ –»ÎËπÌ√»5◊2	
+				</div>
+				<div id="deckSlotsGrid" style="margin-bottom: 0;"></div>
+			</div>
+
+			<!-- Ûtxû-≠„Èns0˝õπ∆¸øπ—ÕÎ -->
+			<div style="flex: 1; min-width: 280px; display: flex; flex-direction: column;">
+				<div style="font-weight: 900; font-size: 0.85rem; margin-bottom: 4px; color: #3d1f05;">∂ xûW_≠„Ènπ∆¸øπ
+				</div>
+				<div id="deckCharDetailPanel"
+					style="background: #fff8e7; border: 4px solid #3d1f05; border-radius: 16px; padding: 10px; display: flex; align-items: center; gap: 12px; box-shadow: inset 0 3px 6px rgba(0,0,0,0.1); flex: 1; flex-direction: row; flex-wrap: wrap;">
+					<div
+						style="background:#fff; border: 3px solid #3d1f05; border-radius: 12px; padding: 4px; width: 80px; height: 80px; display: flex; justify-content: center; align-items: center; flex-shrink: 0;">
+						<canvas id="deckDetailCvs" width="70" height="70"></canvas>
+					</div>
+					<div
+						style="flex: 1; display: flex; flex-direction: column; justify-content: center; min-width: 140px;">
+						<div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+							<span id="deckDetailName" style="font-size: 1.15rem; font-weight: 900; color: #3d1f05;">Õ≥</span>
+							<span id="deckDetailRarity" style="font-size: 0.7rem; font-weight: 900; background: #ff3399; color: #fff; padding: 1px 5px; border-radius: 6px;">Rare</span>
+						</div>
+						<div id="deckDetailLevel"
+							style="font-size: 0.8rem; font-weight: bold; color: #3d1f05; margin: 2px 0;">ÏŸÎ: 1</div>
+						<div
+							style="display: grid; grid-template-columns: 1fr 1fr; gap: 2px; font-size: 0.8rem; font-weight: bold; color: #555; margin-bottom: 3px;">
+							<div>Sõ: <span id="deckDetailHp" style="color: #4caf50; font-weight: 900;">120</span></div>
+							<div>;É: <span id="deckDetailAtk" style="color: #ff3300; font-weight: 900;">12</span></div>
+							<div>: <span id="deckDetailRange" style="color: #00bcd4; font-weight: 900;">30</span>
+							</div>
+							<div>≥π»: <span id="deckDetailCost" style="color: #b38612; font-weight: 900;">$50</span>
+							</div>
+						</div>
+						<div id="deckDetailAbility"
+							style="font-size: 0.75rem; font-weight: 900; color: #e91e63; background: #fff; padding: 2px 6px; border: 1.5px solid #3d1f05; border-radius: 6px; display: inline-block; margin-bottom: 4px;">
+							y': jW</div>
+						<!-- ∞è˝†L$(XP)	€‹øÛ -->
+						<button id="convertXpBtn" class="btn-primary" style="font-size: 0.75rem; padding: 4px 8px; width: 100%; display: none; background: #00aa88; border-color: #3d1f05; box-shadow: 0 3px 0 #007755; text-shadow: none;">◊Èπ$íXPk	€</button>
+					</div>
+				</div>
+			</div>
+
+		</div>
+
+		<!-- µ®Í¢≠„ÈØø¸	´ -->
+		<div style="margin-top: 5px; width: 100%;">
+			<div style="font-weight:900; margin-bottom: 4px; font-size: 0.85rem; color: #3d1f05;">∂ ≠„ÈØø¸	´@kÉìS ß	
+			</div>
+			<div id="warehouseGrid" style="max-height: 180px;"></div>
+		</div>
+
+		<div class="nav-buttons" style="padding-top: 5px;">
+			<button onclick="switchScreen('homeScreen')" style="padding: 6px 14px; font-size: 0.85rem;">˙0k;ã</button>
+		</div>
+	</div>
+
+	<!-- 5. ¨¡„;b -->
+	<div id="gachaScreen" class="screen" style="display:none;">
+		<h2>Ï¢Õ≥¨¡„</h2>
+		<div class="gacha-box"
+			style="border: 6px double #ffd700; background: radial-gradient(circle, #2d1a15 0%, #150a07 100%); color: #fff8e7; padding: 25px; box-shadow: 0 0 20px rgba(255,215,0,0.5), inset 0 0 15px rgba(0,0,0,0.6); max-width: 900px; width: 100%; margin: 0 auto; border-radius: 24px; position: relative;">
+			<div
+				style="font-weight: 900; font-size:1.6rem; color:#ffd700; margin-bottom: 5px; text-shadow: 2px 2px 0 #000;">
+				( Ö¿Ï¢’ßπ∆£–Î (
+			</div>
+			<p style="font-size: 0.9rem; color: #ffeb3b; margin: 0 0 15px 0; font-weight: bold; letter-spacing: 1px;">
+				[Ï∏ßÛ…Ï¢ 2% / Ö¿Ï¢ 10% / ^'yπ«–’¢”Í∆£aö]
+			</p>
+
+			<!-- Óâ≠„È≈1‹¸… -->
+			<div
+				style="display: flex; gap: 20px; align-items: center; justify-content: center; width: 100%; flex-wrap: wrap; margin-bottom: 20px; background: rgba(0,0,0,0.4); padding: 15px; border-radius: 12px; border: 2px solid #5d4037;">
+				<div style="text-align: center; flex: 1; min-width: 140px;">
+					<div
+						style="font-size: 0.75rem; background: #ffd700; color: #3d1f05; font-weight: 900; padding: 2px 6px; border-radius: 4px; display: inline-block; margin-bottom: 5px;">
+						ÓâÏ∏ßÛ…</div>
+					<div style="font-weight: bold; color: #fff;">Õ≥^
+</div>
+					<div style="font-size: 0.7rem; color: #bbb;">h^'ku'¿·¸∏</div>
+				</div>
+				<div style="text-align: center; flex: 1; min-width: 140px;">
+					<div
+						style="font-size: 0.75rem; background: #ffd700; color: #3d1f05; font-weight: 900; padding: 2px 6px; border-radius: 4px; display: inline-block; margin-bottom: 5px;">
+						ÓâÖ¿Ï¢</div>
+					<div style="font-size: 0.85rem; font-weight: bold; color: #fff;">VÎ</div>
+					<div style="font-size: 0.7rem; color: #bbb;">“DuíâYã4 õ</div>
+				</div>
+				<div style="text-align: center; flex: 1; min-width: 140px;">
+					<div
+						style="font-size: 0.75rem; background: #ffd700; color: #3d1f05; font-weight: 900; padding: 2px 6px; border-radius: 4px; display: inline-block; margin-bottom: 5px;">
+						Öy;π≠Î</div>
+					<div style="font-size: 0.85rem; font-weight: bold; color: #ffeb3b;">’Í¸∫Œ√Ø–√Ø</div>
+					<div style="font-size: 0.7rem; color: #bbb;">yä®≥kÉìSí≤√»</div>
+				</div>
+			</div>
+
+			<div style="margin: 10px 0;">
+				<canvas id="gachaCvs" width="220" height="130"
+					style="background:#15100c; border:4px solid #d4af37; border-radius:16px; box-shadow: 0 4px 15px rgba(0,0,0,0.5);"></canvas>
+			</div>
+			<div style="display: flex; gap: 20px; justify-content: center; margin-top: 15px; width: 100%;">
+				<button class="btn-primary" style="font-size: 1.15rem; padding: 14px 30px; background: linear-gradient(180deg, #ffd700 0%, #d4af37 100%); border: 3px solid #3d1f05; box-shadow:0 6px 0 #8c7311, 0 8px 15px rgba(0,0,0,0.4); text-shadow: 1px 1px 0 #000;" onclick="triggerGachaAnimation(1)">1ﬁ¨¡„ (1506)</button>
+				<button class="btn-primary" style="font-size: 1.15rem; padding: 14px 30px; background: linear-gradient(180deg, #ff3399 0%, #e91e63 100%); color:#fff; border: 3px solid #3d1f05; box-shadow:0 6px 0 #9c124e, 0 8px 15px rgba(0,0,0,0.4); text-shadow: 1px 1px 0 #000;" onclick="triggerGachaAnimation(10)">10#¨¡„ (15006)</button>
+			</div>
+		</div>
+		<div class="nav-buttons">
+			<button onclick="switchScreen('homeScreen')">˙0k;ã</button>
+		</div>
+	</div>
+
+	<!-- 6. &ÿ;b -->
+	<div id="battleScreen" class="screen" style="display:none;">
+		<div style="font-size:0.8rem; color:#666; text-align:center; margin-bottom:4px; font-weight:bold;">
+			;’£¸Î…íÊÛkπØÌ¸ÎWfhSíã![~Y
+		</div>
+		<!-- πØÌ¸ÎíÔ˝kW_≠„Û–πÈ√—¸ -->
+		<div id="battleCanvasWrapper" class="battle-canvas-wrapper">
+			<canvas id="gameCanvas" width="1600" height="300"></canvas>
+		</div>
+		<div class="battle-ui">
+			<div class="status-bar">
+				<div>
+					<span id="moneyText" style="font-size: 1.3rem; color:#3d1f05; font-weight:900; margin-right: 15px;">@—: $0 / $200</span>
+					<button id="walletBtn" class="btn-primary" style="padding: 6px 12px; font-size:0.9rem;">J°Lv.1 UP ($100)</button>
+				</div>
+				<button id="cannonBtn" class="btn-danger" style="padding: 8px 16px;" disabled>kÉìS2 (0%)</button>
+			</div>
+
+			<!-- «√≠nË† 25L(10†) -->
+			<div class="slot-container" id="battleSlotContainer"></div>
+		</div>
+	</div>
+
+	<!-- ¨¡„˙™¸–¸Ï§ -->
+	<div id="gachaAnimOverlay">
+		<div id="burstFlash"
+			style="position: absolute; top:0; left:0; width:100%; height:100%; background:#fff; display:none; pointer-events:none; z-index:1001; transition: opacity 0.1s;">
+		</div>
+
+		<div id="gachaCapsule" class="capsule">
+			<div class="capsule-line"></div>
+		</div>
+
+		<div id="revealCard" class="reveal-card">
+			<div id="revealBadge" class="reveal-badge">NEW!!</div>
+			<div id="revealContent"></div>
+			<button id="gachaOkBtn" class="btn-primary" style="margin-top:15px; width:100%;">OK</button>
+		</div>
+	</div>
+
+	<!-- 2˙™¸–¸Ï§ -->
+	<div id="evolutionOverlay">
+		<div class="reveal-card show" style="border-color: #ffd700; width: 440px;">
+			<div class="reveal-badge" style="background: #ffd700; color: #3d1f05; font-weight:900;">WìKW~W_</div>
+
+			<div style="display: flex; gap: 15px; justify-content: center; margin: 15px 0;">
+				<div
+					style="background:#fff; border:4px solid #3d1f05; border-radius:16px; padding:10px; width: 130px; text-align: center; box-shadow: inset 0 4px 8px rgba(0,0,0,0.15); display: flex; flex-direction: column; justify-content: space-between; align-items: center;">
+					<div style="font-size: 0.75rem; font-weight: 900; color: #777; margin-bottom: 5px;">,1bK</div>
+					<canvas id="evoCvsBefore" width="120" height="110"></canvas>
+					<div id="evoNameBefore"
+						style="font-size: 0.85rem; font-weight: 900; color: #3d1f05; margin-top: 5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 100%;">
+						Õ≥</div>
+				</div>
+
+				<div
+					style="display: flex; align-items: center; font-size: 1.8rem; color: #ffd700; font-weight: bold; text-shadow: 1px 1px 0 #3d1f05;">
+					°</div>
+
+				<div
+					style="background:#fff; border:4px solid #ffd700; border-radius:16px; padding:10px; width: 130px; text-align: center; box-shadow: 0 4px 10px rgba(255, 215, 0, 0.3), inset 0 4px 8px rgba(0,0,0,0.15); display: flex; flex-direction: column; justify-content: space-between; align-items: center;">
+					<div style="font-size: 0.75rem; font-weight: 900; color: #b38612; margin-bottom: 5px;">,2bK</div>
+					<canvas id="evoCvsAfter" width="120" height="110"></canvas>
+					<div id="evoNameAfter"
+						style="font-size: 0.85rem; font-weight: 900; color: #ff3300; margin-top: 5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 100%;">
+						Õ≥”Î¿¸</div>
+				</div>
+			</div>
+
+			<h3 id="evoName" style="margin: 0; font-size:1.5rem; color:#3d1f05; font-weight: 900;">«Õ≥</h3>
+			<p id="evoDesc" style="color:#555; font-size:0.9rem; margin:8px 0; font-weight:bold;">
+				,2bKk2íhR_kÉìS˝õÇï
+RUå_^</p>
+			<button class="btn-primary" style="margin-top:10px; width:100%;" onclick="closeEvolutionOverlay()">OK</button>
+		</div>
+	</div>
+
+	<!-- ´πø‡¿§¢Ì∞ -->
+	<div id="customModalOverlay"
+		style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.8); z-index: 2000; display: none; justify-content: center; align-items: center; flex-direction: column;">
+		<div class="reveal-card show" style="width: 420px; border-color: #3d1f05;">
+			<div id="modalBadge" class="reveal-badge" style="background: #f5c542; color: #3d1f05; font-weight:900;">JWâ[
+			</div>
+			<h3 id="modalTitle" style="margin: 20px 0 10px 0; font-size:1.5rem; color:#3d1f05; font-weight: 900;">ø§»Î
+			</h3>
+			<p id="modalMessage"
+				style="color:#555; font-size:0.95rem; margin:10px 0; font-weight:bold; white-space: pre-line; line-height: 1.6;">
+			</p>
+			<div id="modalButtons" style="display: flex; gap: 12px; justify-content: center; width: 100%;"></div>
+		</div>
+	</div>
+
+	<!-- JùÛQ‚¸¿Î -->
+	<div id="treasureModalOverlay"
+		style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.8); z-index: 2000; display: none; justify-content: center; align-items: center;">
+		<div class="reveal-card show"
+			style="width: 550px; border-color: #d4af37; max-height: 85vh; overflow-y: auto; text-align: left;">
+			<div class="reveal-badge" style="background: #d4af37; color: #3d1f05; font-weight:900;">JùÛQ (Treasure
+				Museum)</div>
+			<h3 style="margin-top: 15px; font-size: 1.4rem; color: #3d1f05; text-align: center; font-weight: 900;">Â,Ë
+				z’-–’¢”Í∆£</h3>
+
+			<div id="treasureBuffContainer"
+				style="background: #fff; border: 3px solid #3d1f05; border-radius: 12px; padding: 12px; margin-bottom: 15px; font-weight: bold; line-height: 1.7;">
+				<!-- ’Ñ–’h: -->
+			</div>
+
+			<div id="treasureGridContainer" style="display: flex; flex-direction: column; gap: 10px;">
+				<!-- 3dn0ﬂnŒ∆∞Í√… -->
+			</div>
+
+			<button class="btn-primary" style="width: 100%; margin-top: 15px;" onclick="closeTreasureModal()">âXã</button>
+		</div>
+	</div>
+
+	<!-- ==================== JavaScript ®Í¢ ==================== -->
+	<script>
+		// --- 1. ≠„ÈØø¸«¸øŸ¸πö© ---
+    const catListConfigs = [
+      // Rare (0-14)
+      { id: "cat1", name: "Õ≥", evolvedName: "Õ≥”Î¿¸", cost: 50, hp: 120, atk: 12, range: 30, speed: 1.5, interval: 40, cdMax: 180, isArea: false, drawType: "normal", color: "#eef", evColor: "#ffd700", rarity: "Rare", ability: "jW" },
+      { id: "cat2", name: "øÛØÕ≥", evolvedName: "´ŸÕ≥", cost: 150, hp: 450, atk: 4, range: 15, speed: 0.9, interval: 50, cdMax: 480, isArea: false, drawType: "tank", color: "#ccd", evColor: "#444", rarity: "Rare", ability: "jW" },
+      { id: "cat3", name: "–»ÎÕ≥", evolvedName: "«Õ≥", cost: 300, hp: 250, atk: 35, range: 45, speed: 1.8, interval: 35, cdMax: 600, isArea: false, drawType: "normal", color: "#ffb3d9", evColor: "#ff0033", rarity: "Rare", ability: "dDuk¿·¸∏3" },
+      { id: "cat_ninja", name: "ÕÕ≥", evolvedName: "¨ﬁÕÕ≥", cost: 240, hp: 280, atk: 25, range: 35, speed: 2.2, interval: 28, cdMax: 350, isArea: false, drawType: "ninja", color: "#95a5a6", evColor: "#673ab7", rarity: "Rare", ability: "dDuk¿·¸∏2´¿·J" },
+      { id: "cat_sumo", name: "π‚¶Õ≥", evolvedName: "∂˚π‚¶", cost: 400, hp: 800, atk: 10, range: 15, speed: 0.8, interval: 45, cdMax: 500, isArea: true, drawType: "tank", color: "#f5b041", evColor: "#e67e22", rarity: "Rare", ability: "“DuKân´¿·¸∏1/4ÖE	" },
+      { id: "cat_samurai", name: "µ‡È§Õ≥", evolvedName: "Õ≥ §»", cost: 350, hp: 300, atk: 42, range: 40, speed: 1.6, interval: 32, cdMax: 550, isArea: false, drawType: "normal", color: "#34495e", evColor: "#2c3e50", rarity: "Rare", ability: "jW" },
+      { id: "cat_zombie", name: "æÛ”Õ≥", evolvedName: "«”ÎÕ≥", cost: 350, hp: 200, atk: 55, range: 35, speed: 1.3, interval: 30, cdMax: 480, isArea: false, drawType: "normal", color: "#2ecc71", evColor: "#27ae60", rarity: "Rare", ability: "jW" },
+      { id: "cat_apple", name: "ÍÛ¥Õ≥", evolvedName: "Õ≥´√ø¸", cost: 380, hp: 250, atk: 48, range: 30, speed: 1.4, interval: 35, cdMax: 450, isArea: false, drawType: "object", color: "#e74c3c", evColor: "#c0392b", rarity: "Rare", ability: "jW" },
+      { id: "cat_pirate", name: "Õ≥w ", evolvedName: "À„Û≥≥√Ø", cost: 510, hp: 380, atk: 50, range: 110, speed: 1.2, interval: 45, cdMax: 500, isArea: false, drawType: "normal", color: "#3e2723", evColor: "#5d4037", rarity: "Rare", ability: "dDuí40%n∫águchpY" },
+      { id: "cat_thief", name: "mSÂ“", evolvedName: "*◊À„Û≥", cost: 420, hp: 220, atk: 60, range: 30, speed: 2.5, interval: 25, cdMax: 400, isArea: false, drawType: "ninja", color: "#795548", evColor: "#4e342e", rarity: "Rare", ability: "jW" },
+      { id: "cat_monk", name: "Õ≥Á∂", evolvedName: "Õ≥’+", cost: 490, hp: 310, atk: 28, range: 120, speed: 1.1, interval: 50, cdMax: 420, isArea: false, drawType: "normal", color: "#fff9c4", evColor: "#fbc02d", rarity: "Rare", ability: "jW" },
+      { id: "cat_shaman", name: "∑„¸ﬁÛ", evolvedName: "Õ≥™Û…Í", cost: 520, hp: 330, atk: 45, range: 150, speed: 1.1, interval: 52, cdMax: 460, isArea: false, drawType: "normal", color: "#b2dfdb", evColor: "#00796b", rarity: "Rare", ability: "jW" },
+      { id: "cat_pogo", name: "›√‘Û∞", evolvedName: "€√‘Û∞", cost: 270, hp: 190, atk: 18, range: 30, speed: 1.3, interval: 38, cdMax: 300, isArea: false, drawType: "normal", color: "#e1bee7", evColor: "#7b1fa2", rarity: "Rare", ability: "jW" },
+      { id: "cat_wheel", name: "Õ≥ *", evolvedName: "Õ≥*}", cost: 550, hp: 270, atk: 90, range: 90, speed: 1.2, interval: 40, cdMax: 500, isArea: true, drawType: "object", color: "#ff8f00", evColor: "#ff6f00", rarity: "Rare", ability: "jW" },
+      { id: "cat_jura", name: "Õ≥∏ÂÈ", evolvedName: "∏ÂÈ∑∂¸∫", cost: 650, hp: 500, atk: 85, range: 35, speed: 1.4, interval: 45, cdMax: 600, isArea: false, drawType: "lizard", color: "#80d8ff", evColor: "#0091ea", rarity: "Rare", ability: "jW" },
+
+      // Super Rare (15-29)
+      { id: "cat_gross", name: "≠‚Õ≥", evolvedName: "éÕ≥", cost: 400, hp: 350, atk: 80, range: 140, speed: 1.1, interval: 45, cdMax: 400, isArea: false, drawType: "gross", color: "#fff", evColor: "#ffd700", rarity: "Super Rare", ability: "jW" },
+      { id: "cat_cow", name: "¶∑Õ≥", evolvedName: "Õ≥≠ÍÛ", cost: 500, hp: 400, atk: 30, range: 20, speed: 3.2, interval: 15, cdMax: 300, isArea: false, drawType: "cow", color: "#fff", evColor: "#ffd700", rarity: "Super Rare", ability: "jW" },
+      { id: "cat_bird", name: "»ÍÕ≥", evolvedName: "Õ≥UFO", cost: 650, hp: 180, atk: 120, range: 80, speed: 1.6, interval: 48, cdMax: 500, isArea: true, drawType: "bird", color: "#fff", evColor: "#ffd700", rarity: "Super Rare", ability: "jW" },
+      { id: "cat_sushi", name: "mSˇ¯", evolvedName: "y
+ˇ¯", cost: 820, hp: 900, atk: 65, range: 40, speed: 1.2, interval: 42, cdMax: 650, isArea: false, drawType: "object", color: "#ffccbc", evColor: "#ff5722", rarity: "Super Rare", ability: "jW" },
+      { id: "cat_boxer", name: "‹Øµ¸", evolvedName: "¡„Û‘™Û", cost: 600, hp: 550, atk: 90, range: 35, speed: 1.8, interval: 30, cdMax: 550, isArea: false, drawType: "normal", color: "#90caf9", evColor: "#1565c0", rarity: "Super Rare", ability: "jW" },
+      { id: "cat_swimmer", name: "π§ﬁ¸", evolvedName: "Õ≥–ø’È§", cost: 750, hp: 450, atk: 140, range: 30, speed: 3.0, interval: 35, cdMax: 600, isArea: false, drawType: "fish", color: "#e0f7fa", evColor: "#006064", rarity: "Super Rare", ability: "jW" },
+      { id: "cat_delinquent", name: "Õ≥jw", evolvedName: "änjw", cost: 970, hp: 1200, atk: 180, range: 110, speed: 1.2, interval: 50, cdMax: 800, isArea: true, drawType: "normal", color: "#212121", evColor: "#000", rarity: "Super Rare", ability: "jW" },
+      { id: "cat_witch", name: "Õ≥Ts", evolvedName: "'TsÀ„Û≥", cost: 620, hp: 420, atk: 70, range: 160, speed: 1.1, interval: 45, cdMax: 480, isArea: false, drawType: "floating", color: "#ea80fc", evColor: "#aa00ff", rarity: "Super Rare", ability: "nDfãuí30%n∫ág1.5“\b" },
+      { id: "cat_archer", name: "¢¸¡„¸", evolvedName: "≠Â¸‘√…", cost: 580, hp: 390, atk: 85, range: 180, speed: 1.3, interval: 48, cdMax: 500, isArea: false, drawType: "normal", color: "#ff8a80", evColor: "#d50000", rarity: "Super Rare", ability: "jW" },
+      { id: "cat_gunslinger", name: "¨ÛﬁÛ", evolvedName: "›âòÕ≥", cost: 680, hp: 410, atk: 110, range: 170, speed: 1.2, interval: 52, cdMax: 540, isArea: false, drawType: "normal", color: "#d7ccc8", evColor: "#5d4037", rarity: "Super Rare", ability: "jW" },
+      { id: "cat_fortune", name: "`D+", evolvedName: "p}+À„Û≥", cost: 590, hp: 400, atk: 55, range: 130, speed: 1.1, interval: 40, cdMax: 450, isArea: false, drawType: "normal", color: "#b39ddb", evColor: "#4a148c", rarity: "Super Rare", ability: "jW" },
+      { id: "cat_rocker", name: "Ì√´¸", evolvedName: "·øÎÕ≥", cost: 310, hp: 400, atk: 35, range: 25, speed: 1.5, interval: 22, cdMax: 320, isArea: false, drawType: "normal", color: "#f8bbd0", evColor: "#c2185b", rarity: "Super Rare", ability: "jW" },
+      { id: "cat_mermaid", name: "∫ZÕ≥", evolvedName: "ª§Ï¸Û", cost: 480, hp: 600, atk: 45, range: 40, speed: 1.0, interval: 48, cdMax: 460, isArea: false, drawType: "fish", color: "#b2dfdb", evColor: "#00796b", rarity: "Super Rare", ability: "jW" },
+      { id: "cat_waitress", name: "¶®§»Ïπ", evolvedName: "·§…Õ≥", cost: 720, hp: 500, atk: 110, range: 80, speed: 1.4, interval: 42, cdMax: 550, isArea: false, drawType: "normal", color: "#cfd8dc", evColor: "#37474f", rarity: "Super Rare", ability: "jW" },
+      { id: "cat_kotatsu", name: "mSøƒ", evolvedName: "≥øƒÕ≥", cost: 880, hp: 1100, atk: 50, range: 30, speed: 0.9, interval: 55, cdMax: 700, isArea: false, drawType: "object", color: "#ffcc80", evColor: "#ef6c00", rarity: "Super Rare", ability: "jW" },
+
+      // Uber Rare (30-44)
+      { id: "cat_fish", name: "’£√∑Â", evolvedName: "Õ≥Ø∏È", cost: 800, hp: 800, atk: 150, range: 35, speed: 1.4, interval: 42, cdMax: 700, isArea: false, drawType: "fish", color: "#eef", evColor: "#ffd700", rarity: "Uber Rare", ability: "jW" },
+      { id: "cat_lizard", name: "»´≤", evolvedName: "Õ≥…È¥Û", cost: 1000, hp: 600, atk: 220, range: 240, speed: 1.0, interval: 55, cdMax: 800, isArea: false, drawType: "lizard", color: "#eef", evColor: "#ffd700", rarity: "Uber Rare", ability: "jW" },
+      { id: "cat_titan", name: "Ë^Õ≥", evolvedName: "¿È‹√¡", cost: 1500, hp: 2000, atk: 500, range: 30, speed: 0.8, interval: 70, cdMax: 1200, isArea: false, drawType: "titan", color: "#555", evColor: "#ffd700", rarity: "Uber Rare", ability: "jW" },
+      { id: "cat_salon", name: "Õ≥®π∆", evolvedName: "Õ≥∏ßÛÃ", cost: 1200, hp: 1000, atk: 250, range: 180, speed: 1.2, interval: 38, cdMax: 900, isArea: true, drawType: "salon", color: "#fff", evColor: "#ffd700", rarity: "Uber Rare", ability: "“Duk¿·¸∏3ƒÚ;É	" },
+      { id: "cat_surfer", name: "µ¸’°¸", evolvedName: "µ¸’À„Û", cost: 1100, hp: 950, atk: 230, range: 140, speed: 1.5, interval: 40, cdMax: 850, isArea: true, drawType: "object", color: "#80deea", evColor: "#00838f", rarity: "Uber Rare", ability: "dDuí30%n∫ág1.5“\b" },
+      { id: "cat_skater", name: "π±¸»", evolvedName: "’£ÆÂ¢", cost: 1250, hp: 1100, atk: 280, range: 150, speed: 1.6, interval: 45, cdMax: 950, isArea: true, drawType: "gross", color: "#b3e5fc", evColor: "#0288d1", rarity: "Uber Rare", ability: "jW" },
+      { id: "cat_toaster", name: "»¸πø¸", evolvedName: "∂˚»¸πø", cost: 1300, hp: 1300, atk: 310, range: 130, speed: 1.1, interval: 50, cdMax: 1000, isArea: true, drawType: "object", color: "#ffecb3", evColor: "#ff8f00", rarity: "Uber Rare", ability: "jW" },
+      { id: "cat_tv", name: "mSTV", evolvedName: "∑ÕﬁÀ„Û≥", cost: 1400, hp: 1500, atk: 180, range: 60, speed: 1.0, interval: 45, cdMax: 1050, isArea: true, drawType: "object", color: "#b2dfdb", evColor: "#00695c", rarity: "Uber Rare", ability: "jW" },
+      { id: "cat_explorer", name: "íz∂Õ≥", evolvedName: "§Û«£Õ≥", cost: 1050, hp: 880, atk: 240, range: 110, speed: 1.3, interval: 38, cdMax: 820, isArea: false, drawType: "normal", color: "#ffe082", evColor: "#ff8f00", rarity: "Uber Rare", ability: "jW" },
+      { id: "cat_jumper", name: "∏„Û—¸", evolvedName: "π´§À„Û", cost: 1150, hp: 920, atk: 260, range: 120, speed: 1.7, interval: 40, cdMax: 880, isArea: false, drawType: "normal", color: "#e1bee7", evColor: "#7b1fa2", rarity: "Uber Rare", ability: "jW" },
+      { id: "cat_butterfly", name: "–ø’È§", evolvedName: "˚—‘ËÛ", cost: 1220, hp: 750, atk: 350, range: 100, speed: 2.5, interval: 42, cdMax: 920, isArea: true, drawType: "floating", color: "#f8bbd0", evColor: "#c2185b", rarity: "Uber Rare", ability: "jW" },
+      { id: "cat_bodhi", name: "Õ≥|Ud", evolvedName: "CK≥ÛÀ„Û", cost: 1600, hp: 1700, atk: 450, range: 160, speed: 1.0, interval: 55, cdMax: 1150, isArea: true, drawType: "normal", color: "#ffcc80", evColor: "#e65100", rarity: "Uber Rare", ability: "jW" },
+      { id: "cat_onigiri", name: "JkNä", evolvedName: "^sJkNä", cost: 850, hp: 1200, atk: 90, range: 30, speed: 1.1, interval: 32, cdMax: 650, isArea: false, drawType: "object", color: "#fff", evColor: "#3e2723", rarity: "Uber Rare", ability: "jW" },
+      { id: "cat_gigant", name: "Æ¨Û»", evolvedName: "·¨»ÛÕ≥", cost: 1750, hp: 2400, atk: 600, range: 35, speed: 0.7, interval: 75, cdMax: 1300, isArea: true, drawType: "titan", color: "#b0bec5", evColor: "#37474f", rarity: "Uber Rare", ability: "jW" },
+      { id: "cat_knight", name: "VÎ", evolvedName: "˚Ì§‰Î", cost: 1450, hp: 1400, atk: 400, range: 120, speed: 1.4, interval: 46, cdMax: 1100, isArea: false, drawType: "normal", color: "#b3e5fc", evColor: "#0288d1", rarity: "Uber Rare", ability: "jW" },
+
+      // Legend Rare (45-49)
+      { id: "cat_valkyrie", name: "Ù°Î≠Í¸", evolvedName: "˚Ù°Î≠Í¸", cost: 2000, hp: 1800, atk: 750, range: 160, speed: 2.8, interval: 30, cdMax: 1800, isArea: true, drawType: "valkyrie", color: "#ffeb3b", evColor: "#ffd700", rarity: "Legend Rare", ability: "nDfãuk¿·¸∏3" },
+      { id: "cat_bahamut", name: "–œ‡¸»", evolvedName: "¬q–œ‡¸»", cost: 3000, hp: 3500, atk: 1800, range: 200, speed: 1.8, interval: 80, cdMax: 3000, isArea: true, drawType: "dragon", color: "#9c27b0", evColor: "#e91e63", rarity: "Legend Rare", ability: "^'a}Â	k¿·¸∏2u'ƒÚ;É" },
+      { id: "cat_odin", name: "™¸«£Û", evolvedName: "∞Û∞ÀÎ^", cost: 2800, hp: 3200, atk: 1500, range: 190, speed: 1.5, interval: 75, cdMax: 2800, isArea: true, drawType: "valkyrie", color: "#00bcd4", evColor: "#00838f", rarity: "Legend Rare", ability: "jW" },
+      { id: "cat_anubis", name: "¢Ã”π", evolvedName: "{•úã", cost: 2500, hp: 2800, atk: 1200, range: 150, speed: 2.0, interval: 60, cdMax: 2400, isArea: true, drawType: "titan", color: "#ff9800", evColor: "#ff5722", rarity: "Legend Rare", ability: "jW" },
+      { id: "cat_god", name: "Õ≥^
+", evolvedName: "*}^¢›Ì", cost: 3500, hp: 4500, atk: 2500, range: 250, speed: 0.9, interval: 90, cdMax: 3500, isArea: true, drawType: "floating", color: "#ffd700", evColor: "#ff3300", rarity: "Legend Rare", ability: "Yyfnuk¿·¸∏2" }
+    ];
+
+    // ≠„ÈØø¸n˚qThnµ§∫èö$ﬁ√◊
+    const sizeMap = {
+      normal: { width: 22, height: 22 },
+      tank: { width: 24, height: 42 },
+      gross: { width: 22, height: 38 },
+      cow: { width: 28, height: 25 },
+      bird: { width: 22, height: 22 },
+      fish: { width: 24, height: 24 },
+      lizard: { width: 24, height: 24 },
+      titan: { width: 32, height: 45 },
+      salon: { width: 22, height: 38 },
+      valkyrie: { width: 24, height: 24 },
+      ninja: { width: 22, height: 22 },
+      object: { width: 24, height: 24 },
+      floating: { width: 22, height: 22 },
+      dragon: { width: 32, height: 35 }
+    };
+
+    // --- 2. «¸øŸ¸π¢#ﬁ√◊Ê ---
+    const catTemplates = {};
+    catListConfigs.forEach(c => {
+      const size = sizeMap[c.drawType] || { width: 22, height: 22 };
+      c.width = c.width || size.width;
+      c.height = c.height || size.height;
+      catTemplates[c.id] = c;
+    });
+    const catKeys = catListConfigs.map(c => c.id);
+
+    // --- 3. ¢√◊∞Ï¸…’ÿö© ---
+    const specUpgrades = [
+      {
+        key: "moneySpeedLevel",
+        name: "ÕMÕ≥’ãπá",
+        emoji: "°",
+        baseCost: 100,
+        cap: 30,
+        desc: (lvl) => `J—n#¶í
+U[Uâk≠„È#⁄¸πíï
+RW~Y˛(: #¶+${(lvl - 1) * 15}% / hØ¸Î¿¶Û -${((lvl - 1) * 1.5).toFixed(1)}%	`
+      },
+      {
+        key: "walletCapacityLevel",
+        name: "ÕMÕ≥J°",
+        emoji: "=[",
+        baseCost: 80,
+        cap: 30,
+        desc: (lvl) => `ÕMÕ≥n 'J—
+Pí
+U[~Y1ÏŸÎŒkπœ+$100˛(: °πœ
+P +$${(lvl - 1) * 100}	`
+      },
+      {
+        key: "researchLevel",
+        name: "võ",
+        emoji: "=÷",
+        baseCost: 120,
+        cap: 30,
+        desc: (lvl) => `≠„È#nç#«£Ï§Ø¸Î¿¶Û	íÙ•Ì.W~Y˛(: Ø¸Î¿¶Û. -${(lvl - 1) * 3}%	`
+      },
+      {
+        key: "cannonRangeLevel",
+        name: "kÉìS2",
+        emoji: "=œ",
+        baseCost: 110,
+        cap: 30,
+        desc: (lvl) => `ÏŸÎgkÉìS2nL8sLv.10g¯KnŒM~g0TW~Y˛(: 0Tá ${Math.min(100, Math.floor(lvl * 10))}%	`
+      },
+      {
+        key: "cannonChargeLevel",
+        name: "kÉìS2¡„¸∏",
+        emoji: "=",
+        baseCost: 90,
+        cap: 30,
+        desc: (lvl) => `kÉìS2n¡„¸∏BìíÌ.Wﬁ‚áí
+W~Y˛(: ¡„¸∏ƒM¶+${(lvl - 1) * 10}%	`
+      },
+      {
+        key: "baseLevel",
+        name: "JŒSõ",
+        emoji: "<",
+        baseCost: 100,
+        cap: 30,
+        desc: (lvl) => `sπJŒn 'HPí7W~Y˛(: HP ${1000 + (lvl - 1) * 500}	`
+      },
+      {
+        key: "cannonPowerLevel",
+        name: "kÉìS2;Éõ",
+        emoji: "=•",
+        baseCost: 130,
+        cap: 30,
+        desc: (lvl) => `kÉìS2nkõí7WÔÛ—ÛÔ˝juíóÑW~Y˛(: ¿·¸∏ ${200 + (lvl - 1) * 150}	`
+      }
+    ];
+
+    // walletConfig h enemyTemplates nö©
+    const walletConfig = [
+      { cap: 200, income: 0.2, cost: 100 },
+      { cap: 350, income: 0.35, cost: 150 },
+      { cap: 550, income: 0.5, cost: 250 },
+      { cap: 800, income: 0.7, cost: 400 },
+      { cap: 1100, income: 1.0, cost: 600 },
+      { cap: 1500, income: 1.3, cost: 900 },
+      { cap: 2000, income: 1.7, cost: 1300 },
+      { cap: 3000, income: 2.2, cost: null }
+    ];
+
+    const enemyTemplates = {
+      doge: { name: 'èìS', hp: 90, atk: 10, range: 25, speed: 1.1, interval: 35, width: 22, height: 22, reward: 35, isArea: false, attribute: "white" },
+      snache: { name: 'káç', hp: 50, atk: 12, range: 20, speed: 1.8, interval: 30, width: 30, height: 12, reward: 25, isArea: false, attribute: "red" },
+      gorilla: { name: '¥ÍÈ', hp: 350, atk: 28, range: 30, speed: 2.1, interval: 40, width: 28, height: 35, reward: 75, isArea: false, attribute: "black" },
+      kaba: { name: '´–aÉì', hp: 900, atk: 18, range: 45, speed: 0.6, interval: 55, width: 44, height: 30, reward: 130, isArea: true, attribute: "red" },
+      face: { name: '´™Î', hp: 5500, atk: 90, range: 90, speed: 0.25, interval: 100, width: 80, height: 80, reward: 500, isArea: true, attribute: "floating" }
+    };
+
+    // --- 4. ª¸÷«¸øÀ nö© ---
+    const defaultData = {
+      xp: 2000, 
+      catFood: 450, 
+      baseLevel: 1, 
+      cannonRangeLevel: 1,  
+      cannonPowerLevel: 1,  
+      moneySpeedLevel: 1, 
+      walletCapacityLevel: 1,
+      researchLevel: 1,
+      cannonChargeLevel: 1,
+      maxStageCleared: 0, 
+      cats: {},
+      deck: ["cat1", "cat2", "cat3", "cat_gross", "cat_cow", "cat_bird", "cat_fish", "cat_lizard", "cat_titan", "cat_salon"],
+      treasures: {} // Â,ËJùŒ∆«¸ø≠¸: stageIndex, $: 1=Ö, 2=Ä, 3=—	
+    };
+
+    // cats«¸øíÍ’‹å
+    catKeys.forEach(k => {
+      defaultData.cats[k] = { unlocked: (k === "cat1"), level: 1, plus: 0 };
+    });
+
+    // --- 5. ∞Ì¸–Î	p£ ÷Ì√Ø ---
+    let player = JSON.parse(JSON.stringify(defaultData));
+    let puEffects = {};
+    let cooldowns = {};
+    let deathEffects = []; // ÔDB){°®’ßØ»°(M
+    let previewIntervalId = null;
+    let previewFrame = 0;
+    let gameFrame = 0; // h¢À·¸∑ÁÛ˚∑π∆‡(q’Ï¸‡p
+    let audioCtx = null;
+    let cannonBeamTimer = 0; 
+    let cannonFlash = 0;
+    let canvas = null;
+    let ctx = null;
+    let battleAnimationFrameId = null;
+
+    // kÉìS2¡„¸∏n '$ö©
+    const maxCannonCharge = 600; 
+
+    // ≤¸‡Ön–»Î6°(∞Ì¸–Î
+    let game = {};
+    let allies = [];
+    let enemies = [];
+    let allyBase = {}; 
+    let enemyBase = {};
+    let enemyUniqueIdCounter = 0; // un%$ö(ÊÀ¸ØID´¶Ûø¸
+
+    // ≤´∆¥Í(
+    let currentPowerUpCategory = 'cats';
+
+    // ¨¡„!lã’Ì¸(π∆¸»
+    let gachaResultsQueue = [];
+    let currentGachaRevealIndex = 0;
+    let isTenRollMode = false;
+    let isGachaPlaying = false; // ¨¡„#SkàãåÕàª2bÌ√Ø
+
+    catKeys.forEach(key => {
+      puEffects[key] = 0;
+      cooldowns[key] = 0;
+    });
+
+    // --- 6. Ûˇ∑π∆‡ (Web Audio API) ---
+    function initAudio() {
+      if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      }
+      if (audioCtx.state === 'suspended') {
+        audioCtx.resume();
+      }
+    }
+
+    function playSound(type) {
+      initAudio();
+      if (!audioCtx) return;
+
+      const now = audioCtx.currentTime;
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+
+      if (type === 'spawn') {
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(350, now);
+        osc.frequency.exponentialRampToValueAtTime(700, now + 0.15);
+        gain.gain.setValueAtTime(0.12, now);
+        gain.gain.linearRampToValueAtTime(0.01, now + 0.15);
+        osc.start(now);
+        osc.stop(now + 0.15);
+      } 
+      else if (type === 'hit') {
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(120, now);
+        osc.frequency.linearRampToValueAtTime(20, now + 0.08);
+        gain.gain.setValueAtTime(0.2, now);
+        gain.gain.linearRampToValueAtTime(0.01, now + 0.08);
+        osc.start(now);
+        osc.stop(now + 0.08);
+      } 
+      else if (type === 'cannon') {
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(450, now);
+        osc.frequency.exponentialRampToValueAtTime(40, now + 0.6);
+        gain.gain.setValueAtTime(0.25, now);
+        gain.gain.linearRampToValueAtTime(0.01, now + 0.6);
+        osc.start(now);
+        osc.stop(now + 0.6);
+      } 
+      else if (type === 'victory') {
+        const notes = [261.63, 329.63, 392.00, 523.25];
+        notes.forEach((freq, index) => {
+          const o = audioCtx.createOscillator();
+          const g = audioCtx.createGain();
+          o.type = 'triangle';
+          o.frequency.setValueAtTime(freq, now + index * 0.12);
+          g.gain.setValueAtTime(0.12, now + index * 0.12);
+          g.gain.linearRampToValueAtTime(0.01, now + index * 0.12 + 0.25);
+          o.connect(g);
+          g.connect(audioCtx.destination);
+          o.start(now + index * 0.12);
+          o.stop(now + index * 0.12 + 0.3);
+        });
+      } 
+      else if (type === 'lose') {
+        const notes = [392.00, 311.13, 261.63];
+        notes.forEach((freq, index) => {
+          const o = audioCtx.createOscillator();
+          const g = audioCtx.createGain();
+          o.type = 'sine';
+          o.frequency.setValueAtTime(freq, now + index * 0.18);
+          g.gain.setValueAtTime(0.12, now + index * 0.18);
+          g.gain.linearRampToValueAtTime(0.01, now + index * 0.18 + 0.35);
+          o.connect(g);
+          g.connect(audioCtx.destination);
+          o.start(now + index * 0.18);
+          o.stop(now + index * 0.18 + 0.4);
+        });
+      }
+    }
+
+    document.addEventListener('click', initAudio);
+    document.addEventListener('touchend', initAudio); 
+
+    // --- 7. ´πø‡‚¸¿Î∑π∆‡ ---
+    function showCustomModal(title, msg, badgeText = "JWâ[", badgeBg = "#f5c542", buttons = []) {
+      const overlay = document.getElementById('customModalOverlay');
+      document.getElementById('modalTitle').innerText = title;
+      document.getElementById('modalMessage').innerText = msg;
+      
+      const badge = document.getElementById('modalBadge');
+      badge.innerText = badgeText;
+      badge.style.background = badgeBg;
+      badge.style.color = (badgeBg === "#ff4d4d" || badgeBg === "#ff3399" || badgeBg === "#4caf50") ? "#fff" : "#3d1f05";
+      
+      const btnContainer = document.getElementById('modalButtons');
+      btnContainer.innerHTML = '';
+      
+      if (buttons.length === 0) {
+        buttons.push({
+          text: "OK",
+          class: "btn-primary",
+          onClick: () => {}
+        });
+      }
+      
+      buttons.forEach(btnSpec => {
+        const btn = document.createElement('button');
+        btn.className = btnSpec.class || 'btn-primary';
+        btn.innerText = btnSpec.text;
+        btn.style.padding = '8px 16px';
+        btn.style.fontSize = '0.9rem';
+        btn.addEventListener('click', () => {
+          btnSpec.onClick();
+          overlay.style.display = 'none';
+        });
+        btnContainer.appendChild(btn);
+      });
+      
+      overlay.style.display = 'flex';
+    }
+
+    // --- 8. ˝õó¢pö© ---
+    function getCatStats(key) {
+      const base = catTemplates[key];
+      if (!base) return null;
+      const pCat = player.cats[key];
+      if (!pCat || !pCat.unlocked) return null;
+
+      const effectiveLvl = pCat.level + pCat.plus;
+      
+      // Jù–’Region 1: HP, Region 2: ATK	
+      const buffs = getTreasureBuffs();
+      const mult = 1 + (effectiveLvl - 1) * 0.1; 
+      const isEvolved = pCat.level >= 10;        
+
+      return {
+        ...base,
+        name: isEvolved ? base.evolvedName : base.name,
+        color: isEvolved ? base.evColor : base.color, 
+        hp: Math.floor(base.hp * mult * (isEvolved ? 1.2 : 1.0) * buffs.hpMult), 
+        atk: Math.floor(base.atk * mult * (isEvolved ? 1.2 : 1.0) * buffs.atkMult), 
+        level: pCat.level,
+        plus: pCat.plus,
+        isEvolved: isEvolved
+      };
+    }
+
+    // JùŒ∆–’∂¡í’ÑkóYãÊ
+    function getTreasureBuffs() {
+      if (!player.treasures) player.treasures = {};
+      let r1Score = 0; // ]ﬁ˚€˝0π [stages 0-10]
+      let r2Score = 0; // -˝˚¢˚-Ë0π [stages 11-29]
+      let r3Score = 0; // ¢q˚q˚wS0π [stages 30-47]
+
+      for (let i = 0; i <= 10; i++) r1Score += (player.treasures[i] || 0);
+      for (let i = 11; i <= 29; i++) r2Score += (player.treasures[i] || 0);
+      for (let i = 30; i <= 47; i++) r3Score += (player.treasures[i] || 0);
+
+      // 2Wr ÿπo—=3π	
+      const r1Pct = (r1Score / 33) * 100;
+      const r2Pct = (r2Score / 57) * 100;
+      const r3Pct = (r3Score / 54) * 100;
+
+      return {
+        hpMult: 1 + (r1Score / 33) * 0.30,   //  'HP +30%
+        atkMult: 1 + (r2Score / 57) * 0.30,  //  'ATK +30%
+        speedMult: 1 + (r3Score / 54) * 0.30,//  '°#¶ +30%
+        r1Pct: Math.floor(r1Pct),
+        r2Pct: Math.floor(r2Pct),
+        r3Pct: Math.floor(r3Pct)
+      };
+    }
+
+    // --- 9. ª¸÷˚Ì¸…_˝ ---
+    function loadGame() {
+      const saved = localStorage.getItem('nyanko_save_v7');
+      if (saved) {
+        player = JSON.parse(saved);
+        if (player.maxStageCleared === undefined) player.maxStageCleared = 0;
+        
+        if (player.cannonRangeLevel === undefined) player.cannonRangeLevel = 1;
+        if (player.cannonPowerLevel === undefined) player.cannonPowerLevel = 1;
+        if (player.moneySpeedLevel === undefined) player.moneySpeedLevel = 1;
+        if (player.walletCapacityLevel === undefined) player.walletCapacityLevel = 1;
+        if (player.researchLevel === undefined) player.researchLevel = 1;
+        if (player.cannonChargeLevel === undefined) player.cannonChargeLevel = 1;
+        if (player.baseLevel === undefined) player.baseLevel = 1;
+        if (!player.treasures) player.treasures = {};
+
+        if (!player.deck || player.deck.length !== 10) {
+          player.deck = ["cat1", "cat2", "cat3", "cat_gross", "cat_cow", "cat_bird", "cat_fish", "cat_lizard", "cat_titan", "cat_salon"];
+        }
+
+        const keys = Object.keys(defaultData.cats);
+        keys.forEach(k => {
+          if (!player.cats[k]) {
+            player.cats[k] = { unlocked: false, level: 1, plus: 0 };
+          }
+        });
+      }
+      updateGlobalHeader();
+      drawBaseIllust();
+    }
+
+    function saveGame() {
+      localStorage.setItem('nyanko_save_v7', JSON.stringify(player));
+      updateGlobalHeader();
+    }
+
+    function resetData() {
+      showCustomModal(
+        "˙0«¸øn",
+        "Så~gn2L∂¡ÑJ°ÏŸÎróW_kÉìSTŒ∆W_Jùjinª¸÷«¸øíYyfàªW~Y\n,SkWfÇàçWDgYK",
+        "fJ",
+        "#ff4d4d",
+        [
+          {
+            text: "Yã",
+            class: "btn-danger",
+            onClick: () => {
+              player = JSON.parse(JSON.stringify(defaultData));
+              saveGame();
+              location.reload();
+            }
+          },
+          {
+            text: "≠„ÛªÎ",
+            class: "btn-primary",
+            onClick: () => {}
+          }
+        ]
+      );
+    }
+
+    function updateGlobalHeader() {
+      document.getElementById('headerXp').innerText = player.xp;
+      document.getElementById('headerCf').innerText = player.catFood;
+    }
+
+    // --- 10. ,∂Â,Ë˚π∆¸∏Íπ» ---
+    const stagePrefectures = [
+      { name: "w", x: 340, y: 410 },
+      { name: "P¿", x: 370, y: 390 },
+      { name: "Pˆ", x: 350, y: 480 },
+      { name: "ä,", x: 380, y: 440 },
+      { name: "Æ", x: 410, y: 460 },
+      { name: "'", x: 410, y: 410 },
+      { name: "è°", x: 390, y: 380 },
+      { name: "ÿÂ", x: 590, y: 440 },
+      { name: "õ", x: 580, y: 410 },
+      { name: "≥ˆ", x: 650, y: 420 },
+      { name: "ô›", x: 630, y: 400 },
+      { name: "q„", x: 480, y: 340 },
+      { name: "ˆ9", x: 540, y: 310 },
+      { name: "Éˆ", x: 550, y: 340 },
+      { name: "Â÷", x: 640, y: 290 },
+      { name: "°q", x: 650, y: 330 },
+      { name: "u´", x: 740, y: 320 },
+      { name: "¨˝ú", x: 780, y: 290 },
+      { name: "À¿", x: 830, y: 300 },
+      { name: "åLq", x: 820, y: 410 },
+      { name: "Ho", x: 840, y: 370 },
+      { name: "'*ú", x: 800, y: 340 },
+      { name: "	Õ", x: 880, y: 370 },
+      { name: "Â", x: 940, y: 350 },
+      { name: "ê", x: 930, y: 300 },
+      { name: "èï", x: 860, y: 260 },
+      { name: "Û›", x: 860, y: 190 },
+      { name: "Ãq", x: 910, y: 210 },
+      { name: "Y°", x: 1020, y: 350 },
+      { name: "q®", x: 1050, y: 300 },
+      { name: "wŒ", x: 1010, y: 260 },
+      { name: "∞_", x: 1010, y: 180 },
+      { name: "§¨", x: 1080, y: 230 },
+      { name: "¸â", x: 1110, y: 280 },
+      { name: "q¨˝", x: 1130, y: 310 },
+      { name: "^H›", x: 1110, y: 340 },
+      { name: "CI", x: 1180, y: 330 },
+      { name: "(", x: 1150, y: 210 },
+      { name: "(Œ", x: 1190, y: 250 },
+      { name: "èˆ", x: 1230, y: 190 },
+      { name: "qb", x: 1210, y: 130 },
+      { name: "ÆŒ", x: 1270, y: 140 },
+      { name: "À0", x: 1240, y: 80 },
+      { name: "©K", x: 1290, y: 80 },
+      { name: "RÓ", x: 1290, y: 30 },
+      { name: "wS", x: 1550, y: 60 },
+      { name: "ñ", x: 100, y: 430 },
+      { name: "hˆ", x: 60, y: 450 } 
+    ];
+
+    let selectedStageIndex = 0;
+
+    const stagesList = stagePrefectures.map((p, index) => {
+      const isFinal = (index === 47); 
+      const baseHp = isFinal ? 15000 : 1000 + index * 250;
+      const rewardXp = 500 + index * 100;
+      const rewardCf = 50 + index * 5;
+      const desc = isFinal 
+        ? "Â,Ë˚,1‡  Bz&Ë'Å^‹π´™ÎL˙˛" 
+        : `${p.name}í6'WkÉìSÕ„n/MáíÿÅà`;
+
+      let waves = [];
+      if (isFinal) {
+        waves = [
+          { time: 100, type: 'face' }, 
+          { time: 300, type: 'gorilla' },
+          { time: 550, type: 'kaba' },
+          { time: 700, type: 'gorilla' }
+        ];
+      } else {
+        if (index < 8) {
+          waves = [
+            { time: 150, type: 'doge' },
+            { time: 300, type: 'doge' }
+          ];
+        } else if (index < 18) {
+          waves = [
+            { time: 100, type: 'snache' },
+            { time: 250, type: 'doge' },
+            { time: 400, type: 'snache' }
+          ];
+        } else if (index < 32) {
+          waves = [
+            { time: 100, type: 'snache' },
+            { time: 220, type: 'gorilla' },
+            { time: 350, type: 'doge' }
+          ];
+        } else {
+          waves = [
+            { time: 80, type: 'snache' },
+            { time: 200, type: 'gorilla' },
+            { time: 350, type: 'kaba' },
+            { time: 500, type: 'gorilla' }
+          ];
+        }
+      }
+
+      let infinites = [];
+      if (index < 12) infinites = [{ type: 'doge', interval: 400 }];
+      else if (index < 24) infinites = [{ type: 'doge', interval: 400 }, { type: 'snache', interval: 350 }];
+      else if (index < 38) infinites = [{ type: 'snache', interval: 350 }, { type: 'gorilla', interval: 700 }];
+      else infinites = [{ type: 'doge', interval: 300 }, { type: 'gorilla', interval: 650 }, { type: 'kaba', interval: 1000 }];
+
+      return {
+        name: p.name,
+        mapX: p.x,
+        mapY: p.y,
+        baseHp,
+        rewardXp,
+        rewardCf,
+        desc,
+        waves,
+        infinites
+      };
+    });
+
+    // --- 11. ﬁ√◊_˝ ---
+    function centerMapOnSelectedStage() {
+      const container = document.getElementById('mapScrollContainer');
+      const stg = stagesList[selectedStageIndex];
+      if (container && stg) {
+        container.scrollTo({
+          left: stg.mapX - container.clientWidth / 2,
+          top: stg.mapY - container.clientHeight / 2,
+          behavior: 'smooth'
+        });
+      }
+    }
+
+    // π∆¸∏≈1n—ÕÎÙ∞
+    function updateStageInfoPanel() {
+      const stg = stagesList[selectedStageIndex];
+      if (!stg) return;
+      document.getElementById('stageInfoTitle').innerText = stg.name;
+      document.getElementById('stageInfoDesc').innerText = stg.desc;
+      document.getElementById('stageInfoHp').innerText = stg.baseHp;
+      document.getElementById('stageInfoXp').innerText = stg.rewardXp;
+      document.getElementById('stageInfoCf').innerText = stg.rewardCf;
+
+      const isUnlocked = player.maxStageCleared >= selectedStageIndex;
+      document.getElementById('stageLaunchBtn').disabled = !isUnlocked;
+    }
+
+    function launchSelectedStage() {
+      startBattle(selectedStageIndex);
+    }
+
+    // Â,0Ûnœ;
+    function drawJapanMap() {
+      const mc = document.getElementById('mapCanvas');
+      if (!mc) return;
+      const mCtx = mc.getContext('2d');
+      mCtx.clearRect(0, 0, mc.width, mc.height);
+
+      mCtx.fillStyle = '#b2ebf2';
+      mCtx.fillRect(0, 0, mc.width, mc.height);
+
+      mCtx.strokeStyle = 'rgba(61,31,5,0.04)';
+      mCtx.lineWidth = 1;
+      for(let x=0; x<mc.width; x+=40) {
+        mCtx.beginPath(); mCtx.moveTo(x, 0); mCtx.lineTo(x, mc.height); mCtx.stroke();
+      }
+      for(let y=0; y<mc.height; y+=40) {
+        mCtx.beginPath(); mCtx.moveTo(0, y); mCtx.lineTo(mc.width, y); mCtx.stroke();
+      }
+
+      mCtx.strokeStyle = '#81c784';
+      mCtx.lineWidth = 4;
+
+      // ]ﬁ
+      mCtx.fillStyle = '#c8e6c9';
+      mCtx.beginPath();
+      mCtx.moveTo(330, 390); mCtx.lineTo(380, 370); mCtx.lineTo(350, 420); mCtx.lineTo(360, 460); mCtx.lineTo(320, 520); mCtx.lineTo(350, 530); mCtx.lineTo(410, 480); mCtx.lineTo(430, 410);
+      mCtx.closePath(); mCtx.fill(); mCtx.stroke();
+
+      // €˝
+      mCtx.beginPath();
+      mCtx.moveTo(560, 410); mCtx.lineTo(640, 390); mCtx.lineTo(670, 420); mCtx.lineTo(600, 460);
+      mCtx.closePath(); mCtx.fill(); mCtx.stroke();
+
+      // ,ﬁ
+      mCtx.fillStyle = '#a5d6a7';
+      mCtx.strokeStyle = '#66bb6a';
+      mCtx.beginPath();
+      mCtx.moveTo(450, 350); mCtx.lineTo(550, 310); mCtx.lineTo(680, 270); mCtx.lineTo(760, 250); mCtx.lineTo(820, 240); mCtx.lineTo(850, 210); mCtx.lineTo(870, 160); mCtx.lineTo(910, 190); mCtx.lineTo(1020, 170); mCtx.lineTo(1150, 150); mCtx.lineTo(1250, 110); mCtx.lineTo(1280, 50); mCtx.lineTo(1310, 80); mCtx.lineTo(1330, 60); mCtx.lineTo(1330, 150); mCtx.lineTo(1280, 220); mCtx.lineTo(1250, 250); mCtx.lineTo(1200, 320); mCtx.lineTo(1210, 360); mCtx.lineTo(1150, 360); mCtx.lineTo(1120, 380); mCtx.lineTo(1090, 370); mCtx.lineTo(1030, 390); mCtx.lineTo(960, 380); mCtx.lineTo(910, 390); mCtx.lineTo(860, 420); mCtx.lineTo(810, 370); mCtx.lineTo(650, 340);
+      mCtx.closePath(); mCtx.fill(); mCtx.stroke();
+
+      // P!ˆ
+      mCtx.beginPath(); mCtx.ellipse(960, 150, 12, 6, Math.PI/4, 0, Math.PI*2); mCtx.fill(); mCtx.stroke();
+
+      // wS
+      mCtx.beginPath();
+      mCtx.moveTo(1400, 10); mCtx.lineTo(1450, -20); mCtx.lineTo(1550, -40); mCtx.lineTo(1700, 20); mCtx.lineTo(1700, 80); mCtx.lineTo(1600, 130); mCtx.lineTo(1460, 120);
+      mCtx.closePath(); mCtx.fill(); mCtx.stroke();
+
+      // ñ˚hˆ§Ûª√»
+      mCtx.fillStyle = '#f0e2be'; mCtx.strokeStyle = '#3d1f05'; mCtx.lineWidth = 2; mCtx.setLineDash([4, 4]);
+      mCtx.strokeRect(10, 360, 170, 170); mCtx.setLineDash([]); 
+
+      mCtx.fillStyle = '#c8e6c9'; mCtx.strokeStyle = '#81c784'; mCtx.lineWidth = 4;
+      mCtx.beginPath(); mCtx.ellipse(100, 430, 12, 4, -Math.PI/4, 0, Math.PI*2); mCtx.fill(); mCtx.stroke();
+      mCtx.beginPath(); mCtx.arc(60, 450, 8, 0, Math.PI*2); mCtx.fill(); mCtx.stroke();
+
+      mCtx.fillStyle = '#3d1f05'; mCtx.font = 'bold 11px Arial';
+      mCtx.fillText("ñ0π", 20, 385);
+
+      // 2LLÔ
+      mCtx.strokeStyle = 'rgba(61,31,5,0.4)'; mCtx.lineWidth = 3; mCtx.setLineDash([5, 5]);
+      mCtx.beginPath();
+      for (let i = 0; i < stagesList.length - 1; i++) {
+        mCtx.moveTo(stagesList[i].mapX, stagesList[i].mapY);
+        mCtx.lineTo(stagesList[i+1].mapX, stagesList[i+1].mapY);
+      }
+      mCtx.stroke(); mCtx.setLineDash([]); 
+
+      // π∆¸∏◊Ì√»
+      stagesList.forEach((stg, index) => {
+        const isUnlocked = player.maxStageCleared >= index;
+        const isCurrent = (selectedStageIndex === index);
+
+        mCtx.fillStyle = isUnlocked ? (isCurrent ? '#ff3300' : '#4caf50') : '#9e9e9e';
+
+        mCtx.beginPath();
+        mCtx.arc(stg.mapX, stg.mapY, isCurrent ? 12 : 7, 0, Math.PI * 2);
+        mCtx.fill();
+        mCtx.strokeStyle = '#3d1f05'; mCtx.lineWidth = 2; mCtx.stroke();
+
+        if (isCurrent) {
+          mCtx.strokeStyle = '#ff3300'; mCtx.lineWidth = 2;
+          mCtx.beginPath(); mCtx.arc(stg.mapX, stg.mapY, 18, 0, Math.PI * 2); mCtx.stroke();
+        }
+
+        if (index % 5 === 0 || index === 47 || isCurrent) {
+          mCtx.fillStyle = '#3d1f05'; mCtx.font = 'bold 11px Arial';
+          mCtx.fillText(stg.name, stg.mapX - 18, stg.mapY - 14);
+        }
+      });
+    }
+
+    // ≠„Û–πØÍ√Ø$ö
+    document.getElementById('mapCanvas').addEventListener('click', (e) => {
+      const rect = e.target.getBoundingClientRect();
+      const clickX = (e.clientX - rect.left) * (e.target.width / rect.width);
+      const clickY = (e.clientY - rect.top) * (e.target.height / rect.height);
+
+      stagesList.forEach((stg, index) => {
+        const isUnlocked = player.maxStageCleared >= index;
+        if (!isUnlocked) return;
+        const dist = Math.hypot(stg.mapX - clickX, stg.mapY - clickY);
+        if (dist < 20) { 
+          selectedStageIndex = index;
+          playSound('spawn');
+          drawJapanMap();
+          updateStageInfoPanel();
+          centerMapOnSelectedStage();
+        }
+      });
+    });
+
+    // --- 12. ;bw˚Ê ---
+    function switchScreen(screenId) {
+      document.getElementById('homeScreen').style.display = 'none';
+      document.getElementById('mapScreen').style.display = 'none';
+      document.getElementById('powerupScreen').style.display = 'none';
+      document.getElementById('deckScreen').style.display = 'none'; 
+      document.getElementById('gachaScreen').style.display = 'none';
+      document.getElementById('battleScreen').style.display = 'none';
+
+      if (previewIntervalId) {
+        clearInterval(previewIntervalId);
+        previewIntervalId = null;
+      }
+      if (battleAnimationFrameId) {
+        cancelAnimationFrame(battleAnimationFrameId);
+        battleAnimationFrameId = null;
+      }
+
+      document.getElementById(screenId).style.display = 'flex';
+
+      if (screenId === 'powerupScreen') {
+        switchPowerUpCategory('cats'); 
+      } else if (screenId === 'deckScreen') {
+        renderDeckScreen(); 
+      } else if (screenId === 'gachaScreen') {
+        drawGachaIllustration();
+      } else if (screenId === 'homeScreen') {
+        drawBaseIllust();
+      } else if (screenId === 'mapScreen') {
+        selectedStageIndex = Math.min(player.maxStageCleared, stagesList.length - 1);
+        drawJapanMap();
+        updateStageInfoPanel();
+        setTimeout(centerMapOnSelectedStage, 100);
+      }
+    }
+
+    // --- 13. —Ô¸¢√◊;bn’Ñ6° ---
+    function switchPowerUpCategory(category) {
+      currentPowerUpCategory = category;
+      playSound('spawn');
+
+      const tabCats = document.getElementById('tabPuCats');
+      const tabBase = document.getElementById('tabPuBase');
+
+      if (category === 'cats') {
+        tabCats.className = 'btn-primary';
+        tabBase.className = '';
+      } else {
+        tabCats.className = '';
+        tabBase.className = 'btn-primary';
+      }
+
+      renderPowerUp();
+      updatePreviews();
+    }
+
+    function renderPowerUp() {
+      const container = document.getElementById('powerupScrollArea');
+      container.innerHTML = ''; 
+
+      if (currentPowerUpCategory === 'base') {
+        specUpgrades.forEach(spec => {
+          const lvl = player[spec.key] || 1;
+          const cost = lvl * spec.baseCost;
+          const card = document.createElement('div');
+          card.className = 'powerup-card';
+          
+          if (lvl >= spec.cap) {
+            card.innerHTML = `
+              <div class="card-top">
+                <div class="cat-preview-box" style="background:#fff7e6; display:flex; justify-content:center; align-items:center; font-size:2rem;">${spec.emoji}</div>
+                <div class="card-info">
+                  <div class="card-level">Lv.${lvl}</div>
+                  <div class="powerup-title" style="font-weight:900;">${spec.name}</div>
+                  <div style="font-size:0.8rem; color:#555;">${spec.desc(lvl)}</div>
+                </div>
+              </div>
+              <button class="btn-primary" disabled>Lv.MAX</button>
+            `;
+          } else {
+            card.innerHTML = `
+              <div class="card-top">
+                <div class="cat-preview-box" style="background:#fff7e6; display:flex; justify-content:center; align-items:center; font-size:2rem;">${spec.emoji}</div>
+                <div class="card-info">
+                  <div class="card-level">Lv.${lvl}</div>
+                  <div class="powerup-title" style="font-weight:900;">${spec.name}</div>
+                  <div style="font-size:0.8rem; color:#555;">${spec.desc(lvl)}</div>
+                </div>
+              </div>
+              <button class="btn-primary" ${player.xp < cost ? 'disabled' : ''} onclick="levelUpBaseSpec('${spec.key}')">7 (${cost} XP)</button>
+            `;
+          }
+          container.appendChild(card);
+        });
+      } else {
+        catKeys.forEach(key => {
+          const pCat = player.cats[key];
+          const card = document.createElement('div');
+          card.className = 'powerup-card';
+
+          if (!pCat.unlocked) {
+            card.innerHTML = `
+              <div class="card-top">
+                <div class="cat-preview-box">
+                  <canvas id="pre_${key}" width="60" height="60"></canvas>
+                </div>
+                <div class="card-info">
+                  <div class="card-level">Lv.--</div>
+                  <div class="powerup-title" style="color:#777; font-weight:900;"></div>
+                  <div style="font-size:0.8rem; color:#888;">¨¡„g„>Uå~Y</div>
+                </div>
+              </div>
+              <button class="btn-primary" disabled>*„></button>
+            `;
+          } else {
+            const stats = getCatStats(key);
+            const cost = pCat.level * 100;
+            const evolutionText = stats.isEvolved ? " [2]" : "";
+            const plusText = stats.plus > 0 ? ` +${stats.plus}` : "";
+
+            if (pCat.level >= 30) {
+              card.innerHTML = `
+                <div class="card-top">
+                  <div class="cat-preview-box">
+                    <canvas id="pre_${key}" width="60" height="60"></canvas>
+                  </div>
+                  <div class="card-info">
+                    <div class="card-level">Lv.${stats.level}${plusText}</div>
+                    <div class="powerup-title" style="font-weight:900;">${stats.name}${evolutionText}</div>
+                    <div style="font-size:0.8rem; color:#555;">Sõ: ${stats.hp} / ;É: ${stats.atk}</div>
+                  </div>
+                </div>
+                <button class="btn-primary" disabled>Lv.MAX</button>
+              `;
+            } else {
+              card.innerHTML = `
+                <div class="card-top">
+                  <div class="cat-preview-box">
+                    <canvas id="pre_${key}" width="60" height="60"></canvas>
+                  </div>
+                  <div class="card-info">
+                    <div class="card-level">Lv.${stats.level}${plusText}</div>
+                    <div class="powerup-title" style="font-weight:900;">${stats.name}${evolutionText}</div>
+                    <div style="font-size:0.8rem; color:#555;">Sõ: ${stats.hp} / ;É: ${stats.atk}</div>
+                  </div>
+                </div>
+                <button class="btn-primary" ${player.xp < cost ? 'disabled' : ''} onclick="levelUpCat('${key}')">7 (${cost} XP)</button>
+              `;
+            }
+          }
+          container.appendChild(card);
+        });
+      }
+    }
+
+    function levelUpBaseSpec(key) {
+      const spec = specUpgrades.find(s => s.key === key);
+      if (!spec) return;
+      const currentLvl = player[key] || 1;
+      if (currentLvl >= spec.cap) return;
+
+      const cost = currentLvl * spec.baseCost;
+      if (player.xp >= cost) {
+        player.xp -= cost;
+        player[key] = currentLvl + 1;
+        playSound('spawn');
+        saveGame();
+        renderPowerUp();
+      }
+    }
+
+    function updatePreviews() {
+      if (previewIntervalId) clearInterval(previewIntervalId);
+      previewIntervalId = setInterval(() => {
+        previewFrame++;
+        if (currentPowerUpCategory === 'cats') {
+          catKeys.forEach(key => {
+            drawCatPreview(`pre_${key}`, key);
+          });
+        }
+      }, 50);
+    }
+
+    function drawCatPreview(canvasId, key) {
+      const cvs = document.getElementById(canvasId);
+      if (!cvs) return;
+      const c = cvs.getContext('2d');
+      c.clearRect(0, 0, cvs.width, cvs.height);
+
+      const pCat = player.cats[key];
+      if (!pCat.unlocked) {
+        c.fillStyle = '#bbb'; c.font = 'bold 30px Arial'; c.textAlign = 'center';
+        c.fillText('', 30, 42); return;
+      }
+
+      const stats = getCatStats(key);
+
+      c.fillStyle = 'rgba(0,0,0,0.07)';
+      c.beginPath(); c.ellipse(30, 48, 14, 4, 0, 0, Math.PI*2); c.fill();
+
+      const dummy = {
+        x: 30 - stats.width / 2, y: 48 - stats.height, width: stats.width, height: stats.height,
+        color: stats.color, isEvolved: stats.isEvolved, rawKey: key, type: 'ally',
+        attackOffset: 0, isMoving: true, drawType: stats.drawType
+      };
+
+      const origFrame = gameFrame;
+      gameFrame = previewFrame;
+      drawUnit(dummy, c);
+
+      if (puEffects[key] > 0) {
+        c.strokeStyle = `rgba(245, 197, 66, ${puEffects[key] / 10})`; c.lineWidth = 3;
+        c.beginPath(); c.arc(30, 25, 24 - puEffects[key], 0, Math.PI * 2); c.stroke();
+        puEffects[key]--;
+      }
+
+      gameFrame = origFrame;
+    }
+
+    function levelUpCat(key) {
+      const pCat = player.cats[key];
+      if (pCat.level >= 30) return; 
+      const cost = pCat.level * 100;
+      if (player.xp >= cost) {
+        player.xp -= cost;
+        pCat.level++;
+        puEffects[key] = 10; 
+        playSound('spawn');
+
+        if (pCat.level === 10) {
+          triggerEvolutionOverlay(key);
+        }
+
+        saveGame();
+        renderPowerUp();
+      }
+    }
+
+    function triggerEvolutionOverlay(key) {
+      const overlay = document.getElementById('evolutionOverlay');
+      overlay.style.display = 'flex';
+
+      const base = catTemplates[key];
+      if (!base) return;
+
+      document.getElementById('evoNameBefore').innerText = base.name;
+      document.getElementById('evoNameAfter').innerText = base.evolvedName;
+      document.getElementById('evoName').innerText = base.evolvedName;
+      
+      playSound('victory'); 
+
+      requestAnimationFrame(() => {
+        drawEvoCatPreviews(key);
+      });
+    }
+
+    function drawEvoCatPreviews(key) {
+      const base = catTemplates[key];
+      if (!base) return;
+
+      const drawToCvs = (cvsId, isEvolved, color) => {
+        const cvs = document.getElementById(cvsId);
+        if (!cvs) return;
+        const c = cvs.getContext('2d');
+        c.clearRect(0, 0, cvs.width, cvs.height);
+
+        c.fillStyle = 'rgba(0,0,0,0.06)';
+        c.beginPath(); c.ellipse(60, 95, 30, 8, 0, 0, Math.PI * 2); c.fill();
+
+        c.save(); c.scale(1.8, 1.8);
+
+        const dummy = {
+          x: 33 - base.width / 2, y: 53 - base.height, width: base.width, height: base.height,
+          color: color, isEvolved: isEvolved, rawKey: key, type: 'ally',
+          attackOffset: 0, isMoving: false, drawType: base.drawType
+        };
+
+        drawUnit(dummy, c);
+
+        c.restore();
+      };
+
+      drawToCvs('evoCvsBefore', false, base.color);
+      drawToCvs('evoCvsAfter', true, base.evColor);
+    }
+
+    function closeEvolutionOverlay() {
+      document.getElementById('evolutionOverlay').style.display = 'none';
+    }
+
+    // --- 14. ≠„ÈØø¸Ë∑π∆‡ ---
+    let selectedDeckSlotIndex = 0; 
+
+    // Õ◊Èπ$nL$(XP)	€∑π∆‡
+    function convertPlusToXp(key) {
+      const stats = getCatStats(key);
+      if (!stats || stats.plus <= 0) return;
+
+      // Ï¢¶k‹X_1lXPn-ö
+      let xpReward = 10000;
+      if (stats.rarity === "Super Rare") xpReward = 30000;
+      else if (stats.rarity === "Uber Rare") xpReward = 100000;
+      else if (stats.rarity === "Legend Rare") xpReward = 250000;
+
+      showCustomModal(
+        "XP	€n∫ç",
+        `${stats.name} n◊Èπ$ (+${stats.plus}) í1dàªWfL$(XP) +${xpReward.toLocaleString()} k	€W~YK\n(	€W_◊Èπ$oCk;[~[ì)`,
+        "XP	€",
+        "#00aa88",
+        [
+          {
+            text: "	€Yã",
+            class: "btn-primary",
+            onClick: () => {
+              player.cats[key].plus--;
+              player.xp += xpReward;
+              playSound('spawn');
+              saveGame();
+              renderDeckScreen(); // çœ;
+            }
+          },
+          {
+            text: "≠„ÛªÎ",
+            class: "btn-danger",
+            onClick: () => {}
+          }
+        ]
+      );
+    }
+
+    function updateDeckDetailPanel(key) {
+      const stats = key ? getCatStats(key) : null;
+      const cvs = document.getElementById('deckDetailCvs');
+      if (!cvs) return;
+      const c = cvs.getContext('2d');
+      c.clearRect(0, 0, cvs.width, cvs.height);
+
+      const convertBtn = document.getElementById('convertXpBtn');
+
+      if (!stats) {
+        document.getElementById('deckDetailName').innerText = "*Ë";
+        const rarityEl = document.getElementById('deckDetailRarity');
+        rarityEl.style.display = 'none';
+        document.getElementById('deckDetailLevel').innerText = "ÏŸÎ: --";
+        document.getElementById('deckDetailHp').innerText = "--";
+        document.getElementById('deckDetailAtk').innerText = "--";
+        document.getElementById('deckDetailRange').innerText = "--";
+        document.getElementById('deckDetailCost').innerText = "--";
+        document.getElementById('deckDetailAbility').innerText = "y': jW";
+        if (convertBtn) convertBtn.style.display = 'none';
+        return;
+      }
+
+      document.getElementById('deckDetailName').innerText = stats.name;
+      const rarityEl = document.getElementById('deckDetailRarity');
+      rarityEl.style.display = 'inline-block';
+      rarityEl.innerText = stats.rarity;
+      
+      if (stats.rarity === "Rare") rarityEl.style.background = "#00aa88";
+      else if (stats.rarity === "Super Rare") rarityEl.style.background = "#3399ff";
+      else if (stats.rarity === "Uber Rare") rarityEl.style.background = "#e91e63";
+      else if (stats.rarity === "Legend Rare") rarityEl.style.background = "#ffd700";
+
+      const plusText = stats.plus > 0 ? ` +${stats.plus}` : "";
+      document.getElementById('deckDetailLevel').innerText = `ÏŸÎ: ${stats.level}${plusText}`;
+      document.getElementById('deckDetailHp').innerText = stats.hp;
+      document.getElementById('deckDetailAtk').innerText = stats.atk;
+      document.getElementById('deckDetailRange').innerText = stats.range;
+      document.getElementById('deckDetailCost').innerText = `$${stats.cost}`;
+
+      const abilityEl = document.getElementById('deckDetailAbility');
+      if (abilityEl) {
+        abilityEl.innerText = stats.ability ? `y': ${stats.ability}` : "y': jW";
+      }
+
+      // ◊Èπ$XP	€‹øÛnh:Jàs§ŸÛ»-ö
+      if (convertBtn) {
+        if (stats.plus > 0) {
+          convertBtn.style.display = 'block';
+          let xpReward = 10000;
+          if (stats.rarity === "Super Rare") xpReward = 30000;
+          else if (stats.rarity === "Uber Rare") xpReward = 100000;
+          else if (stats.rarity === "Legend Rare") xpReward = 250000;
+          
+          convertBtn.innerText = `◊Èπ$íXPk	€ (+${xpReward.toLocaleString()} XP)`;
+          
+          // §ŸÛ»Íπ nÕ{2í2P_ÅØÌ¸ÛL1gç–§Û…
+          const newBtn = convertBtn.cloneNode(true);
+          convertBtn.parentNode.replaceChild(newBtn, convertBtn);
+          newBtn.addEventListener('click', () => convertPlusToXp(key));
+        } else {
+          convertBtn.style.display = 'none';
+        }
+      }
+
+      c.fillStyle = 'rgba(0,0,0,0.05)';
+      c.beginPath(); c.ellipse(cvs.width/2, cvs.height - 6, 16, 4, 0, 0, Math.PI*2); c.fill();
+
+      c.save();
+      c.scale(1.8, 1.8);
+      const dummy = {
+        x: (cvs.width/1.8)/2 - stats.width / 2, y: (cvs.height/1.8) - 6/1.8 - stats.height,
+        width: stats.width, height: stats.height, color: stats.color, isEvolved: stats.isEvolved,
+        rawKey: key, type: 'ally', attackOffset: 0, isMoving: false, drawType: stats.drawType
+      };
+      drawUnit(dummy, c);
+      c.restore();
+    }
+
+    function renderDeckScreen() {
+      const slotsContainer = document.getElementById('deckSlotsGrid');
+      slotsContainer.innerHTML = '';
+
+      for (let i = 0; i < 10; i++) {
+        const catKey = player.deck[i];
+        const stats = getCatStats(catKey);
+        const slotEl = document.createElement('div');
+        
+        const isSelected = (selectedDeckSlotIndex === i);
+        const borderStyle = isSelected ? '3px solid #ff3300' : '2px solid #3d1f05';
+        const bgStyle = isSelected ? '#fff3e0' : '#fff';
+
+        slotEl.style.cssText = `background:${bgStyle}; border:${borderStyle}; border-radius:12px; padding:4px; cursor:pointer; text-align:center; display:flex; flex-direction:column; align-items:center; position:relative; box-shadow: ${isSelected ? '0 0 6px rgba(255,51,0,0.3)' : 'none'};`;
+        slotEl.addEventListener('click', () => {
+          selectedDeckSlotIndex = i;
+          playSound('spawn');
+          renderDeckScreen();
+        });
+
+        if (stats) {
+          slotEl.innerHTML = `
+            <div style="font-size:0.6rem; font-weight:900; background:#3d1f05; color:#fff; padding:1px 4px; border-radius:4px; margin-bottom:2px;">† ${i+1}</div>
+            <canvas id="deck_slot_cvs_${i}" width="40" height="40"></canvas>
+            <div style="font-size:0.65rem; font-weight:bold; color:#3d1f05; margin-top:1px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; width:100%;">${stats.name}</div>
+          `;
+        } else {
+          slotEl.innerHTML = `
+            <div style="font-size:0.6rem; font-weight:900; background:#666; color:#fff; padding:1px 4px; border-radius:4px; margin-bottom:2px;">† ${i+1}</div>
+            <div style="width:40px; height:40px; display:flex; justify-content:center; align-items:center; font-size:1.2rem; color:#ccc;"></div>
+            <div style="font-size:0.65rem; font-weight:bold; color:#999;">zM</div>
+          `;
+        }
+        slotsContainer.appendChild(slotEl);
+
+        if (stats) {
+          drawDeckSlotPreview(`deck_slot_cvs_${i}`, catKey);
+        }
+      }
+
+      const warehouseContainer = document.getElementById('warehouseGrid');
+      warehouseContainer.innerHTML = '';
+
+      catKeys.forEach(key => {
+        const pCat = player.cats[key];
+        if (!pCat.unlocked) return;
+
+        const stats = getCatStats(key);
+        const itemEl = document.createElement('div');
+        
+        const inDeckIdx = player.deck.indexOf(key);
+        const inDeckBadge = inDeckIdx !== -1 ? `<div style="position:absolute; top:-4px; right:-4px; background:#4caf50; color:#fff; font-size:0.55rem; font-weight:bold; padding:1px 3px; border-radius:4px; border:1px solid #3d1f05;">Ë-</div>` : '';
+
+        itemEl.style.cssText = `background:#f9f9f9; border:2px solid #3d1f05; border-radius:10px; padding:4px; cursor:pointer; text-align:center; display:flex; flex-direction:column; align-items:center; position:relative;`;
+        itemEl.addEventListener('click', () => {
+          swapDeckSlot(selectedDeckSlotIndex, key);
+        });
+
+        itemEl.innerHTML = `
+          ${inDeckBadge}
+          <canvas id="wh_cvs_${key}" width="40" height="40"></canvas>
+          <div style="font-size:0.65rem; font-weight:bold; color:#3d1f05; margin-top:1px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; width:100%;">${stats.name}</div>
+        `;
+        warehouseContainer.appendChild(itemEl);
+
+        drawDeckSlotPreview(`wh_cvs_${key}`, key);
+      });
+
+      // h:íÙ∞
+      updateDeckDetailPanel(player.deck[selectedDeckSlotIndex]);
+    }
+
+    function swapDeckSlot(slotIdx, newCatKey) {
+      const currentInDeckIdx = player.deck.indexOf(newCatKey);
+      
+      if (currentInDeckIdx !== -1) {
+        const displacedCat = player.deck[slotIdx];
+        player.deck[slotIdx] = newCatKey;
+        player.deck[currentInDeckIdx] = displacedCat;
+      } else {
+        player.deck[slotIdx] = newCatKey;
+      }
+      
+      playSound('spawn');
+      saveGame();
+      renderDeckScreen();
+    }
+
+    function drawDeckSlotPreview(canvasId, key) {
+      const cvs = document.getElementById(canvasId);
+      if (!cvs) return;
+      const c = cvs.getContext('2d');
+      c.clearRect(0, 0, cvs.width, cvs.height);
+
+      const stats = getCatStats(key);
+      if (!stats) return;
+
+      c.fillStyle = 'rgba(0,0,0,0.05)';
+      c.beginPath(); c.ellipse(cvs.width/2, cvs.height - 6, 12, 3, 0, 0, Math.PI*2); c.fill();
+
+      c.save();
+      const scale = cvs.width === 50 ? 1.4 : 1.1;
+      c.scale(scale, scale);
+
+      const dummy = {
+        x: (cvs.width/scale)/2 - stats.width / 2, y: (cvs.height/scale) - 6/scale - stats.height,
+        width: stats.width, height: stats.height, color: stats.color, isEvolved: stats.isEvolved,
+        rawKey: key, type: 'ally', attackOffset: 0, isMoving: false, drawType: stats.drawType
+      };
+
+      drawUnit(dummy, c);
+
+      c.restore();
+    }
+
+    // --- 15. ¨¡„∑π∆‡ ---
+    function triggerGachaAnimation(pullCount = 1) {
+      if (isGachaPlaying) return; 
+      
+      const cost = pullCount * 150;
+      if (player.catFood < cost) {
+        showCustomModal(
+          "Õ≥6L≥ä~[ì",
+          `¨¡„íﬁYkoÕ≥6L ${cost} ≈ÅgY\nÂ,Ënπ∆¸∏í6'WfÕ≥6í∆Å~WáF`,
+          "Õ≥6≥",
+          "#ff4d4d"
+        );
+        return;
+      }
+      
+      isGachaPlaying = true;
+      player.catFood -= cost;
+      saveGame();
+
+      const overlay = document.getElementById('gachaAnimOverlay');
+      const capsule = document.getElementById('gachaCapsule');
+      const card = document.getElementById('revealCard');
+      const flash = document.getElementById('burstFlash');
+
+      overlay.style.display = 'flex';
+      capsule.style.display = 'block';
+      card.classList.remove('show');
+      capsule.className = "capsule shake-anim"; 
+
+      // ¨¡„ä(π∆¸»
+      gachaResultsQueue = [];
+      isTenRollMode = (pullCount === 10);
+      currentGachaRevealIndex = 0;
+
+      for (let i = 0; i < pullCount; i++) {
+        const r = Math.random();
+        let rolledKey = 'cat1';
+        
+        if (r < 0.60) {
+          const keys = ['cat1', 'cat2', 'cat3', 'cat_ninja', 'cat_sumo', 'cat_samurai', 'cat_zombie', 'cat_apple', 'cat_pirate', 'cat_thief', 'cat_monk', 'cat_shaman', 'cat_pogo', 'cat_wheel', 'cat_jura'];
+          rolledKey = keys[Math.floor(Math.random() * keys.length)];
+        } else if (r < 0.88) {
+          const keys = ['cat_gross', 'cat_cow', 'cat_bird', 'cat_sushi', 'cat_boxer', 'cat_swimmer', 'cat_delinquent', 'cat_witch', 'cat_archer', 'cat_gunslinger', 'cat_fortune', 'cat_rocker', 'cat_mermaid', 'cat_waitress', 'cat_kotatsu'];
+          rolledKey = keys[Math.floor(Math.random() * keys.length)];
+        } else if (r < 0.98) {
+          const keys = ['cat_fish', 'cat_lizard', 'cat_titan', 'cat_salon', 'cat_surfer', 'cat_skater', 'cat_toaster', 'cat_tv', 'cat_explorer', 'cat_jumper', 'cat_butterfly', 'cat_bodhi', 'cat_onigiri', 'cat_gigant', 'cat_knight'];
+          rolledKey = keys[Math.floor(Math.random() * keys.length)];
+        } else {
+          const keys = ['cat_valkyrie', 'cat_bahamut', 'cat_odin', 'cat_anubis', 'cat_god'];
+          rolledKey = keys[Math.floor(Math.random() * keys.length)];
+        }
+
+        const pCat = player.cats[rolledKey];
+        let isNew = !pCat.unlocked;
+
+        if (isNew) pCat.unlocked = true;
+        else pCat.plus++;
+
+        gachaResultsQueue.push({ key: rolledKey, isNew, plus: pCat.plus });
+      }
+
+      saveGame();
+
+      setTimeout(() => {
+        capsule.className = "capsule burst-anim";
+        playSound('cannon'); 
+        
+        flash.style.display = 'block'; flash.style.opacity = '1';
+        setTimeout(() => {
+          flash.style.opacity = '0';
+          setTimeout(() => flash.style.display = 'none', 100);
+        }, 100);
+
+        setTimeout(() => {
+          capsule.style.display = 'none';
+          card.classList.add('show');
+          playSound('victory'); 
+          renderGachaRevealStep(); // 1SÓnh:
+        }, 300);
+
+      }, 1200);
+    }
+
+    // ¨¡„Pú%◊Ï”Â¸
+    function drawRevealCatPreview(key) {
+      const cvs = document.getElementById('revealCvs');
+      if (!cvs) return;
+      const c = cvs.getContext('2d');
+      c.clearRect(0, 0, cvs.width, cvs.height);
+
+      const stats = getCatStats(key);
+      if (!stats) return;
+
+      c.fillStyle = 'rgba(0,0,0,0.06)';
+      c.beginPath();
+      c.ellipse(100, 135, 50, 10, 0, 0, Math.PI*2);
+      c.fill();
+
+      c.save();
+      c.scale(2.2, 2.2);
+
+      const dummy = {
+        x: 45 - stats.width / 2,
+        y: 61 - stats.height,
+        width: stats.width,
+        height: stats.height,
+        color: stats.color,
+        isEvolved: stats.isEvolved,
+        rawKey: key,
+        type: 'ally',
+        attackOffset: 0,
+        isMoving: false,
+        drawType: stats.drawType
+      };
+
+      drawUnit(dummy, c);
+
+      c.restore();
+    }
+
+    // 1SZdnh:Ê
+    function renderGachaRevealStep() {
+      const res = gachaResultsQueue[currentGachaRevealIndex];
+      if (!res) return;
+
+      const badge = document.getElementById('revealBadge');
+      const content = document.getElementById('revealContent');
+      const okBtn = document.getElementById('gachaOkBtn');
+
+      badge.style.display = 'inline-block';
+      badge.innerText = res.isNew ? "NEW!!" : `ÕmõQ! +${res.plus}`;
+      badge.style.background = res.isNew ? "#ff3399" : "#ffd700";
+
+      const stats = getCatStats(res.key);
+      content.innerHTML = `
+        <div style="margin: 15px 0; background:#fff; border:4px solid #3d1f05; border-radius:16px; padding:15px; display:inline-block; box-shadow: inset 0 4px 8px rgba(0,0,0,0.15);">
+          <canvas id="revealCvs" width="200" height="150"></canvas>
+        </div>
+        <h3 style="margin: 0; font-size:1.6rem; color:#3d1f05; font-weight: 900;">${stats.name}</h3>
+        <p style="color:#555; font-size:0.95rem; margin:10px 0; font-weight:bold;"> 'Sõ: ${stats.hp} / ;Éõ: ${stats.atk}</p>
+        <p style="color:#ff3399; font-size:0.8rem; font-weight:bold; margin-top:2px; max-width:320px; text-align:center; display:inline-block; word-break:break-all;">y': ${stats.ability || 'jW'}</p>
+      `;
+      drawRevealCatPreview(res.key);
+
+      if (isTenRollMode) {
+        if (currentGachaRevealIndex < 9) {
+          okBtn.innerText = `!x (${currentGachaRevealIndex + 1} / 10)`;
+          okBtn.onclick = () => {
+            currentGachaRevealIndex++;
+            playSound('spawn');
+            renderGachaRevealStep();
+          };
+        } else {
+          okBtn.innerText = "Pú ßíãã";
+          okBtn.onclick = () => {
+            playSound('victory');
+            showTenRollSummary(); 
+          };
+        }
+      } else {
+        okBtn.innerText = "OK";
+        okBtn.onclick = closeGachaResult;
+      }
+    }
+
+    // 10# BÍ∂Î»œß;bnœ;
+    function showTenRollSummary() {
+      const badge = document.getElementById('revealBadge');
+      const content = document.getElementById('revealContent');
+      const okBtn = document.getElementById('gachaOkBtn');
+
+      badge.style.display = 'none'; 
+      
+      let gridHtml = `
+        <h3 style="margin: 5px 0 10px 0; font-size:1.3rem; color:#3d1f05; font-weight: 900;">10#¨¡„róPú</h3>
+        <div style="display:grid; grid-template-columns: repeat(5, 1fr); gap: 6px; margin: 10px 0;">
+      `;
+      gachaResultsQueue.forEach((res, i) => {
+        const stats = getCatStats(res.key);
+        const bText = res.isNew ? 'NEW' : `+${res.plus}`;
+        const bColor = res.isNew ? '#ff3399' : '#ffd700';
+        gridHtml += `
+          <div style="background:#fff; border:2px solid #3d1f05; border-radius:10px; padding:4px; display:flex; flex-direction:column; align-items:center; position:relative; box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);">
+            <div style="position:absolute; top:-4px; right:-4px; background:${bColor}; color:#fff; font-size:0.55rem; font-weight:900; padding:1px 3px; border-radius:4px; border:1px solid #3d1f05;">${bText}</div>
+            <canvas id="ten_cvs_${i}" width="50" height="50"></canvas>
+            <div style="font-size:0.65rem; font-weight:900; color:#3d1f05; margin-top:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; width:100%;">${stats.name}</div>
+          </div>
+        `;
+      });
+      gridHtml += `</div>`;
+      content.innerHTML = gridHtml;
+
+      requestAnimationFrame(() => {
+        gachaResultsQueue.forEach((res, i) => {
+          drawDeckSlotPreview(`ten_cvs_${i}`, res.key);
+        });
+      });
+
+      okBtn.innerText = "OK";
+      okBtn.onclick = closeGachaResult;
+    }
+
+    function closeGachaResult() {
+      document.getElementById('gachaAnimOverlay').style.display = 'none';
+      isGachaPlaying = false; 
+    }
+
+    function drawGachaIllustration() {
+      const cvs = document.getElementById('gachaCvs');
+      const c = cvs.getContext('2d');
+      c.clearRect(0,0,cvs.width,cvs.height);
+
+      c.fillStyle = '#ef5350'; c.fillRect(60, 10, 80, 100);
+      c.fillStyle = '#3d1f05'; c.strokeRect(60, 10, 80, 100);
+
+      c.fillStyle = 'rgba(100,200,255,0.2)';
+      c.beginPath(); c.arc(100, 45, 30, 0, Math.PI*2); c.fill(); c.stroke();
+
+      const colors = ['#ff3333','#33cc33','#3399ff','#ffcc00'];
+      for(let i=0; i<8; i++){
+        c.fillStyle = colors[i%4];
+        c.beginPath(); c.arc(85 + (i%3)*14, 35 + Math.floor(i/3)*12, 6, 0, Math.PI*2); c.fill();
+      }
+
+      c.fillStyle = '#ffd700';
+      c.beginPath(); c.arc(100, 85, 10, 0, Math.PI*2); c.fill(); c.stroke();
+    }
+
+    function drawBaseIllust() {
+      const cvs = document.getElementById('baseIllustCvs');
+      if (!cvs) return;
+      const c = cvs.getContext('2d');
+      c.clearRect(0,0,cvs.width,cvs.height);
+
+      c.fillStyle = '#e3f2fd'; c.fillRect(0,0,cvs.width,cvs.height);
+      c.fillStyle = '#8d6e63'; c.fillRect(0,110,cvs.width,40);
+      c.fillStyle = '#66bb6a'; c.fillRect(0,105,cvs.width,5);
+
+      c.fillStyle = '#90a4ae'; c.fillRect(300, 50, 50, 60);
+      c.fillStyle = '#3d1f05'; c.strokeRect(300, 50, 50, 60);
+
+      c.fillStyle = '#fff';
+      c.beginPath(); c.arc(60, 95, 12, 0, Math.PI*2); c.fill();
+      c.strokeStyle = '#3d1f05'; c.lineWidth = 2; c.stroke();
+      
+      c.fillStyle = '#fff';
+      c.beginPath(); c.moveTo(50, 87); c.lineTo(54, 79); c.lineTo(58, 87); c.fill(); c.stroke();
+      c.beginPath(); c.moveTo(62, 87); c.lineTo(66, 79); c.lineTo(70, 87); c.fill(); c.stroke();
+
+      c.fillStyle = '#000'; c.fillRect(60, 92, 2, 2); c.fillRect(66, 92, 2, 2);
+    }
+
+    // --- 16. &ÿ∑π∆‡ ---
+
+    // ,∂®k˙ÉπÌ√»‹øÛnÃokJkÉìSí'MOœO¢p
+    function drawSlotBackgroundCat(cvs, key) {
+      const c = cvs.getContext('2d');
+      c.clearRect(0, 0, cvs.width, cvs.height);
+
+      const stats = getCatStats(key);
+      if (!stats) return;
+
+      c.save();
+      const scale = 1.35;
+      c.scale(scale, scale);
+
+      const dummy = {
+        x: (cvs.width / scale) - stats.width - 6,
+        y: (cvs.height / scale) - 4 - stats.height,
+        width: stats.width,
+        height: stats.height,
+        color: stats.color,
+        isEvolved: stats.isEvolved,
+        rawKey: key,
+        type: 'ally',
+        attackOffset: 0,
+        isMoving: false,
+        drawType: stats.drawType
+      };
+
+      drawUnit(dummy, c);
+      c.restore();
+    }
+
+    // 5SZd2g8k10†˙ögh:íÊ,∂®Ãå”∏Â¢Î≠„Û–πÿM	
+    function renderBattleSlots() {
+      const container = document.getElementById('battleSlotContainer');
+      container.innerHTML = ''; 
+
+      for (let i = 0; i < 10; i++) {
+        const key = player.deck[i];
+        const stats = key ? getCatStats(key) : null;
+        const slotEl = document.createElement('div');
+        slotEl.className = 'slot';
+        
+        if (stats) {
+          slotEl.id = `slot_${key}`;
+          slotEl.innerHTML = `
+            <canvas id="slot_bg_cvs_${stats.id}" width="120" height="60" style="position: absolute; top:0; left:0; width:100%; height:100%; opacity: 0.23; pointer-events: none; border-radius: 12px;"></canvas>
+            <button id="btnCat${key.replace('cat', '')}" style="position: relative; z-index: 1; background: transparent; border: none; box-shadow: none;">
+              <strong style="text-shadow: 1px 1px 1px #fff, -1px -1px 1px #fff, 1px -1px 1px #fff, -1px 1px 1px #fff; color: #3d1f05;">${stats.name}</strong><br>
+              <span style="color:#b38612; font-weight:900; text-shadow: 1px 1px 1px #fff, -1px -1px 1px #fff, 1px -1px 1px #fff, -1px 1px 1px #fff;">$${stats.cost}</span>
+            </button>
+            <div id="cdCat${key.replace('cat', '')}" class="cooldown-overlay">0s</div>
+          `;
+        } else {
+          slotEl.innerHTML = `
+            <button disabled style="opacity: 0.5;">
+              <strong style="color: #888;">---</strong>
+            </button>
+          `;
+        }
+        container.appendChild(slotEl);
+
+        // ‹øÛnÃokkÉìS”∏Â¢Îí^œ;
+        if (stats) {
+          const slotBgCvs = slotEl.querySelector(`#slot_bg_cvs_${stats.id}`);
+          if (slotBgCvs) {
+            drawSlotBackgroundCat(slotBgCvs, stats.id);
+          }
+        }
+      }
+    }
+
+    function setupBattleInput() {
+      const cloneAndReplace = (id, callback) => {
+        const el = document.getElementById(id);
+        if (!el) return null;
+        const newEl = el.cloneNode(true);
+        el.parentNode.replaceChild(newEl, el);
+        newEl.addEventListener('click', callback);
+        return newEl;
+      };
+
+      cloneAndReplace('walletBtn', () => {
+        if (game.walletLevel >= walletConfig.length) return;
+        const config = walletConfig[game.walletLevel - 1];
+        if (!config || config.cost === null) return;
+        if (game.money >= config.cost) {
+          game.money -= config.cost;
+          game.walletLevel++;
+          playSound('spawn');
+        }
+      });
+
+      player.deck.forEach(key => {
+        if (!key) return;
+        const btnId = `btnCat${key.replace('cat', '')}`;
+        cloneAndReplace(btnId, () => spawnAlly(key));
+      });
+
+      cloneAndReplace('cannonBtn', fireCannon);
+    }
+
+    // kÉìS2zÊ
+    function fireCannon() {
+      if (game.cannonCharge < maxCannonCharge || game.state !== 'playing') return;
+
+      game.cannonCharge = 0;
+      cannonBeamTimer = 45; // battleUpdate/battleDrawn 'Bìk
+      cannonFlash = 10;
+      game.cannonDamageDealt = {}; // ∞_j”¸‡kàã´>í$öYã_Å]Åetû¯íÍª√»
+      playSound('cannon');
+    }
+
+    function spawnAlly(key) {
+      if (!player.cats[key].unlocked) return;
+      const t = getCatStats(key);
+
+      if (game.money >= t.cost && cooldowns[key] <= 0 && game.state === 'playing') {
+        game.money -= t.cost;
+
+        // ’ãπá & võkàäç#π‘¸…(cdMax)í'.ó
+        const researchBonus = 1 - ((player.researchLevel || 1) - 1) * 0.03;
+        const speedBonus = 1 - ((player.moneySpeedLevel || 1) - 1) * 0.015;
+        const finalCdMax = Math.max(30, Math.floor(t.cdMax * researchBonus * speedBonus));
+
+        cooldowns[key] = finalCdMax;
+        playSound('spawn');
+        allies.push({
+          x: allyBase.x + allyBase.width,
+          y: 260 - t.height, 
+          width: t.width,
+          height: t.height,
+          hp: t.hp,
+          maxHp: t.hp,
+          atk: t.atk,
+          range: t.range,
+          speed: t.speed,
+          interval: t.interval,
+          attackTimer: 0,
+          attackOffset: 0,
+          isMoving: true,
+          isArea: t.isArea,
+          type: 'ally',
+          rawKey: key, 
+          isEvolved: t.isEvolved,
+          drawType: t.drawType
+        });
+      }
+    }
+
+    function spawnEnemy(type) {
+      const t = enemyTemplates[type];
+      enemies.push({
+        id: 'enemy_' + (enemyUniqueIdCounter++), // ÊÀ¸ØID
+        x: enemyBase.x,
+        y: 260 - t.height, 
+        width: t.width,
+        height: t.height,
+        hp: t.hp,
+        maxHp: t.hp,
+        atk: t.atk,
+        range: t.range,
+        speed: t.speed,
+        interval: t.interval,
+        reward: t.reward,
+        attackOffset: 0,
+        isMoving: true,
+        isArea: t.isArea,
+        type: 'enemy',
+        rawType: type,
+        freezeTimer: 0 // ’Í¸∫∂Kn’Ï¸‡´¶Ûø
+      });
+    }
+
+    function spawnDeathEffect(x, y, type) {
+      deathEffects.push({
+        x: x,
+        y: y,
+        frame: 0,
+        maxFrame: 45,
+        type: type
+      });
+    }
+
+    // &ÿ;bnw’
+    function startBattle(stageIndex) {
+      playSound('spawn');
+      switchScreen('battleScreen');
+      
+      const stageInfo = stagesList[stageIndex];
+      
+      // πØÌ¸ÎÈ√—¸ísπ˙0t jÊÔ	kÍª√»
+      const wrapper = document.getElementById('battleCanvasWrapper');
+      if (wrapper) {
+        wrapper.scrollLeft = 0;
+      }
+
+      gameFrame = 0;
+      enemyUniqueIdCounter = 0;
+      
+      // *ö©nõ NaN kjãní2b
+      const startMoneyBonus = ((player.initialMoneyLevel || 1) - 1) * 80;
+      game = {
+        currentStage: stageIndex,
+        state: 'playing',
+        money: startMoneyBonus,
+        walletLevel: 1,
+        cannonCharge: 0,
+        cannonActive: false,
+        cannonDamageDealt: {}
+      };
+      
+      // JŒn 'HPŸ¸πÏŸÎùX	
+      const maxAllyHp = 1000 + (player.baseLevel - 1) * 500;
+      allyBase = {
+        x: 40,
+        y: 110,
+        width: 80,
+        height: 150,
+        hp: maxAllyHp,
+        maxHp: maxAllyHp
+      };
+      
+      // unJŒπ∆¸∏ùX	
+      enemyBase = {
+        x: canvas.width - 120,
+        y: 110,
+        width: 80,
+        height: 150,
+        hp: stageInfo.baseHp,
+        maxHp: stageInfo.baseHp
+      };
+      
+      allies = [];
+      enemies = [];
+      deathEffects = [];
+      cannonBeamTimer = 0;
+      cannonFlash = 0;
+      
+      player.deck.forEach(key => {
+        if (key) cooldowns[key] = 0;
+      });
+      
+      renderBattleSlots();
+      setupBattleInput();
+      
+      if (battleAnimationFrameId) {
+        cancelAnimationFrame(battleAnimationFrameId);
+      }
+      battleLoop();
+    }
+
+    // &ÿ;bUIn’Ñh:Ù∞
+    function updateBattleUI() {
+      const config = walletConfig[game.walletLevel - 1];
+      const capUpgradeBonus = ((player.walletCapacityLevel || 1) - 1) * 100;
+      const maxMoneyCap = config.cap + capUpgradeBonus;
+
+      const baseSpeedMultiplier = 1 + ((player.moneySpeedLevel || 1) - 1) * 0.15;
+      const buffs = getTreasureBuffs();
+      const currentIncome = config.income * baseSpeedMultiplier * buffs.speedMult;
+
+      document.getElementById('moneyText').innerText = `@—: $${Math.floor(game.money)} / $${maxMoneyCap}`;
+      
+      // J°‹øÛnÙ∞
+      const walletBtn = document.getElementById('walletBtn');
+      if (game.walletLevel >= walletConfig.length) {
+        walletBtn.innerText = `J°Lv.MAX`;
+        walletBtn.disabled = true;
+      } else {
+        const currentConfig = walletConfig[game.walletLevel - 1];
+        if (currentConfig.cost === null) {
+          walletBtn.innerText = `J°Lv.MAX`;
+          walletBtn.disabled = true;
+        } else {
+          walletBtn.innerText = `J°Lv.${game.walletLevel} UP ($${currentConfig.cost})`;
+          walletBtn.disabled = game.money < currentConfig.cost;
+        }
+      }
+      
+      // kÉìS2‹øÛnÙ∞
+      const cannonBtn = document.getElementById('cannonBtn');
+      const chargePct = Math.min(100, Math.floor((game.cannonCharge / maxCannonCharge) * 100));
+      cannonBtn.innerText = `kÉìS2 (${chargePct}%)`;
+      cannonBtn.disabled = chargePct < 100;
+      
+      // ÏöπÌ√»‹øÛnØ¸Î¿¶ÛJàsÃonäˇH
+      player.deck.forEach(key => {
+        if (!key) return;
+        const keySuffix = key.replace('cat', '');
+        const btn = document.getElementById(`btnCat${keySuffix}`);
+        const cdOverlay = document.getElementById(`cdCat${keySuffix}`);
+        const slotEl = document.getElementById(`slot_${key}`);
+        if (!btn || !cdOverlay) return;
+        
+        const stats = getCatStats(key);
+        const isCd = cooldowns[key] > 0;
+        const canAfford = game.money >= stats.cost;
+        
+        btn.disabled = isCd || !canAfford;
+        
+        if (slotEl) {
+          if (isCd) {
+            slotEl.style.backgroundColor = '#90a4ae'; // Ø¸Î¿¶Û-
+          } else if (!canAfford) {
+            slotEl.style.backgroundColor = '#d7ccc8'; // J—≥
+          } else {
+            slotEl.style.backgroundColor = '#ffffff'; // ˙ÉÔ˝
+          }
+        }
+        
+        if (isCd) {
+          cdOverlay.style.display = 'flex';
+          cdOverlay.innerText = `${Math.ceil(cooldowns[key] / 60)}s`;
+        } else {
+          cdOverlay.style.display = 'none';
+        }
+      });
+    }
+
+    function battleLoop() {
+      battleUpdate();
+      battleDraw();
+      if (game.state === 'playing') {
+        battleAnimationFrameId = requestAnimationFrame(battleLoop);
+      }
+    }
+
+    function battleUpdate() {
+      if (game.state !== 'playing') return;
+
+      gameFrame++;
+
+      // 1. J°ÏŸÎk˙eO@—°
+      const config = walletConfig[game.walletLevel - 1];
+      const capUpgradeBonus = ((player.walletCapacityLevel || 1) - 1) * 100;
+      const maxMoneyCap = config.cap + capUpgradeBonus;
+
+      const baseSpeedMultiplier = 1 + ((player.moneySpeedLevel || 1) - 1) * 0.15;
+      const buffs = getTreasureBuffs();
+      const currentIncome = config.income * baseSpeedMultiplier * buffs.speedMult;
+
+      if (game.money < maxMoneyCap) {
+        game.money = Math.min(maxMoneyCap, game.money + currentIncome);
+      }
+
+      player.deck.forEach(k => {
+        if (k && cooldowns[k] > 0) cooldowns[k]--;
+      });
+
+      // 2. kÉìS2¡„¸∏Ì.Ê
+      const chargeRate = 1 + ((player.cannonChargeLevel || 1) - 1) * 0.10; // ¡„¸∏+10%/Lv
+      if (game.cannonCharge < maxCannonCharge) {
+        game.cannonCharge = Math.min(maxCannonCharge, game.cannonCharge + chargeRate);
+      }
+
+      // kÉìS2]Å$ö
+      if (cannonBeamTimer > 0) {
+        const maxTimer = 45;
+        const progress = (maxTimer - cannonBeamTimer) / maxTimer; 
+        
+        const srcX = allyBase.x + allyBase.width / 2;
+        const rangeMult = Math.min(1.0, (player.cannonRangeLevel || 1) / 10);
+        const maxSweepX = srcX + (enemyBase.x - srcX) * rangeMult;
+        const currentBeamTipX = srcX + progress * (maxSweepX - srcX);
+
+        const damage = 200 + ((player.cannonPowerLevel || 1) - 1) * 150;
+        const pushback = 100 + (player.cannonRangeLevel || 1) * 15;
+
+        enemies.forEach(e => {
+          if (e.x <= currentBeamTipX && !game.cannonDamageDealt[e.id]) {
+            game.cannonDamageDealt[e.id] = true;
+            e.hp -= damage;
+            e.x += pushback;
+            if (e.x > enemyBase.x) e.x = enemyBase.x;
+            spawnDeathEffect(e.x, e.y + e.height/2, 'enemy');
+          }
+        });
+      }
+
+      const stageInfo = stagesList[game.currentStage];
+      stageInfo.waves.forEach(wave => {
+        if (gameFrame === wave.time) {
+          spawnEnemy(wave.type);
+        }
+      });
+
+      stageInfo.infinites.forEach(inf => {
+        if (gameFrame % inf.interval === 0) {
+          spawnEnemy(inf.type);
+        }
+      });
+
+      allies.forEach(unit => {
+        let target = null;
+        let closestEnemy = null;
+        let minDist = Infinity;
+        enemies.forEach(e => {
+          let dist = e.x - (unit.x + unit.width);
+          if (dist >= -10 && dist <= unit.range) {
+            if (dist < minDist) {
+              minDist = dist;
+              closestEnemy = e;
+            }
+          }
+        });
+
+        if (closestEnemy) {
+          target = closestEnemy;
+        } else if (enemyBase.x - (unit.x + unit.width) <= unit.range) {
+          target = enemyBase;
+        }
+
+        if (target) {
+          unit.isMoving = false;
+          unit.attackTimer++;
+          if (unit.attackTimer >= unit.interval) {
+            playSound('hit');
+            if (unit.isArea) {
+              enemies.forEach(e => {
+                if (e.x >= unit.x + unit.width - 10 && e.x <= unit.x + unit.width + unit.range) {
+                  // ^'y;¿·¸∏
+                  let damageToDeal = unit.atk;
+                  const enemyAttr = enemyTemplates[e.rawType].attribute;
+                  if (unit.rawKey === 'cat3' && enemyAttr === 'red') damageToDeal *= 3;
+                  if (unit.rawKey === 'cat_ninja' && enemyAttr === 'red') damageToDeal *= 2;
+                  if (unit.rawKey === 'cat_salon' && enemyAttr === 'black') damageToDeal *= 3;
+                  if (unit.rawKey === 'cat_valkyrie' && enemyAttr === 'floating') damageToDeal *= 3;
+                  if (unit.rawKey === 'cat_bahamut' && enemyAttr !== 'white') damageToDeal *= 2;
+                  if (unit.rawKey === 'cat_god' && enemyAttr !== 'white') damageToDeal *= 2;
+
+                  e.hp -= damageToDeal;
+
+                  // ^'yä«–’ÿ
+                  if (unit.rawKey === 'cat_pirate' && enemyAttr === 'red') {
+                    if (Math.random() < 0.40) { e.x += 60; if (e.x > enemyBase.x) e.x = enemyBase.x; }
+                  }
+                  if (unit.rawKey === 'cat_witch' && enemyAttr === 'floating') {
+                    if (Math.random() < 0.30) e.freezeTimer = 90;
+                  }
+                  if (unit.rawKey === 'cat_surfer' && enemyAttr === 'red') {
+                    if (Math.random() < 0.30) e.freezeTimer = 90;
+                  }
+                }
+              });
+              if (enemyBase.x - (unit.x + unit.width) <= unit.range) {
+                enemyBase.hp -= unit.atk;
+              }
+            } else {
+              // XS¢”Í∆£$ö
+              let damageToDeal = unit.atk;
+              const enemyAttr = enemyTemplates[target.rawType] ? enemyTemplates[target.rawType].attribute : 'white';
+              if (unit.rawKey === 'cat3' && enemyAttr === 'red') damageToDeal *= 3;
+              if (unit.rawKey === 'cat_ninja' && enemyAttr === 'red') damageToDeal *= 2;
+              if (unit.rawKey === 'cat_salon' && enemyAttr === 'black') damageToDeal *= 3;
+              if (unit.rawKey === 'cat_valkyrie' && enemyAttr === 'floating') damageToDeal *= 3;
+              if (unit.rawKey === 'cat_bahamut' && enemyAttr !== 'white') damageToDeal *= 2;
+              if (unit.rawKey === 'cat_god' && enemyAttr !== 'white') damageToDeal *= 2;
+
+              target.hp -= damageToDeal;
+
+              if (unit.rawKey === 'cat_pirate' && enemyAttr === 'red') {
+                if (Math.random() < 0.40) { target.x += 60; if (target.x > enemyBase.x) target.x = enemyBase.x; }
+              }
+              if (unit.rawKey === 'cat_witch' && enemyAttr === 'floating') {
+                if (Math.random() < 0.30) target.freezeTimer = 90;
+              }
+              if (unit.rawKey === 'cat_surfer' && enemyAttr === 'red') {
+                if (Math.random() < 0.30) target.freezeTimer = 90;
+              }
+            }
+            unit.attackTimer = 0;
+            unit.attackOffset = 10;
+          }
+        } else {
+          unit.isMoving = true;
+          unit.attackTimer = 0;
+        }
+
+        if (unit.isMoving) {
+          unit.x += unit.speed;
+        }
+        if (unit.attackOffset > 0) unit.attackOffset *= 0.8;
+      });
+
+      enemies.forEach(unit => {
+        // ’Í¸∫∂KnhMoL’˝
+        if (unit.freezeTimer > 0) {
+          unit.freezeTimer--;
+          unit.isMoving = false;
+          return;
+        }
+
+        let target = null;
+        let closestAlly = null;
+        let minDist = Infinity;
+        allies.forEach(a => {
+          let dist = unit.x - (a.x + a.width);
+          if (dist >= -10 && dist <= unit.range) {
+            if (dist < minDist) {
+              minDist = dist;
+              closestAlly = a;
+            }
+          }
+        });
+
+        if (closestAlly) {
+          target = closestAlly;
+        } else if (unit.x - (allyBase.x + allyBase.width) <= unit.range) {
+          target = allyBase;
+        }
+
+        if (target) {
+          unit.isMoving = false;
+          unit.attackTimer++;
+          if (unit.attackTimer >= unit.interval) {
+            playSound('hit');
+            if (unit.isArea) {
+              allies.forEach(a => {
+                if (a.x + a.width >= unit.x - unit.range && a.x + a.width <= unit.x + 10) {
+                  // 2°õ˚¡'˝y'
+                  let enemyAttr = enemyTemplates[unit.rawType].attribute;
+                  let damageToDeal = unit.atk;
+                  if (a.rawKey === 'cat_ninja' && enemyAttr === 'red') damageToDeal *= 0.5;
+                  if (a.rawKey === 'cat_sumo' && enemyAttr === 'black') damageToDeal *= 0.25;
+
+                  a.hp -= Math.floor(damageToDeal);
+                }
+              });
+              if (unit.x - (allyBase.x + allyBase.width) <= unit.range) {
+                allyBase.hp -= unit.atk;
+              }
+            } else {
+              let enemyAttr = enemyTemplates[unit.rawType].attribute;
+              let damageToDeal = unit.atk;
+              if (target.rawKey === 'cat_ninja' && enemyAttr === 'red') damageToDeal *= 0.5;
+              if (target.rawKey === 'cat_sumo' && enemyAttr === 'black') damageToDeal *= 0.25;
+
+              target.hp -= Math.floor(damageToDeal);
+            }
+            unit.attackTimer = 0;
+            unit.attackOffset = -10;
+          }
+        } else {
+          unit.isMoving = true;
+          unit.attackTimer = 0;
+        }
+
+        if (unit.isMoving) {
+          unit.x -= unit.speed;
+        }
+        if (unit.attackOffset < 0) unit.attackOffset *= 0.8;
+      });
+
+      for (let i = allies.length - 1; i >= 0; i--) {
+        if (allies[i].hp <= 0) {
+          spawnDeathEffect(allies[i].x + allies[i].width / 2, allies[i].y + allies[i].height / 2, 'ally');
+          allies.splice(i, 1);
+        }
+      }
+      for (let i = enemies.length - 1; i >= 0; i--) {
+        if (enemies[i].hp <= 0) {
+          spawnDeathEffect(enemies[i].x + enemies[i].width / 2, enemies[i].y + enemies[i].height / 2, 'enemy');
+          game.money = Math.min(maxMoneyCap, game.money + enemies[i].reward);
+          enemies.splice(i, 1);
+        }
+      }
+
+      for (let i = deathEffects.length - 1; i >= 0; i--) {
+        deathEffects[i].frame++;
+        if (deathEffects[i].frame >= deathEffects[i].maxFrame) {
+          deathEffects.splice(i, 1);
+        }
+      }
+
+      if (enemyBase.hp <= 0) {
+        enemyBase.hp = 0;
+        game.state = 'win';
+        endBattle(true);
+      } else if (allyBase.hp <= 0) {
+        allyBase.hp = 0;
+        game.state = 'lose';
+        endBattle(false);
+      }
+
+      updateBattleUI();
+    }
+
+    // &ÿBÜBkJùŒ∆˚…Ì√◊$ö
+    function endBattle(isWin) {
+      const stageInfo = stagesList[game.currentStage];
+      let dropInfoText = '';
+
+      if (isWin) {
+        player.xp += stageInfo.rewardXp;
+        player.catFood += stageInfo.rewardCf;
+        playSound('victory');
+
+        // Jùn35%…Ì√◊Ê
+        if (Math.random() < 0.35) {
+          const rRoll = Math.random();
+          let quality = 1; // Ö
+          let qName = 'ÖnJù';
+          if (rRoll < 0.15) { quality = 3; qName = '—nJù'; }
+          else if (rRoll < 0.50) { quality = 2; qName = 'ÄnJù'; }
+          
+          if (!player.treasures) player.treasures = {};
+          const prev = player.treasures[game.currentStage] || 0;
+          if (quality > prev) {
+            player.treasures[game.currentStage] = quality;
+            dropInfoText = `\n\nJùzã\n${stageInfo.name}nJù${qName}íróW~W_(JùÛQk{2Uå~W_)`;
+          } else {
+            dropInfoText = `\n\nJù…Ì√◊\nYgk@WfDãJùàä°$LND_Å4ƒUå~W_`;
+          }
+        } else {
+          dropInfoText = `\n\nJù…Ì√◊\n ﬁJùozãgM~[ìgW_`;
+        }
+
+        const nextStageIndex = game.currentStage + 1;
+        if (nextStageIndex > player.maxStageCleared) {
+          player.maxStageCleared = Math.min(nextStageIndex, stagesList.length);
+        }
+
+        showCustomModal(
+          "STAGE CLEAR!",
+          `π∆¸∏${stageInfo.name}í6'W~W_\n\nró1l\n˚L$(XP): +${stageInfo.rewardXp} XP\n˚Õ≥6: +${stageInfo.rewardCf} ${dropInfoText}`,
+          "›)",
+          "#4caf50",
+          [
+            {
+              text: "˙0k;ã",
+              class: "btn-primary",
+              onClick: () => {
+                saveGame();
+                switchScreen('homeScreen');
+              }
+            }
+          ]
+        );
+      } else {
+        const pityXp = 50;
+        player.xp += pityXp;
+        playSound('lose');
+
+        showCustomModal(
+          "BATTLE DEFEAT...",
+          `eÿÄjWOWWfW~D~W_...\nkÉìSÕ„nÿ◊íHXPíÿW~Y—Ô¸¢√◊Wfç&W~WáF\n\nró1l\n˚L$(XP): +${pityXp} XP`,
+          "W...",
+          "#ff4d4d",
+          [
+            {
+              text: "˙0k;ã",
+              class: "btn-primary",
+              onClick: () => {
+                saveGame();
+                switchScreen('homeScreen');
+              }
+            }
+          ]
+        );
+      }
+    }
+
+    // JùÛQnUãÊ
+    function openTreasureModal() {
+      renderTreasureData();
+      document.getElementById('treasureModalOverlay').style.display = 'flex';
+    }
+    function closeTreasureModal() {
+      document.getElementById('treasureModalOverlay').style.display = 'none';
+    }
+    function renderTreasureData() {
+      const buffs = getTreasureBuffs();
+      const buffContainer = document.getElementById('treasureBuffContainer');
+      const gridContainer = document.getElementById('treasureGridContainer');
+      
+      buffContainer.innerHTML = `
+        <div style="color: #4caf50;">=ˇ ¨nÕ≥‚¢§ (Region 1): sπHP +${Math.round((buffs.hpMult - 1) * 100)}% (${buffs.r1Pct}% z’)</div>
+        <div style="color: #ff3300;">=÷ ‚nT¯ (Region 2): sπ;Éõ +${Math.round((buffs.atkMult - 1) * 100)}% (${buffs.r2Pct}% z’)</div>
+        <div style="color: #b38612;">=1 ƒ—n€M+ (Region 3): J—#π‘¸… +${Math.round((buffs.speedMult - 1) * 100)}% (${buffs.r3Pct}% z’)</div>
+      `;
+      
+      let html = '';
+      
+      // Region 1: 0 to 10
+      html += `
+        <div style="border-bottom: 2px solid #ccc; padding-bottom: 8px;">
+          <div style="font-weight: 900; color: #3d1f05; font-size: 0.95rem;">1. ]ﬁ˚€˝0π–’ [${buffs.r1Pct}%]</div>
+          <div style="display: grid; grid-template-columns: repeat(6, 1fr); gap: 4px; margin-top: 5px;">
+      `;
+      for (let i = 0; i <= 10; i++) {
+        const quality = player.treasures[i] || 0;
+        const qName = quality === 3 ? '>G—' : (quality === 2 ? '>HÄ' : (quality === 1 ? '>IÖ' : 'L!'));
+        const qColor = quality === 3 ? '#ffd700' : (quality === 2 ? '#c0c0c0' : (quality === 1 ? '#cd7f32' : '#ddd'));
+        html += `<div style="background: ${qColor}; font-size: 0.65rem; padding: 3px; border-radius: 4px; text-align: center; border: 1px solid #3d1f05; font-weight: 900;">${stagesList[i].name}<br>${qName}</div>`;
+      }
+      html += `</div></div>`;
+      
+      // Region 2: 11 to 29
+      html += `
+        <div style="border-bottom: 2px solid #ccc; padding-bottom: 8px; margin-top: 5px;">
+          <div style="font-weight: 900; color: #3d1f05; font-size: 0.95rem;">2. -˝˚¢˚-Ë0π–’ [${buffs.r2Pct}%]</div>
+          <div style="display: grid; grid-template-columns: repeat(6, 1fr); gap: 4px; margin-top: 5px; max-height: 110px; overflow-y: auto;">
+      `;
+      for (let i = 11; i <= 29; i++) {
+        const quality = player.treasures[i] || 0;
+        const qName = quality === 3 ? '>G—' : (quality === 2 ? '>HÄ' : (quality === 1 ? '>IÖ' : 'L!'));
+        const qColor = quality === 3 ? '#ffd700' : (quality === 2 ? '#c0c0c0' : (quality === 1 ? '#cd7f32' : '#ddd'));
+        html += `<div style="background: ${qColor}; font-size: 0.65rem; padding: 3px; border-radius: 4px; text-align: center; border: 1px solid #3d1f05; font-weight: 900;">${stagesList[i].name}<br>${qName}</div>`;
+      }
+      html += `</div></div>`;
+
+      // Region 3: 30 to 47
+      html += `
+        <div style="padding-bottom: 8px; margin-top: 5px;">
+          <div style="font-weight: 900; color: #3d1f05; font-size: 0.95rem;">3. ¢q˚q˚wS0π–’ [${buffs.r3Pct}%]</div>
+          <div style="display: grid; grid-template-columns: repeat(6, 1fr); gap: 4px; margin-top: 5px; max-height: 110px; overflow-y: auto;">
+      `;
+      for (let i = 30; i <= 47; i++) {
+        const quality = player.treasures[i] || 0;
+        const qName = quality === 3 ? '>G—' : (quality === 2 ? '>HÄ' : (quality === 1 ? '>IÖ' : 'L!'));
+        const qColor = quality === 3 ? '#ffd700' : (quality === 2 ? '#c0c0c0' : (quality === 1 ? '#cd7f32' : '#ddd'));
+        html += `<div style="background: ${qColor}; font-size: 0.65rem; padding: 3px; border-radius: 4px; text-align: center; border: 1px solid #3d1f05; font-weight: 900;">${stagesList[i].name}<br>${qName}</div>`;
+      }
+      html += `</div></div>`;
+      
+      gridContainer.innerHTML = html;
+    }
+
+    function drawRoundedRect(x, y, width, height, radius, cCtx = ctx) {
+      cCtx.beginPath();
+      cCtx.moveTo(x + radius, y);
+      cCtx.lineTo(x + width - radius, y);
+      cCtx.quadraticCurveTo(x + width, y, x + width, y + radius);
+      cCtx.lineTo(x + width, y + height - radius);
+      cCtx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
+      cCtx.lineTo(x + radius, y + height);
+      cCtx.quadraticCurveTo(x, y + height, x, y + height - radius);
+      cCtx.lineTo(x, y + radius);
+      cCtx.quadraticCurveTo(x, y, x + radius, y);
+      cCtx.closePath();
+      cCtx.fill();
+      cCtx.stroke();
+    }
+
+    // sπnJŒkÉìSŒ	ŸØø¸œ;
+    function drawAllyBase(c, x, y, w, h) {
+      c.save();
+      // 1. JŒn•0q
+      c.fillStyle = 'rgba(0,0,0,0.15)';
+      c.beginPath();
+      c.ellipse(x + w/2, y + h, w/2 + 10, 8, 0, 0, Math.PI*2);
+      c.fill();
+
+      // 2. ·§Ûn}DÛ¡nT
+      c.fillStyle = '#eceff1';
+      c.strokeStyle = '#3d1f05';
+      c.lineWidth = 4;
+      drawRoundedRect(x + 5, y + 30, w - 10, h - 30, 8, c);
+
+      // 3. IÊn!ÿ«£∆¸Î
+      c.fillStyle = '#cfd8dc';
+      c.fillRect(x + 12, y + 45, 18, 10);
+      c.fillRect(x + w - 30, y + 75, 18, 10);
+      c.fillRect(x + 20, y + 105, 24, 10);
+
+      // 4. +3b∂nK
+¯˘
+      c.fillStyle = '#eceff1';
+      c.beginPath();
+      c.moveTo(x + 5, y + 30);
+      c.lineTo(x + 15, y + 10); // Ê3nπ
+      c.lineTo(x + 30, y + 25);
+      c.lineTo(x + w - 30, y + 25);
+      c.lineTo(x + w - 15, y + 10); // Û3nπ
+      c.lineTo(x + w - 5, y + 30);
+      c.closePath();
+      c.fill();
+      c.stroke();
+
+      // 5. JŒ¡bn+T«£∆¸Î
+      c.fillStyle = '#3d1f05';
+      c.fillRect(x + 24, y + 45, 5, 5); // ÊÓ
+      c.fillRect(x + w - 29, y + 45, 5, 5); // ÛÓ
+
+      c.beginPath();
+      c.moveTo(x + w/2 - 4, y + 54);
+      c.lineTo(x + w/2 + 4, y + 54);
+      c.lineTo(x + w/2, y + 58);
+      c.closePath();
+      c.fill();
+
+      // rR
+      c.strokeStyle = '#3d1f05';
+      c.lineWidth = 2;
+      c.beginPath();
+      c.moveTo(x + 15, y + 52); c.lineTo(x + 5, y + 50);
+      c.moveTo(x + 15, y + 56); c.lineTo(x + 4, y + 58);
+      c.moveTo(x + w - 15, y + 52); c.lineTo(x + w - 5, y + 50);
+      c.moveTo(x + w - 15, y + 56); c.lineTo(x + w - 4, y + 58);
+      c.stroke();
+
+      // 6. (nIŒÄ	
+      c.fillStyle = '#a1887f';
+      c.beginPath();
+      c.arc(x + w/2, y + h, 20, Math.PI, 0);
+      c.fill();
+      c.stroke();
+      
+      c.strokeStyle = '#3d1f05';
+      c.lineWidth = 2;
+      c.beginPath();
+      c.moveTo(x + w/2, y + h - 20); c.lineTo(x + w/2, y + h);
+      c.stroke();
+
+      // In
+nƒ—n4
+      c.fillStyle = '#ffeb3b';
+      c.beginPath();
+      c.arc(x + w/2, y + h - 25, 5, 0, Math.PI*2);
+      c.fill();
+      c.stroke();
+
+      // 7. Ûtn◊ˇ
+      c.strokeStyle = '#78909c';
+      c.lineWidth = 3;
+      c.beginPath();
+      c.moveTo(x + w - 15, y + 25);
+      c.lineTo(x + w - 15, y - 25);
+      c.stroke();
+
+      // ˙åãkÉìSÕ„n}◊ÛkjsO	
+      c.fillStyle = '#fff';
+      c.beginPath();
+      c.moveTo(x + w - 15, y - 25);
+      c.lineTo(x + w + 15, y - 17);
+      c.lineTo(x + w - 15, y - 9);
+      c.closePath();
+      c.fill();
+      c.stroke();
+
+      // ◊n
+n‘ÛØnâﬁ¸Ø
+      c.fillStyle = '#e91e63';
+      c.beginPath();
+      c.arc(x + w, y - 17, 3, 0, Math.PI*2);
+      c.fill();
+
+      c.restore();
+    }
+
+    // unJŒèìSŒ	ŸØø¸œ;
+    function drawEnemyBase(c, x, y, w, h) {
+      c.save();
+      // 1. JŒn•0q
+      c.fillStyle = 'rgba(0,0,0,0.18)';
+      c.beginPath();
+      c.ellipse(x + w/2, y + h, w/2 + 10, 8, 0, 0, Math.PI*2);
+      c.fill();
+
+      // 2. ¿¸Ø¶√…hIÊøn¿¸Øj¡
+      c.fillStyle = '#3e2723';
+      c.strokeStyle = '#1a0c00';
+      c.lineWidth = 4;
+      drawRoundedRect(x + 5, y + 30, w - 10, h - 30, 8, c);
+
+      // JŒn»≤»≤K
+2[(ob	
+      c.fillStyle = '#2d1510';
+      c.beginPath();
+      c.moveTo(x + 5, y + 30);
+      c.lineTo(x + 5, y + 10);
+      c.lineTo(x + 20, y + 22);
+      c.lineTo(x + 35, y + 10);
+      c.lineTo(x + w/2, y + 22);
+      c.lineTo(x + w - 35, y + 10);
+      c.lineTo(x + w - 20, y + 22);
+      c.lineTo(x + w - 5, y + 10);
+      c.lineTo(x + w - 5, y + 30);
+      c.closePath();
+      c.fill();
+      c.stroke();
+
+      // 3. ÊÛkÅM˙Yá(π¡¸Î»≤
+      c.fillStyle = '#b0bec5';
+      c.strokeStyle = '#1a0c00';
+      c.lineWidth = 2;
+      
+      // Ên»≤
+      c.beginPath();
+      c.moveTo(x + 5, y + 60);
+      c.lineTo(x - 12, y + 68);
+      c.lineTo(x + 5, y + 76);
+      c.closePath(); c.fill(); c.stroke();
+
+      // Û of »≤
+      c.beginPath();
+      c.moveTo(x + w - 5, y + 60);
+      c.lineTo(x + w + 12, y + 68);
+      c.lineTo(x + w - 5, y + 76);
+      c.closePath(); c.fill(); c.stroke();
+
+      // 4. sk*WOzIYãdrì
+      c.fillStyle = '#ff1744';
+      c.shadowColor = '#ff1744';
+      c.shadowBlur = 8;
+      c.fillRect(x + 18, y + 50, 10, 6);
+      c.fillRect(x + w - 28, y + 50, 10, 6);
+      c.shadowBlur = 0; // ∑„…¶πúÍª√»
+
+      // 5. Ë'jèì≥n„nàFj™™jÄ
+      c.fillStyle = '#212121';
+      c.beginPath();
+      c.rect(x + w/2 - 20, y + h - 25, 40, 25);
+      c.fill();
+      c.stroke();
+
+      // Yn!ÿ
+      c.fillStyle = '#ffeb3b';
+      c.beginPath();
+      c.moveTo(x + w/2 - 20, y + h - 25);
+      c.lineTo(x + w/2 - 15, y + h - 18);
+      c.lineTo(x + w/2 - 10, y + h - 25);
+      c.lineTo(x + w/2 - 5, y + h - 18);
+      c.lineTo(x + w/2, y + h - 25);
+      c.lineTo(x + w/2 + 5, y + h - 18);
+      c.lineTo(x + w/2 + 10, y + h - 25);
+      c.lineTo(x + w/2 + 15, y + h - 18);
+      c.lineTo(x + w/2 + 20, y + h - 25);
+      c.closePath();
+      c.fill();
+
+      // 6. Êtnó“◊ˇ
+      c.strokeStyle = '#4e342e';
+      c.lineWidth = 3;
+      c.beginPath();
+      c.moveTo(x + 15, y + 30);
+      c.lineTo(x + 15, y - 25);
+      c.stroke();
+
+      // ™™j…ØÌÕ◊ÊkjsO	
+      c.fillStyle = '#d50000';
+      c.beginPath();
+      c.moveTo(x + 15, y - 25);
+      c.lineTo(x - 15, y - 17);
+      c.lineTo(x + 15, y - 9);
+      c.closePath();
+      c.fill();
+      c.stroke();
+
+      // ◊njKn“DØÌπ–ƒp
+      c.strokeStyle = '#000';
+      c.lineWidth = 2;
+      c.beginPath();
+      c.moveTo(x - 3, y - 20); c.lineTo(x + 3, y - 14);
+      c.moveTo(x + 3, y - 20); c.lineTo(x - 3, y - 14);
+      c.stroke();
+
+      c.restore();
+    }
+
+    // h≠„ÈØø¸íœ;YãŸØø¸”∏Â¢Î®Û∏Û¢p
+    function drawUnit(unit, cCtx) {
+      cCtx.save();
+
+      const isWalking = unit.isMoving;
+      const bounce = isWalking ? Math.sin(gameFrame * 0.25 + (unit.x * 0.08)) * 3 : 0;
+      const drawX = unit.x + unit.attackOffset;
+      const drawY = unit.y + bounce;
+
+      const rawType = unit.rawType;
+      const enemyAttr = unit.rawType ? enemyTemplates[unit.rawType].attribute : 'white';
+
+      // nJy'unuèuè’•0qn˝†
+      let floatBobY = 0;
+      if (unit.type === 'enemy' && enemyAttr === 'floating') {
+        floatBobY = Math.sin(gameFrame * 0.08) * 12 - 12; // z-k
+nJ
+        
+        // •0UÜq
+        cCtx.fillStyle = 'rgba(0,0,0,0.15)';
+        cCtx.beginPath();
+        cCtx.ellipse(drawX + unit.width/2, unit.y + unit.height, unit.width/2 + 5, 5, 0, 0, Math.PI*2);
+        cCtx.fill();
+      }
+
+      const finalDrawY = drawY + floatBobY;
+
+      cCtx.strokeStyle = '#3d1f05';
+      cCtx.lineWidth = 3;
+
+      if (unit.type === 'ally') {
+        const key = unit.rawKey;
+        const stats = getCatStats(key);
+        const catColor = (unit.color !== undefined) ? unit.color : (stats ? stats.color : '#fff');
+        const isEvolved = (unit.isEvolved !== undefined) ? unit.isEvolved : (stats ? stats.isEvolved : false);
+        const unitHeight = unit.height || (stats ? stats.height : 22);
+
+        const drawLegs = (color = catColor) => {
+          cCtx.fillStyle = color;
+          cCtx.strokeStyle = '#3d1f05';
+          cCtx.lineWidth = 2;
+          const legY = Math.sin(gameFrame * 0.4) > 0 ? 2 : 0;
+          cCtx.fillRect(drawX + 5, finalDrawY + unitHeight - 2, 3, 2 + legY); cCtx.strokeRect(drawX + 5, finalDrawY + unitHeight - 2, 3, 2 + legY);
+          cCtx.fillRect(drawX + 13, finalDrawY + unitHeight - 2, 3, 2 + (2 - legY)); cCtx.strokeRect(drawX + 13, finalDrawY + unitHeight - 2, 3, 2 + (2 - legY));
+        };
+
+        if (unit.drawType === "normal") {
+          cCtx.fillStyle = catColor;
+          cCtx.beginPath(); cCtx.arc(drawX + 11, finalDrawY + 11, 10, 0, Math.PI * 2); cCtx.fill(); cCtx.stroke();
+
+          cCtx.beginPath(); cCtx.moveTo(drawX + 2, finalDrawY + 4); cCtx.lineTo(drawX + 6, finalDrawY - 4); cCtx.lineTo(drawX + 10, finalDrawY + 4); cCtx.fill(); cCtx.stroke();
+          cCtx.beginPath(); cCtx.moveTo(drawX + 12, finalDrawY + 4); cCtx.lineTo(drawX + 16, finalDrawY - 4); cCtx.lineTo(drawX + 20, finalDrawY + 4); cCtx.fill(); cCtx.stroke();
+
+          cCtx.fillStyle = '#3d1f05';
+          cCtx.fillRect(drawX + 11, finalDrawY + 8, 2, 2); cCtx.fillRect(drawX + 16, finalDrawY + 8, 2, 2);
+
+          drawLegs();
+
+          if (key === 'cat3') {
+            cCtx.strokeStyle = '#ffd700'; cCtx.lineWidth = 3;
+            cCtx.beginPath(); cCtx.moveTo(drawX + 18, finalDrawY + 15); cCtx.lineTo(drawX + 28, finalDrawY + 6); cCtx.stroke();
+          }
+          if (isEvolved) {
+            cCtx.fillStyle = '#ff3300';
+            cCtx.fillRect(drawX + 9, finalDrawY - 8, 4, 6); cCtx.strokeRect(drawX + 9, finalDrawY - 8, 4, 6);
+          }
+        } 
+        else if (unit.drawType === "tank") {
+          cCtx.fillStyle = catColor;
+          drawRoundedRect(drawX, finalDrawY, 24, 42, 6, cCtx);
+
+          cCtx.fillStyle = '#3d1f05';
+          cCtx.fillRect(drawX + 10, finalDrawY + 8, 2, 2); cCtx.fillRect(drawX + 16, finalDrawY + 8, 2, 2);
+
+          cCtx.strokeStyle = '#3d1f05'; cCtx.lineWidth = 1.5;
+          cCtx.strokeRect(drawX + 7, finalDrawY + 5, 13, 10);
+
+          cCtx.fillStyle = '#eee'; cCtx.lineWidth = 2;
+          const legY = Math.sin(gameFrame * 0.3) > 0 ? 3 : 0;
+          cCtx.fillRect(drawX + 4, finalDrawY + 40, 5, 2 + legY); cCtx.strokeRect(drawX + 4, finalDrawY + 40, 5, 2 + legY);
+          cCtx.fillRect(drawX + 15, finalDrawY + 40, 5, 2 + (3 - legY)); cCtx.strokeRect(drawX + 15, finalDrawY + 40, 5, 2 + (3 - legY));
+
+          if (isEvolved) {
+            cCtx.strokeStyle = '#888'; cCtx.lineWidth = 1.5;
+            cCtx.beginPath();
+            cCtx.moveTo(drawX, finalDrawY + 22); cCtx.lineTo(drawX + 24, finalDrawY + 22);
+            cCtx.moveTo(drawX, finalDrawY + 32); cCtx.lineTo(drawX + 24, finalDrawY + 32);
+            cCtx.stroke();
+          }
+        } 
+        else if (unit.drawType === "gross") {
+          cCtx.fillStyle = catColor;
+          cCtx.beginPath(); cCtx.arc(drawX + 11, finalDrawY + 8, 8, 0, Math.PI * 2); cCtx.fill(); cCtx.stroke();
+
+          cCtx.fillStyle = '#3d1f05';
+          cCtx.fillRect(drawX + 10, finalDrawY + 6, 2, 2); cCtx.fillRect(drawX + 14, finalDrawY + 6, 2, 2);
+
+          cCtx.strokeStyle = '#3d1f05'; cCtx.lineWidth = 3;
+          const legSway = Math.sin(gameFrame * 0.3) * 3;
+          cCtx.beginPath();
+          cCtx.moveTo(drawX + 7, finalDrawY + 14); cCtx.lineTo(drawX + 5 + legSway, finalDrawY + 36);
+          cCtx.moveTo(drawX + 15, finalDrawY + 14); cCtx.lineTo(drawX + 17 - legSway, finalDrawY + 36);
+          cCtx.stroke();
+        }
+        else if (unit.drawType === "cow") {
+          cCtx.fillStyle = catColor;
+          drawRoundedRect(drawX, finalDrawY, 28, 20, 4, cCtx);
+
+          cCtx.fillStyle = '#3d1f05';
+          cCtx.fillRect(drawX + 4, finalDrawY + 4, 6, 5); cCtx.fillRect(drawX + 16, finalDrawY + 10, 8, 6);
+
+          const headBob = Math.sin(gameFrame * 0.6) * 4;
+          cCtx.fillStyle = catColor;
+          cCtx.beginPath(); cCtx.arc(drawX + 26, finalDrawY + 6 + headBob, 6, 0, Math.PI*2); cCtx.fill(); cCtx.stroke();
+        }
+        else if (unit.drawType === "bird") {
+          cCtx.fillStyle = catColor;
+          const hover = Math.sin(gameFrame * 0.2) * 4;
+
+          cCtx.beginPath(); cCtx.arc(drawX + 11, finalDrawY + 10 + hover, 9, 0, Math.PI*2); cCtx.fill(); cCtx.stroke();
+
+          cCtx.fillStyle = '#ff9900';
+          cCtx.beginPath(); cCtx.moveTo(drawX + 18, finalDrawY + 8 + hover); cCtx.lineTo(drawX + 24, finalDrawY + 11 + hover); cCtx.lineTo(drawX + 18, finalDrawY + 14 + hover); cCtx.fill(); cCtx.stroke();
+
+          const wingFlap = Math.sin(gameFrame * 0.5) * 6;
+          cCtx.fillStyle = catColor;
+          cCtx.beginPath(); cCtx.moveTo(drawX + 4, finalDrawY + 10 + hover); cCtx.lineTo(drawX - 2, finalDrawY + 10 + hover - wingFlap); cCtx.lineTo(drawX + 4, finalDrawY + 14 + hover); cCtx.fill(); cCtx.stroke();
+        }
+        else if (unit.drawType === "fish") {
+          cCtx.fillStyle = catColor;
+          cCtx.beginPath(); cCtx.ellipse(drawX + 12, finalDrawY + 11, 12, 8, 0, 0, Math.PI*2); cCtx.fill(); cCtx.stroke();
+
+          cCtx.beginPath(); cCtx.moveTo(drawX, finalDrawY + 11); cCtx.lineTo(drawX - 6, finalDrawY + 5); cCtx.lineTo(drawX - 6, finalDrawY + 17);
+          cCtx.closePath(); cCtx.fill(); cCtx.stroke();
+        }
+        else if (unit.drawType === "lizard") {
+          cCtx.fillStyle = catColor;
+          cCtx.beginPath(); cCtx.ellipse(drawX + 10, finalDrawY + 14, 10, 7, 0, 0, Math.PI*2); cCtx.fill(); cCtx.stroke();
+
+          cCtx.beginPath(); cCtx.moveTo(drawX + 14, finalDrawY + 11); cCtx.quadraticCurveTo(drawX + 18, finalDrawY + 5, drawX + 22, finalDrawY + 2); cCtx.lineTo(drawX + 16, finalDrawY + 2);
+          cCtx.closePath(); cCtx.fill(); cCtx.stroke();
+        }
+        else if (unit.drawType === "titan") {
+          cCtx.fillStyle = catColor;
+          drawRoundedRect(drawX, finalDrawY, 32, 45, 6, cCtx);
+
+          cCtx.strokeStyle = '#00ffcc'; cCtx.lineWidth = 2;
+          cCtx.beginPath(); cCtx.moveTo(drawX + 8, finalDrawY + 15); cCtx.lineTo(drawX + 24, finalDrawY + 15); cCtx.stroke();
+        }
+        else if (unit.drawType === "salon") {
+          cCtx.fillStyle = catColor;
+          cCtx.beginPath(); cCtx.arc(drawX + 11, finalDrawY + 8, 7, 0, Math.PI*2); cCtx.fill(); cCtx.stroke();
+
+          cCtx.strokeStyle = '#3d1f05'; cCtx.lineWidth = 2.5;
+          const legSwing = Math.sin(gameFrame * 0.25) * 4;
+          cCtx.beginPath();
+          cCtx.moveTo(drawX + 8, finalDrawY + 14); cCtx.lineTo(drawX + 5 + legSwing, finalDrawY + 38);
+          cCtx.moveTo(drawX + 14, finalDrawY + 14); cCtx.lineTo(drawX + 17 - legSwing, finalDrawY + 38);
+          cCtx.stroke();
+        }
+        else if (unit.drawType === "valkyrie") {
+          cCtx.fillStyle = catColor;
+          const hoverVal = Math.sin(gameFrame * 0.15) * 4;
+
+          cCtx.beginPath(); cCtx.arc(drawX + 11, finalDrawY + 10 + hoverVal, 8, 0, Math.PI*2); cCtx.fill(); cCtx.stroke();
+
+          cCtx.fillStyle = '#fff';
+          cCtx.beginPath(); cCtx.moveTo(drawX + 4, finalDrawY + 10 + hoverVal); cCtx.lineTo(drawX - 8, finalDrawY + hoverVal); cCtx.lineTo(drawX - 4, finalDrawY + 16 + hoverVal);
+          cCtx.closePath(); cCtx.fill(); cCtx.stroke();
+
+          cCtx.strokeStyle = '#ffd700'; cCtx.lineWidth = 3;
+          cCtx.beginPath(); cCtx.moveTo(drawX + 14, finalDrawY + 12 + hoverVal); cCtx.lineTo(drawX + 34, finalDrawY + 12 + hoverVal); cCtx.stroke();
+        }
+        else if (unit.drawType === "ninja") {
+          cCtx.fillStyle = catColor;
+          cCtx.beginPath(); cCtx.arc(drawX + 11, finalDrawY + 11, 10, 0, Math.PI * 2); cCtx.fill(); cCtx.stroke();
+
+          cCtx.fillStyle = '#111'; cCtx.fillRect(drawX + 2, finalDrawY + 4, 18, 5);
+
+          drawLegs();
+        }
+        else if (unit.drawType === "object") {
+          cCtx.fillStyle = catColor;
+          drawRoundedRect(drawX, finalDrawY + 4, 24, 24, 4, cCtx);
+          drawLegs();
+        }
+        else if (unit.drawType === "floating") {
+          cCtx.fillStyle = catColor;
+          const hover = Math.sin(gameFrame * 0.2) * 5;
+          cCtx.beginPath(); cCtx.arc(drawX + 11, finalDrawY + 10 + hover, 10, 0, Math.PI*2); cCtx.fill(); cCtx.stroke();
+        }
+        else if (unit.drawType === "dragon") {
+          cCtx.fillStyle = catColor;
+          drawRoundedRect(drawX, finalDrawY, 32, 35, 6, cCtx);
+          cCtx.fillStyle = '#fff'; cCtx.fillRect(drawX + 8, finalDrawY + 8, 4, 4); cCtx.fillRect(drawX + 20, finalDrawY + 8, 4, 4);
+        }
+      } 
+      else {
+        // u≠„ÈØø¸nœ;^'´È¸nÕ 	
+        if (rawType === 'doge') {
+          cCtx.fillStyle = '#fff8ee'; // }r
+          cCtx.beginPath(); cCtx.ellipse(drawX + 11, finalDrawY + 11, 11, 8, 0, 0, Math.PI * 2); cCtx.fill(); cCtx.stroke();
+
+          cCtx.fillStyle = '#ebdcc8';
+          cCtx.beginPath(); cCtx.ellipse(drawX + 7, finalDrawY + 11, 4, 7, Math.PI/6, 0, Math.PI * 2); cCtx.fill(); cCtx.stroke();
+
+          cCtx.fillStyle = '#3d1f05';
+          cCtx.fillRect(drawX + 13, finalDrawY + 7, 2, 2); cCtx.fillRect(drawX + 17, finalDrawY + 9, 2, 2);
+
+          cCtx.fillStyle = '#fff8ee'; cCtx.lineWidth = 2;
+          const legY = Math.sin(gameFrame * 0.35) > 0 ? 2 : 0;
+          cCtx.fillRect(drawX + 5, finalDrawY + 18, 3, 3 + legY); cCtx.strokeRect(drawX + 5, finalDrawY + 18, 3, 3 + legY);
+          cCtx.fillRect(drawX + 12, finalDrawY + 18, 3, 3 + (2 - legY)); cCtx.strokeRect(drawX + 12, finalDrawY + 18, 3, 3 + (2 - legY));
+        } 
+        else if (rawType === 'snache') {
+          const slither = Math.sin(gameFrame * 0.4 + unit.x * 0.1) * 3;
+          cCtx.fillStyle = '#ff5252'; // d^'ndrk	Ù
+          
+          cCtx.beginPath(); cCtx.ellipse(drawX + 15, finalDrawY + 6 + slither, 15, 6, 0, 0, Math.PI*2); cCtx.fill(); cCtx.stroke();
+
+          cCtx.fillStyle = '#3d1f05'; cCtx.fillRect(drawX + 6, finalDrawY + 4 + slither, 2, 2);
+
+          if (gameFrame % 30 < 15) {
+            cCtx.fillStyle = '#1a0c00'; cCtx.fillRect(drawX - 2, finalDrawY + 5 + slither, 3, 2);
+          }
+        } 
+        else if (rawType === 'gorilla') {
+          cCtx.fillStyle = '#212121'; // “^'n“≠rk	Ù
+          drawRoundedRect(drawX, finalDrawY, 28, 35, 4, cCtx);
+
+          cCtx.fillStyle = '#111111';
+          cCtx.fillRect(drawX + 2, finalDrawY + 4, 24, 6); cCtx.strokeRect(drawX + 2, finalDrawY + 4, 24, 6);
+
+          cCtx.fillStyle = '#ff1744'; // äkOdDÓ“^'‹π	
+          cCtx.fillRect(drawX + 6, finalDrawY + 6, 2, 2); cCtx.fillRect(drawX + 16, finalDrawY + 6, 2, 2);
+
+          cCtx.fillStyle = '#fff'; cCtx.fillRect(drawX + 8, finalDrawY + 22, 12, 3);
+
+          cCtx.fillStyle = '#212121'; cCtx.lineWidth = 2;
+          const legY = Math.sin(gameFrame * 0.4) > 0 ? 3 : 0;
+          cCtx.fillRect(drawX + 4, finalDrawY + 34, 6, 3 + legY); cCtx.strokeRect(drawX + 4, finalDrawY + 34, 6, 3 + legY);
+          cCtx.fillRect(drawX + 18, finalDrawY + 34, 6, 3 + (3 - legY)); cCtx.strokeRect(drawX + 18, finalDrawY + 34, 6, 3 + (3 - legY));
+        } 
+        else if (rawType === 'kaba') {
+          cCtx.fillStyle = '#e91e63'; // d^'nd≥¸ÈÎrk	Ù
+          drawRoundedRect(drawX, finalDrawY, 44, 30, 8, cCtx);
+
+          cCtx.fillStyle = '#ff4081';
+          const mouthOffset = unit.attackTimer > (unit.interval / 2) ? 6 : 0;
+          cCtx.fillRect(drawX - 4, finalDrawY + 10 + mouthOffset, 25, 18 - mouthOffset); cCtx.strokeRect(drawX - 4, finalDrawY + 10 + mouthOffset, 25, 18 - mouthOffset);
+
+          cCtx.fillStyle = '#3d1f05'; cCtx.fillRect(drawX + 2, finalDrawY + 14 + mouthOffset, 2, 2);
+
+          cCtx.fillStyle = '#3d1f05'; cCtx.fillRect(drawX + 30, finalDrawY + 5, 3, 3);
+
+          cCtx.fillStyle = '#e91e63'; cCtx.lineWidth = 2;
+          const legY = Math.sin(gameFrame * 0.25) > 0 ? 2 : 0;
+          cCtx.fillRect(drawX + 8, finalDrawY + 28, 8, 3 + legY); cCtx.strokeRect(drawX + 8, finalDrawY + 28, 8, 3 + legY);
+          cCtx.fillRect(drawX + 28, finalDrawY + 28, 8, 3 + (2 - legY)); cCtx.strokeRect(drawX + 28, finalDrawY + 28, 8, 3 + (2 - legY));
+        }
+        else if (rawType === 'face') {
+          cCtx.fillStyle = '#ffdddd'; // nDfãu}^'	
+          cCtx.beginPath(); cCtx.arc(drawX + 40, finalDrawY + 40, 40, 0, Math.PI*2); cCtx.fill(); cCtx.stroke();
+
+          cCtx.fillStyle = '#fff';
+          cCtx.beginPath();
+          cCtx.arc(drawX + 25, finalDrawY + 28, 8, 0, Math.PI*2);
+          cCtx.arc(drawX + 55, finalDrawY + 28, 8, 0, Math.PI*2);
+          cCtx.fill(); cCtx.stroke();
+
+          cCtx.fillStyle = '#000';
+          cCtx.beginPath();
+          cCtx.arc(drawX + 25, finalDrawY + 28, 3, 0, Math.PI*2);
+          cCtx.arc(drawX + 55, finalDrawY + 28, 3, 0, Math.PI*2);
+          cCtx.fill();
+
+          cCtx.fillStyle = '#ff5555';
+          const mouthOpen = (unit.attackTimer > (unit.interval / 2)) ? 10 : 0;
+          cCtx.beginPath(); cCtx.ellipse(drawX + 40, finalDrawY + 55, 15, 6 + mouthOpen, 0, 0, Math.PI*2); cCtx.fill(); cCtx.stroke();
+
+          cCtx.fillStyle = '#ffb3b3';
+          cCtx.beginPath(); cCtx.arc(drawX + 40, finalDrawY + 40, 6, 0, Math.PI*2); cCtx.fill(); cCtx.stroke();
+        }
+      }
+
+      // ’Í¸∫∂K¢§π÷Î¸n∑¸Î…	n®’ßØ»œ;
+      if (unit.type === 'enemy' && unit.freezeTimer > 0) {
+        cCtx.fillStyle = 'rgba(129, 212, 250, 0.45)';
+        cCtx.strokeStyle = 'rgba(3, 169, 244, 0.7)';
+        cCtx.lineWidth = 2;
+        cCtx.beginPath();
+        cCtx.arc(drawX + unit.width/2, finalDrawY + unit.height/2, Math.max(unit.width, unit.height)/2 + 4, 0, Math.PI*2);
+        cCtx.fill();
+        cCtx.stroke();
+      }
+
+      if (unit.hp !== undefined) {
+        drawHpBar(unit.x, finalDrawY - 8, unit.width, unit.hp, unit.maxHp, cCtx);
+      }
+      cCtx.restore();
+    }
+
+    function battleDraw() {
+      if (!ctx) return;
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      ctx.fillStyle = '#8B5A2B'; ctx.fillRect(0, 260, canvas.width, 40); 
+      ctx.fillStyle = '#2E8B57'; ctx.fillRect(0, 255, canvas.width, 5);
+
+      if (cannonBeamTimer > 0) {
+        const maxTimer = 45;
+        const progress = (maxTimer - cannonBeamTimer) / maxTimer; 
+        const opacity = cannonBeamTimer / maxTimer;
+
+        const srcX = allyBase.x + allyBase.width / 2;
+        const srcY = allyBase.y + 20;
+
+        const rangeMult = Math.min(1.0, (player.cannonRangeLevel || 1) / 10);
+        const maxSweepX = srcX + (enemyBase.x - srcX) * rangeMult;
+        const targetX = srcX + progress * (maxSweepX - srcX);
+        const targetY = 255; 
+
+        ctx.save();
+
+        ctx.strokeStyle = `rgba(147, 112, 219, ${opacity * 0.75})`; ctx.lineWidth = 18; ctx.lineCap = 'round';
+        ctx.beginPath(); ctx.moveTo(srcX, srcY); ctx.lineTo(targetX, targetY); ctx.stroke();
+
+        ctx.strokeStyle = `rgba(255, 255, 255, ${opacity * 0.95})`; ctx.lineWidth = 6; ctx.lineCap = 'round';
+        ctx.beginPath(); ctx.moveTo(srcX, srcY); ctx.lineTo(targetX, targetY); ctx.stroke();
+
+        ctx.fillStyle = `rgba(186, 85, 211, ${opacity * 0.6})`;
+        ctx.beginPath(); ctx.ellipse(targetX, targetY, 32, 14, 0, 0, Math.PI * 2); ctx.fill();
+
+        ctx.fillStyle = `rgba(255, 255, 255, ${opacity * 0.95})`;
+        ctx.beginPath(); ctx.ellipse(targetX, targetY, 15, 6, 0, 0, Math.PI * 2); ctx.fill();
+
+        ctx.fillStyle = `rgba(138, 43, 226, ${opacity})`;
+        for (let i = 0; i < 8; i++) {
+          const px = targetX + Math.sin(gameFrame + i) * 16;
+          const py = targetY - (i * 4) - (gameFrame % 5);
+          ctx.beginPath(); ctx.arc(px, py, 3.5, 0, Math.PI * 2); ctx.fill();
+        }
+
+        ctx.restore();
+        cannonBeamTimer--;
+      }
+
+      if (cannonFlash > 0) {
+        ctx.fillStyle = `rgba(255, 255, 255, ${cannonFlash / 10})`;
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        cannonFlash--;
+      }
+
+      // 1. kÉìSŒnŸØø¸œ;
+      drawAllyBase(ctx, allyBase.x, allyBase.y, allyBase.width, allyBase.height);
+      
+      // sπŒHPp$h:
+      ctx.save();
+      ctx.fillStyle = 'rgba(61, 31, 5, 0.75)';
+      drawRoundedRect(allyBase.x - 15, allyBase.y - 20, allyBase.width + 30, 15, 4, ctx);
+      ctx.fillStyle = '#ffffff';
+      ctx.font = 'bold 10px monospace';
+      ctx.textAlign = 'center';
+      ctx.fillText(`${Math.floor(allyBase.hp)} / ${allyBase.maxHp}`, allyBase.x + allyBase.width / 2, allyBase.y - 9);
+      ctx.restore();
+
+      // 2. èìSŒnŸØø¸œ;
+      drawEnemyBase(ctx, enemyBase.x, enemyBase.y, enemyBase.width, enemyBase.height);
+      
+      // uŒHPp$h:
+      ctx.save();
+      ctx.fillStyle = 'rgba(61, 31, 5, 0.75)';
+      drawRoundedRect(enemyBase.x - 15, enemyBase.y - 20, enemyBase.width + 30, 15, 4, ctx);
+      ctx.fillStyle = '#ffffff';
+      ctx.font = 'bold 10px monospace';
+      ctx.textAlign = 'center';
+      ctx.fillText(`${Math.floor(enemyBase.hp)} / ${enemyBase.maxHp}`, enemyBase.x + enemyBase.width / 2, enemyBase.y - 9);
+      ctx.restore();
+
+      allies.forEach(unit => drawUnit(unit, ctx));
+      enemies.forEach(unit => drawUnit(unit, ctx));
+
+      deathEffects.forEach(eff => {
+        ctx.save();
+        const pct = eff.frame / eff.maxFrame;
+        ctx.globalAlpha = 1 - pct;
+        const floatY = eff.frame * 0.9; 
+        const drawY = eff.y - floatY;
+
+        ctx.strokeStyle = 'rgba(255,255,255,0.7)';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.arc(eff.x, eff.y, 5 + eff.frame * 0.8, 0, Math.PI * 2);
+        ctx.stroke();
+
+        ctx.fillStyle = '#ffffff';
+        ctx.strokeStyle = '#3d1f05';
+        ctx.lineWidth = 1.5;
+
+        ctx.beginPath();
+        ctx.arc(eff.x, drawY - 4, 6, Math.PI, 0); 
+        ctx.lineTo(eff.x + 6, drawY + 4);
+        ctx.quadraticCurveTo(eff.x, drawY + 8, eff.x - 3, drawY + 11);
+        ctx.quadraticCurveTo(eff.x - 6, drawY + 4, eff.x - 6, drawY - 4);
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+
+        ctx.fillStyle = '#3d1f05';
+        ctx.fillRect(eff.x - 3, drawY - 6, 1.5, 1.5);
+        ctx.fillRect(eff.x + 1, drawY - 6, 1.5, 1.5);
+
+        ctx.restore();
+      });
+    }
+
+    function drawHpBar(x, y, w, hp, max, cCtx) {
+      const barH = 5;
+      cCtx.fillStyle = '#3d1f05'; cCtx.fillRect(x, y, w, barH);
+      const greenW = (hp / max) * (w - 2);
+      cCtx.fillStyle = '#00ff00'; cCtx.fillRect(x + 1, y + 1, greenW, barH - 2);
+    }
+
+    // --- 17. w’Ê ---
+    window.onload = () => {
+      canvas = document.getElementById('gameCanvas');
+      ctx = canvas.getContext('2d');
+      loadGame();
+    };
+	</script>
+</body>
+
+</html></body><html>
