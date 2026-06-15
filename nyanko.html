@@ -4,7 +4,7 @@
 <head>
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<title>にゃんこ風タワーディフェンス レベル上限＆進化・紫ビーム完全版</title>
+	<title>にゃんこ風タワーディフェンス 統合完全版</title>
 	<style>
 		/* 全体的なリセットと画面いっぱいの表示設定 */
 		* {
@@ -369,72 +369,6 @@
 			animation: burst 0.4s forwards;
 		}
 
-		@keyframes shake {
-			0% {
-				transform: rotate(0deg) scale(1);
-			}
-
-			10% {
-				transform: rotate(15deg);
-			}
-
-			20% {
-				transform: rotate(-15deg);
-			}
-
-			30% {
-				transform: rotate(15deg);
-			}
-
-			40% {
-				transform: rotate(-15deg) scale(1.1);
-			}
-
-			50% {
-				transform: rotate(20deg);
-			}
-
-			60% {
-				transform: rotate(-20deg);
-			}
-
-			70% {
-				transform: rotate(15deg);
-			}
-
-			80% {
-				transform: rotate(-15deg);
-			}
-
-			90% {
-				transform: rotate(5deg) scale(1.2);
-			}
-
-			100% {
-				transform: rotate(0deg) scale(1.2);
-			}
-		}
-
-		@keyframes burst {
-			0% {
-				transform: scale(1.2);
-				filter: brightness(1);
-				opacity: 1;
-			}
-
-			50% {
-				transform: scale(1.8);
-				filter: brightness(2);
-				opacity: 0.9;
-			}
-
-			100% {
-				transform: scale(0);
-				filter: brightness(5);
-				opacity: 0;
-			}
-		}
-
 		.reveal-card {
 			background: #fff8e7;
 			border: 6px solid #3d1f05;
@@ -496,7 +430,6 @@
 		#gameCanvas {
 			background-color: #87CEEB;
 			width: 1600px;
-			/* 長距離仕様フィールドへ拡張 */
 			height: 300px;
 			display: block;
 		}
@@ -533,7 +466,6 @@
 			flex-direction: column;
 			align-items: center;
 			background: #fff;
-			/* デフォルト背景 */
 			border: 3px solid #3d1f05;
 			border-radius: 12px;
 			padding: 4px;
@@ -566,17 +498,14 @@
 			transform: translateY(2px);
 		}
 
-		/* 召喚枠ボタンの非活性化時（disabled）専用デザイン規定 */
 		.slot button:disabled {
 			background: transparent !important;
 			color: #3d1f05 !important;
-			/* テキストの視認性を高く保つ */
 			border: none !important;
 			box-shadow: none !important;
 			cursor: not-allowed;
 		}
 
-		/* 非活性化時にも価格（黄色）をハッキリ読めるように固定 */
 		.slot button:disabled span {
 			color: #b38612 !important;
 		}
@@ -587,18 +516,14 @@
 			left: 0;
 			right: 0;
 			bottom: 0;
-			background: transparent;
-			/* 暗幕を重ねず、背景色自体を灰色に変更 */
-			color: #ff3333;
+			background: rgba(0, 0, 0, 0.5);
 			display: flex;
 			justify-content: center;
 			align-items: center;
-			font-size: clamp(0.9rem, 0.8rem + 0.5vw, 1.3rem);
-			font-weight: 900;
 			pointer-events: none;
-			border-radius: 8px;
+			border-radius: 12px;
 			display: none;
-			text-shadow: 1px 1px 1px #fff, -1px -1px 1px #fff, 1px -1px 1px #fff, -1px 1px 1px #fff;
+			z-index: 2;
 		}
 
 		/* キャラクター編成画面用のレイアウト調整 */
@@ -656,7 +581,7 @@
 			<canvas id="baseIllustCvs" width="400" height="150"></canvas>
 
 			<div class="home-buttons">
-				<button class="btn-primary" onclick="switchScreen('mapScreen')">試合選択（日本編）</button>
+				<button class="btn-primary" onclick="showChapterSelectModal()">出撃（各ストーリー・イベント）</button>
 				<button onclick="switchScreen('deckScreen')">キャラクター編成</button>
 				<button onclick="switchScreen('powerupScreen')">レベルアップ（育成）</button>
 				<button onclick="switchScreen('gachaScreen')">ガチャガチャ</button>
@@ -667,8 +592,16 @@
 	<!-- 2. マップ選択画面 -->
 	<div id="mapScreen" class="screen" style="display:none;">
 		<h2 id="mapHeaderTitle">日本編：九州地方</h2>
+		<div style="text-align: center; margin-bottom: 8px;">
+			<span style="font-weight: 900; color: #3d1f05; margin-right: 5px;">章を選択：</span>
+			<select id="chapterSelect" onchange="changeChapter(this.value)" style="background: #f7ebc6; border: 3px solid #3d1f05; border-radius: 8px; font-weight: 900; padding: 4px 10px; font-size: 0.9rem; color: #3d1f05; cursor: pointer;">
+				<option value="0">日本編（第1章・日本全国攻略）</option>
+				<option value="1">未来編（第2章・世界大攻略）</option>
+				<option value="2">宇宙編（第3章・全銀河スターエイリアン攻略）</option>
+			</select>
+		</div>
 		<div style="margin-bottom:8px; font-size:0.8rem; color:#666; text-align:center;">
-			※ウルトラワイド2Dマップ！ドラッグ・スクロールで日本列島を巡れます！
+			※ドラッグ・スクロールで広大なマップを移動できます！
 		</div>
 		<div class="map-layout">
 
@@ -685,9 +618,12 @@
 						<div>城最大HP: <span id="stageInfoHp" style="font-weight:bold;">1000</span></div>
 						<div>初クリアXP: <span id="stageInfoXp" class="xp-text" style="font-weight:bold;">500</span></div>
 						<div>初クリア缶: <span id="stageInfoCf" class="cf-text" style="font-weight:bold;">50</span></div>
+						<div id="restrictionIndicator"
+							style="color: #ff3300; font-weight: bold; margin-top: 5px; display: none;">出撃制限: なし</div>
 					</div>
 				</div>
 				<button id="stageLaunchBtn" class="btn-primary" style="width:100%; font-size:1.1rem; padding:10px; margin-bottom: 5px;" onclick="launchSelectedStage()">戦闘開始</button>
+				<button id="eventLaunchBtn" class="btn-primary" style="width:100%; font-size:0.9rem; padding:8px; background: #9c27b0; border-color:#3d1f05; box-shadow:0 5px 0 #673ab7;" onclick="launchEventStage()">本日の特別イベントステージ</button>
 			</div>
 		</div>
 		<div class="nav-buttons" style="gap: 10px; display: flex; width: 100%;">
@@ -761,7 +697,6 @@
 						<div id="deckDetailAbility"
 							style="font-size: 0.75rem; font-weight: 900; color: #e91e63; background: #fff; padding: 2px 6px; border: 1.5px solid #3d1f05; border-radius: 6px; display: inline-block; margin-bottom: 4px;">
 							特性: なし</div>
-						<!-- 【新規追加】経験値(XP)変換ボタン -->
 						<button id="convertXpBtn" class="btn-primary" style="font-size: 0.75rem; padding: 4px 8px; width: 100%; display: none; background: #00aa88; border-color: #3d1f05; box-shadow: 0 3px 0 #007755; text-shadow: none;">プラス値をXPに変換</button>
 					</div>
 				</div>
@@ -877,7 +812,7 @@
 	<!-- 進化演出オーバーレイ -->
 	<div id="evolutionOverlay">
 		<div class="reveal-card show" style="border-color: #ffd700; width: 440px;">
-			<div class="reveal-badge" style="background: #ffd700; color: #3d1f05; font-weight:900;">しんかしました！</div>
+			<div class="reveal-badge" style="background: #ffd700; color: #3d1f05; font-weight:900;">進化しました!</div>
 
 			<div style="display: flex; gap: 15px; justify-content: center; margin: 15px 0;">
 				<div
@@ -932,8 +867,8 @@
 			style="width: 550px; border-color: #d4af37; max-height: 85vh; overflow-y: auto; text-align: left;">
 			<div class="reveal-badge" style="background: #d4af37; color: #3d1f05; font-weight:900;">お宝図鑑 (Treasure
 				Museum)</div>
-			<h3 style="margin-top: 15px; font-size: 1.4rem; color: #3d1f05; text-align: center; font-weight: 900;">日本編
-				発動中バフアビリティ</h3>
+			<h3 style="margin-top: 15px; font-size: 1.4rem; color: #3d1f05; text-align: center; font-weight: 900;">
+				バフアビリティ一覧</h3>
 
 			<div id="treasureBuffContainer"
 				style="background: #fff; border: 3px solid #3d1f05; border-radius: 12px; padding: 12px; margin-bottom: 15px; font-weight: bold; line-height: 1.7;">
@@ -941,7 +876,7 @@
 			</div>
 
 			<div id="treasureGridContainer" style="display: flex; flex-direction: column; gap: 10px;">
-				<!-- 3つの地域の収集グリッド -->
+				<!-- お宝収集の進行度 -->
 			</div>
 
 			<button class="btn-primary" style="width: 100%; margin-top: 15px;" onclick="closeTreasureModal()">閉じる</button>
@@ -950,69 +885,129 @@
 
 	<!-- ==================== JavaScript エリア ==================== -->
 	<script>
-		// --- 1. キャラクターデータベース定義 ---
-    const catListConfigs = [
+		// --- 1. キャラクターデータベース定義（新規追加を合わせた合計100にゃんこ） ---
+    var catListConfigs = [
       // Rare (0-14)
-      { id: "cat1", name: "ネコ", evolvedName: "ネコビルダー", cost: 50, hp: 120, atk: 12, range: 30, speed: 1.5, interval: 40, cdMax: 180, isArea: false, drawType: "normal", color: "#eef", evColor: "#ffd700", rarity: "Rare", ability: "なし" },
-      { id: "cat2", name: "タンクネコ", evolvedName: "カベネコ", cost: 150, hp: 450, atk: 4, range: 15, speed: 0.9, interval: 50, cdMax: 480, isArea: false, drawType: "tank", color: "#ccd", evColor: "#444", rarity: "Rare", ability: "なし" },
-      { id: "cat3", name: "バトルネコ", evolvedName: "勇者ネコ", cost: 300, hp: 250, atk: 35, range: 45, speed: 1.8, interval: 35, cdMax: 600, isArea: false, drawType: "normal", color: "#ffb3d9", evColor: "#ff0033", rarity: "Rare", ability: "赤い敵にダメージ3倍" },
-      { id: "cat_ninja", name: "忍者ネコ", evolvedName: "ガマ忍者ネコ", cost: 240, hp: 280, atk: 25, range: 35, speed: 2.2, interval: 28, cdMax: 350, isArea: false, drawType: "ninja", color: "#95a5a6", evColor: "#673ab7", rarity: "Rare", ability: "赤い敵にダメージ2倍＆被ダメ半減" },
-      { id: "cat_sumo", name: "スモウネコ", evolvedName: "ザ・スモウ", cost: 400, hp: 800, atk: 10, range: 15, speed: 0.8, interval: 45, cdMax: 500, isArea: true, drawType: "tank", color: "#f5b041", evColor: "#e67e22", rarity: "Rare", ability: "黒い敵からの被ダメージ1/4（超耐久）" },
-      { id: "cat_samurai", name: "サムライネコ", evolvedName: "ネコナイト", cost: 350, hp: 300, atk: 42, range: 40, speed: 1.6, interval: 32, cdMax: 550, isArea: false, drawType: "normal", color: "#34495e", evColor: "#2c3e50", rarity: "Rare", ability: "なし" },
-      { id: "cat_zombie", name: "ゾンビネコ", evolvedName: "デビルネコ", cost: 350, hp: 200, atk: 55, range: 35, speed: 1.3, interval: 30, cdMax: 480, isArea: false, drawType: "normal", color: "#2ecc71", evColor: "#27ae60", rarity: "Rare", ability: "なし" },
-      { id: "cat_apple", name: "リンゴネコ", evolvedName: "ネコカッター", cost: 380, hp: 250, atk: 48, range: 30, speed: 1.4, interval: 35, cdMax: 450, isArea: false, drawType: "object", color: "#e74c3c", evColor: "#c0392b", rarity: "Rare", ability: "なし" },
-      { id: "cat_pirate", name: "ネコ海賊", evolvedName: "ニャンココック", cost: 510, hp: 380, atk: 50, range: 110, speed: 1.2, interval: 45, cdMax: 500, isArea: false, drawType: "normal", color: "#3e2723", evColor: "#5d4037", rarity: "Rare", ability: "赤い敵を40%の確率でふっとばす" },
-      { id: "cat_thief", name: "ねこ泥棒", evolvedName: "怪盗ニャンコ", cost: 420, hp: 220, atk: 60, range: 30, speed: 2.5, interval: 25, cdMax: 400, isArea: false, drawType: "ninja", color: "#795548", evColor: "#4e342e", rarity: "Rare", ability: "なし" },
-      { id: "cat_monk", name: "ネコ僧侶", evolvedName: "ネコ法師", cost: 490, hp: 310, atk: 28, range: 120, speed: 1.1, interval: 50, cdMax: 420, isArea: false, drawType: "normal", color: "#fff9c4", evColor: "#fbc02d", rarity: "Rare", ability: "なし" },
-      { id: "cat_shaman", name: "シャーマン", evolvedName: "ネコオンドリ", cost: 520, hp: 330, atk: 45, range: 150, speed: 1.1, interval: 52, cdMax: 460, isArea: false, drawType: "normal", color: "#b2dfdb", evColor: "#00796b", rarity: "Rare", ability: "なし" },
-      { id: "cat_pogo", name: "ポッピング", evolvedName: "ホッピング", cost: 270, hp: 190, atk: 18, range: 30, speed: 1.3, interval: 38, cdMax: 300, isArea: false, drawType: "normal", color: "#e1bee7", evColor: "#7b1fa2", rarity: "Rare", ability: "なし" },
-      { id: "cat_wheel", name: "ネコ車輪", evolvedName: "ネコ太陽", cost: 550, hp: 270, atk: 90, range: 90, speed: 1.2, interval: 40, cdMax: 500, isArea: true, drawType: "object", color: "#ff8f00", evColor: "#ff6f00", rarity: "Rare", ability: "なし" },
-      { id: "cat_jura", name: "ネコジュラ", evolvedName: "ジュラシザーズ", cost: 650, hp: 500, atk: 85, range: 35, speed: 1.4, interval: 45, cdMax: 600, isArea: false, drawType: "lizard", color: "#80d8ff", evColor: "#0091ea", rarity: "Rare", ability: "なし" },
+      { id: "cat1", name: "ネコ", evolvedName: "ネコビルダー", cost: 50, hp: 120, atk: 12, range: 30, speed: 1.5, interval: 40, cdMax: 240, isArea: false, drawType: "normal", color: "#eef", evColor: "#ffd700", rarity: "Rare", ability: "なし" },
+      { id: "cat2", name: "タンクネコ", evolvedName: "カベネコ", cost: 150, hp: 450, atk: 4, range: 15, speed: 0.9, interval: 50, cdMax: 360, isArea: false, drawType: "tank", color: "#ccd", evColor: "#444", rarity: "Rare", ability: "なし" },
+      { id: "cat3", name: "バトルネコ", evolvedName: "勇者ネコ", cost: 300, hp: 250, atk: 35, range: 45, speed: 1.8, interval: 35, cdMax: 540, isArea: false, drawType: "normal", color: "#ffb3d9", evColor: "#ff0033", rarity: "Rare", ability: "赤い敵にダメージ3倍" },
+      { id: "cat_ninja", name: "忍者ネコ", evolvedName: "ガマ忍者ネコ", cost: 240, hp: 280, atk: 25, range: 35, speed: 2.2, interval: 28, cdMax: 450, isArea: false, drawType: "ninja", color: "#95a5a6", evColor: "#673ab7", rarity: "Rare", ability: "赤い敵にダメージ2倍＆被ダメ半減" },
+      { id: "cat_sumo", name: "スモウネコ", evolvedName: "ザ・スモウ", cost: 400, hp: 800, atk: 10, range: 15, speed: 0.8, interval: 45, cdMax: 600, isArea: true, drawType: "tank", color: "#f5b041", evColor: "#e67e22", rarity: "Rare", ability: "黒い敵からの被ダメージ1/4（超耐久）" },
+      { id: "cat_samurai", name: "サムライネコ", evolvedName: "ネコナイト", cost: 350, hp: 300, atk: 42, range: 40, speed: 1.6, interval: 32, cdMax: 600, isArea: false, drawType: "normal", color: "#34495e", evColor: "#2c3e50", rarity: "Rare", ability: "なし" },
+      { id: "cat_zombie", name: "ゾンビネコ", evolvedName: "デビルネコ", cost: 350, hp: 200, atk: 55, range: 35, speed: 1.3, interval: 30, cdMax: 520, isArea: false, drawType: "normal", color: "#2ecc71", evColor: "#27ae60", rarity: "Rare", ability: "なし" },
+      { id: "cat_apple", name: "リンゴネコ", evolvedName: "ネコカッター", cost: 380, hp: 250, atk: 48, range: 30, speed: 1.4, interval: 35, cdMax: 480, isArea: false, drawType: "object", color: "#e74c3c", evColor: "#c0392b", rarity: "Rare", ability: "なし" },
+      { id: "cat_pirate", name: "ネコ海賊", evolvedName: "ニャンココック", cost: 510, hp: 380, atk: 50, range: 110, speed: 1.2, interval: 45, cdMax: 560, isArea: false, drawType: "normal", color: "#3e2723", evColor: "#5d4037", rarity: "Rare", ability: "赤い敵とエイリアンを40%ふっとばす" },
+      { id: "cat_thief", name: "ねこ泥棒", evolvedName: "怪盗ニャンコ", cost: 420, hp: 220, atk: 60, range: 30, speed: 2.5, interval: 25, cdMax: 450, isArea: false, drawType: "ninja", color: "#795548", evColor: "#4e342e", rarity: "Rare", ability: "なし" },
+      { id: "cat_monk", name: "ネコ僧侶", evolvedName: "ネコ法師", cost: 490, hp: 310, atk: 28, range: 120, speed: 1.1, interval: 50, cdMax: 480, isArea: false, drawType: "normal", color: "#fff9c4", evColor: "#fbc02d", rarity: "Rare", ability: "なし" },
+      { id: "cat_shaman", name: "シャーマン", evolvedName: "ネコオンドリ", cost: 520, hp: 330, atk: 45, range: 150, speed: 1.1, interval: 52, cdMax: 500, isArea: false, drawType: "normal", color: "#b2dfdb", evColor: "#00796b", rarity: "Rare", ability: "なし" },
+      { id: "cat_pogo", name: "ポッピング", evolvedName: "ホッピング", cost: 270, hp: 190, atk: 18, range: 30, speed: 1.3, interval: 38, cdMax: 360, isArea: false, drawType: "normal", color: "#e1bee7", evColor: "#7b1fa2", rarity: "Rare", ability: "なし" },
+      { id: "cat_wheel", name: "ネコ車輪", evolvedName: "ネコ太陽", cost: 550, hp: 270, atk: 90, range: 90, speed: 1.2, interval: 40, cdMax: 580, isArea: true, drawType: "object", color: "#ff8f00", evColor: "#ff6f00", rarity: "Rare", ability: "なし" },
+      { id: "cat_jura", name: "ネコジュラ", evolvedName: "ジュラシザーズ", cost: 650, hp: 500, atk: 85, range: 35, speed: 1.4, interval: 45, cdMax: 680, isArea: false, drawType: "lizard", color: "#80d8ff", evColor: "#0091ea", rarity: "Rare", ability: "なし" },
 
-      // Super Rare (15-29)
-      { id: "cat_gross", name: "キモネコ", evolvedName: "美脚ネコ", cost: 400, hp: 350, atk: 80, range: 140, speed: 1.1, interval: 45, cdMax: 400, isArea: false, drawType: "gross", color: "#fff", evColor: "#ffd700", rarity: "Super Rare", ability: "なし" },
-      { id: "cat_cow", name: "ウシネコ", evolvedName: "ネコキリン", cost: 500, hp: 400, atk: 30, range: 20, speed: 3.2, interval: 15, cdMax: 300, isArea: false, drawType: "cow", color: "#fff", evColor: "#ffd700", rarity: "Super Rare", ability: "なし" },
-      { id: "cat_bird", name: "トリネコ", evolvedName: "ネコUFO", cost: 650, hp: 180, atk: 120, range: 80, speed: 1.6, interval: 48, cdMax: 500, isArea: true, drawType: "bird", color: "#fff", evColor: "#ffd700", rarity: "Super Rare", ability: "なし" },
-      { id: "cat_sushi", name: "ねこ寿司", evolvedName: "特上寿司", cost: 820, hp: 900, atk: 65, range: 40, speed: 1.2, interval: 42, cdMax: 650, isArea: false, drawType: "object", color: "#ffccbc", evColor: "#ff5722", rarity: "Super Rare", ability: "なし" },
-      { id: "cat_boxer", name: "ボクサー", evolvedName: "チャンピオン", cost: 600, hp: 550, atk: 90, range: 35, speed: 1.8, interval: 30, cdMax: 550, isArea: false, drawType: "normal", color: "#90caf9", evColor: "#1565c0", rarity: "Super Rare", ability: "なし" },
-      { id: "cat_swimmer", name: "スイマー", evolvedName: "ネコバタフライ", cost: 750, hp: 450, atk: 140, range: 30, speed: 3.0, interval: 35, cdMax: 600, isArea: false, drawType: "fish", color: "#e0f7fa", evColor: "#006064", rarity: "Super Rare", ability: "なし" },
-      { id: "cat_delinquent", name: "ネコ番長", evolvedName: "怒りの番長", cost: 970, hp: 1200, atk: 180, range: 110, speed: 1.2, interval: 50, cdMax: 800, isArea: true, drawType: "normal", color: "#212121", evColor: "#000", rarity: "Super Rare", ability: "なし" },
-      { id: "cat_witch", name: "ネコ魔女", evolvedName: "大魔女ニャンコ", cost: 620, hp: 420, atk: 70, range: 160, speed: 1.1, interval: 45, cdMax: 480, isArea: false, drawType: "floating", color: "#ea80fc", evColor: "#aa00ff", rarity: "Super Rare", ability: "浮いてる敵を30%の確率で1.5秒停止" },
-      { id: "cat_archer", name: "アーチャー", evolvedName: "キューピッド", cost: 580, hp: 390, atk: 85, range: 180, speed: 1.3, interval: 48, cdMax: 500, isArea: false, drawType: "normal", color: "#ff8a80", evColor: "#d50000", rarity: "Super Rare", ability: "なし" },
-      { id: "cat_gunslinger", name: "ガンマン", evolvedName: "保安官ネコ", cost: 680, hp: 410, atk: 110, range: 170, speed: 1.2, interval: 52, cdMax: 540, isArea: false, drawType: "normal", color: "#d7ccc8", evColor: "#5d4037", rarity: "Super Rare", ability: "なし" },
-      { id: "cat_fortune", name: "占い師", evolvedName: "陰陽師ニャンコ", cost: 590, hp: 400, atk: 55, range: 130, speed: 1.1, interval: 40, cdMax: 450, isArea: false, drawType: "normal", color: "#b39ddb", evColor: "#4a148c", rarity: "Super Rare", ability: "なし" },
-      { id: "cat_rocker", name: "ロッカー", evolvedName: "メタルネコ", cost: 310, hp: 400, atk: 35, range: 25, speed: 1.5, interval: 22, cdMax: 320, isArea: false, drawType: "normal", color: "#f8bbd0", evColor: "#c2185b", rarity: "Super Rare", ability: "なし" },
-      { id: "cat_mermaid", name: "人魚ネコ", evolvedName: "セイレーン", cost: 480, hp: 600, atk: 45, range: 40, speed: 1.0, interval: 48, cdMax: 460, isArea: false, drawType: "fish", color: "#b2dfdb", evColor: "#00796b", rarity: "Super Rare", ability: "なし" },
-      { id: "cat_waitress", name: "ウエイトレス", evolvedName: "メイドネコ", cost: 720, hp: 500, atk: 110, range: 80, speed: 1.4, interval: 42, cdMax: 550, isArea: false, drawType: "normal", color: "#cfd8dc", evColor: "#37474f", rarity: "Super Rare", ability: "なし" },
-      { id: "cat_kotatsu", name: "ねこタツ", evolvedName: "コタツネコ", cost: 880, hp: 1100, atk: 50, range: 30, speed: 0.9, interval: 55, cdMax: 700, isArea: false, drawType: "object", color: "#ffcc80", evColor: "#ef6c00", rarity: "Super Rare", ability: "なし" },
+      // 新規追加 Rare 10体
+      { id: "cat_doc", name: "ネコドクター", evolvedName: "マッドサイエンティスト", cost: 220, hp: 220, atk: 25, range: 35, speed: 1.2, interval: 30, cdMax: 300, isArea: false, drawType: "normal", color: "#b2dfdb", evColor: "#00796b", rarity: "Rare", ability: "ゾンビ属性の動きを2秒間止める（ゾンビキラー）" },
+      { id: "cat_clover", name: "ネコクローバー", evolvedName: "ネコハッピー四つ葉", cost: 180, hp: 150, atk: 5, range: 30, speed: 1.4, interval: 25, cdMax: 260, isArea: false, drawType: "object", color: "#a5d6a7", evColor: "#4caf50", rarity: "Rare", ability: "5%の確率でクリティカル（メタル特効）" },
+      { id: "cat_dumbbell", name: "ネコダンベル", evolvedName: "ネコマッスル", cost: 180, hp: 500, atk: 8, range: 15, speed: 0.8, interval: 55, cdMax: 320, isArea: false, drawType: "tank", color: "#cfd8dc", evColor: "#37474f", rarity: "Rare", ability: "黒い敵から受けるダメージを1/4にする" },
+      { id: "cat_marathon", name: "ネコマラソン", evolvedName: "ネコスピードスター", cost: 120, hp: 100, atk: 10, range: 20, speed: 3.5, interval: 20, cdMax: 150, isArea: false, drawType: "cow", color: "#ffe082", evColor: "#ff8f00", rarity: "Rare", ability: "超高速移動で前線を維持するデコイ" },
+      { id: "cat_chef", name: "ネココック", evolvedName: "ネコ三ツ星シェフ", cost: 350, hp: 240, atk: 45, range: 40, speed: 1.1, interval: 35, cdMax: 400, isArea: true, drawType: "normal", color: "#fff", evColor: "#ffd700", rarity: "Rare", ability: "赤い敵とエイリアンの攻撃を確率で無効化" },
+      { id: "cat_camera", name: "ネコカメラ", evolvedName: "ネコパパラッチ", cost: 280, hp: 190, atk: 22, range: 130, speed: 1.0, interval: 48, cdMax: 380, isArea: false, drawType: "normal", color: "#eceff1", evColor: "#78909c", rarity: "Rare", ability: "浮いてる敵の動きを遅くする" },
+      { id: "cat_artist", name: "ネコアーティスト", evolvedName: "ネコピカソ", cost: 310, hp: 210, atk: 30, range: 45, speed: 1.3, interval: 42, cdMax: 420, isArea: false, drawType: "object", color: "#ea80fc", evColor: "#aa00ff", rarity: "Rare", ability: "スターエイリアンのバリアを確率で破壊" },
+      { id: "cat_mike", name: "ネコマイク", evolvedName: "ネコカラオケキング", cost: 200, hp: 130, atk: 15, range: 30, speed: 1.2, interval: 32, cdMax: 240, isArea: false, drawType: "normal", color: "#ffd54f", evColor: "#ffb300", rarity: "Rare", ability: "お財布の自動回復を補助する" },
+      { id: "cat_keeper", name: "ネコキーパー", evolvedName: "ネコゴールデンGK", cost: 250, hp: 480, atk: 12, range: 15, speed: 0.9, interval: 50, cdMax: 340, isArea: false, drawType: "tank", color: "#ffe082", evColor: "#ffca28", rarity: "Rare", ability: "赤い敵から受けるダメージを1/4にする" },
+      { id: "cat_mop", name: "ネコモップ", evolvedName: "ネコクリーンスイーパー", cost: 160, hp: 380, atk: 6, range: 20, speed: 1.0, interval: 45, cdMax: 280, isArea: false, drawType: "object", color: "#eef", evColor: "#bbdefb", rarity: "Rare", ability: "宇宙編のワープ攻撃を完全に無効化する" },
 
-      // Uber Rare (30-44)
-      { id: "cat_fish", name: "フィッシュ", evolvedName: "ネコクジラ", cost: 800, hp: 800, atk: 150, range: 35, speed: 1.4, interval: 42, cdMax: 700, isArea: false, drawType: "fish", color: "#eef", evColor: "#ffd700", rarity: "Uber Rare", ability: "なし" },
-      { id: "cat_lizard", name: "トカゲ", evolvedName: "ネコドラゴン", cost: 1000, hp: 600, atk: 220, range: 240, speed: 1.0, interval: 55, cdMax: 800, isArea: false, drawType: "lizard", color: "#eef", evColor: "#ffd700", rarity: "Uber Rare", ability: "なし" },
-      { id: "cat_titan", name: "巨神ネコ", evolvedName: "ダラボッチ", cost: 1500, hp: 2000, atk: 500, range: 30, speed: 0.8, interval: 70, cdMax: 1200, isArea: false, drawType: "titan", color: "#555", evColor: "#ffd700", rarity: "Uber Rare", ability: "なし" },
-      { id: "cat_salon", name: "ネコエステ", evolvedName: "ネコジェンヌ", cost: 1200, hp: 1000, atk: 250, range: 180, speed: 1.2, interval: 38, cdMax: 900, isArea: true, drawType: "salon", color: "#fff", evColor: "#ffd700", rarity: "Uber Rare", ability: "黒い敵にダメージ3倍（範囲攻撃）" },
-      { id: "cat_surfer", name: "サーファー", evolvedName: "サーフニャン", cost: 1100, hp: 950, atk: 230, range: 140, speed: 1.5, interval: 40, cdMax: 850, isArea: true, drawType: "object", color: "#80deea", evColor: "#00838f", rarity: "Uber Rare", ability: "赤い敵を30%の確率で1.5秒停止" },
-      { id: "cat_skater", name: "スケート", evolvedName: "フィギュア", cost: 1250, hp: 1100, atk: 280, range: 150, speed: 1.6, interval: 45, cdMax: 950, isArea: true, drawType: "gross", color: "#b3e5fc", evColor: "#0288d1", rarity: "Uber Rare", ability: "なし" },
-      { id: "cat_toaster", name: "トースター", evolvedName: "家電トースタ", cost: 1300, hp: 1300, atk: 310, range: 130, speed: 1.1, interval: 50, cdMax: 1000, isArea: true, drawType: "object", color: "#ffecb3", evColor: "#ff8f00", rarity: "Uber Rare", ability: "なし" },
-      { id: "cat_tv", name: "ねこTV", evolvedName: "シネマニャンコ", cost: 1400, hp: 1500, atk: 180, range: 60, speed: 1.0, interval: 45, cdMax: 1050, isArea: true, drawType: "object", color: "#b2dfdb", evColor: "#00695c", rarity: "Uber Rare", ability: "なし" },
-      { id: "cat_explorer", name: "冒険家ネコ", evolvedName: "インディネコ", cost: 1050, hp: 880, atk: 240, range: 110, speed: 1.3, interval: 38, cdMax: 820, isArea: false, drawType: "normal", color: "#ffe082", evColor: "#ff8f00", rarity: "Uber Rare", ability: "なし" },
-      { id: "cat_jumper", name: "ジャンパー", evolvedName: "スカイニャン", cost: 1150, hp: 920, atk: 260, range: 120, speed: 1.7, interval: 40, cdMax: 880, isArea: false, drawType: "normal", color: "#e1bee7", evColor: "#7b1fa2", rarity: "Uber Rare", ability: "なし" },
-      { id: "cat_butterfly", name: "バタフライ", evolvedName: "真・パピヨン", cost: 1220, hp: 750, atk: 350, range: 100, speed: 2.5, interval: 42, cdMax: 920, isArea: true, drawType: "floating", color: "#f8bbd0", evColor: "#c2185b", rarity: "Uber Rare", ability: "なし" },
-      { id: "cat_bodhi", name: "ネコぼさつ", evolvedName: "千手観音ニャン", cost: 1600, hp: 1700, atk: 450, range: 160, speed: 1.0, interval: 55, cdMax: 1150, isArea: true, drawType: "normal", color: "#ffcc80", evColor: "#e65100", rarity: "Uber Rare", ability: "なし" },
-      { id: "cat_onigiri", name: "おにぎり", evolvedName: "神米おにぎり", cost: 850, hp: 1200, atk: 90, range: 30, speed: 1.1, interval: 32, cdMax: 650, isArea: false, drawType: "object", color: "#fff", evColor: "#3e2723", rarity: "Uber Rare", ability: "なし" },
-      { id: "cat_gigant", name: "ギガント", evolvedName: "メガトンネコ", cost: 1750, hp: 2400, atk: 600, range: 35, speed: 0.7, interval: 75, cdMax: 1300, isArea: true, drawType: "titan", color: "#b0bec5", evColor: "#37474f", rarity: "Uber Rare", ability: "なし" },
-      { id: "cat_knight", name: "聖騎士", evolvedName: "真・ロイヤル", cost: 1450, hp: 1400, atk: 400, range: 120, speed: 1.4, interval: 46, cdMax: 1100, isArea: false, drawType: "normal", color: "#b3e5fc", evColor: "#0288d1", rarity: "Uber Rare", ability: "なし" },
+      // Super Rare (25-39)
+      { id: "cat_gross", name: "キモネコ", evolvedName: "美脚ネコ", cost: 400, hp: 350, atk: 80, range: 140, speed: 1.1, interval: 45, cdMax: 550, isArea: false, drawType: "gross", color: "#fff", evColor: "#ffd700", rarity: "Super Rare", ability: "なし" },
+      { id: "cat_cow", name: "ウシネコ", evolvedName: "ネコキリン", cost: 500, hp: 400, atk: 30, range: 20, speed: 3.2, interval: 15, cdMax: 480, isArea: false, drawType: "cow", color: "#fff", evColor: "#ffd700", rarity: "Super Rare", ability: "なし" },
+      { id: "cat_bird", name: "トリネコ", evolvedName: "ネコUFO", cost: 650, hp: 180, atk: 120, range: 80, speed: 1.6, interval: 48, cdMax: 650, isArea: true, drawType: "bird", color: "#fff", evColor: "#ffd700", rarity: "Super Rare", ability: "なし" },
+      { id: "cat_sushi", name: "ねこ寿司", evolvedName: "特上寿司", cost: 820, hp: 900, atk: 65, range: 40, speed: 1.2, interval: 42, cdMax: 780, isArea: false, drawType: "object", color: "#ffccbc", evColor: "#ff5722", rarity: "Super Rare", ability: "なし" },
+      { id: "cat_boxer", name: "ボクサー", evolvedName: "チャンピオン", cost: 600, hp: 550, atk: 90, range: 35, speed: 1.8, interval: 30, cdMax: 620, isArea: false, drawType: "normal", color: "#90caf9", evColor: "#1565c0", rarity: "Super Rare", ability: "なし" },
+      { id: "cat_swimmer", name: "スイマー", evolvedName: "ネコバタフライ", cost: 750, hp: 450, atk: 140, range: 30, speed: 3.0, interval: 35, cdMax: 720, isArea: false, drawType: "fish", color: "#e0f7fa", evColor: "#006064", rarity: "Super Rare", ability: "なし" },
+      { id: "cat_delinquent", name: "ネコ番長", evolvedName: "怒りの番長", cost: 970, hp: 1200, atk: 180, range: 110, speed: 1.2, interval: 50, cdMax: 950, isArea: true, drawType: "normal", color: "#212121", evColor: "#000", rarity: "Super Rare", ability: "なし" },
+      { id: "cat_witch", name: "ネコ魔女", evolvedName: "大魔女ニャンコ", cost: 620, hp: 420, atk: 70, range: 160, speed: 1.1, interval: 45, cdMax: 550, isArea: false, drawType: "floating", color: "#ea80fc", evColor: "#aa00ff", rarity: "Super Rare", ability: "浮いてる敵・エイリアンを30%で1.5秒停止" },
+      { id: "cat_archer", name: "アーチャー", evolvedName: "キューピッド", cost: 580, hp: 390, atk: 85, range: 180, speed: 1.3, interval: 48, cdMax: 580, isArea: false, drawType: "normal", color: "#ff8a80", evColor: "#d50000", rarity: "Super Rare", ability: "なし" },
+      { id: "cat_gunslinger", name: "ガンマン", evolvedName: "保安官ネコ", cost: 680, hp: 410, atk: 110, range: 170, speed: 1.2, interval: 52, cdMax: 620, isArea: false, drawType: "normal", color: "#d7ccc8", evColor: "#5d4037", rarity: "Super Rare", ability: "なし" },
+      { id: "cat_fortune", name: "占い師", evolvedName: "陰陽師ニャンコ", cost: 590, hp: 400, atk: 55, range: 130, speed: 1.1, interval: 40, cdMax: 520, isArea: false, drawType: "normal", color: "#b39ddb", evColor: "#4a148c", rarity: "Super Rare", ability: "なし" },
+      { id: "cat_rocker", name: "ロッカー", evolvedName: "メタルネコ", cost: 310, hp: 400, atk: 35, range: 25, speed: 1.5, interval: 22, cdMax: 420, isArea: false, drawType: "normal", color: "#f8bbd0", evColor: "#c2185b", rarity: "Super Rare", ability: "なし" },
+      { id: "cat_mermaid", name: "人魚ネコ", evolvedName: "セイレーン", cost: 480, hp: 600, atk: 45, range: 40, speed: 1.0, interval: 48, cdMax: 540, isArea: false, drawType: "fish", color: "#b2dfdb", evColor: "#00796b", rarity: "Super Rare", ability: "なし" },
+      { id: "cat_waitress", name: "ウエイトレス", evolvedName: "メイドネコ", cost: 720, hp: 500, atk: 110, range: 80, speed: 1.4, interval: 42, cdMax: 640, isArea: false, drawType: "normal", color: "#cfd8dc", evColor: "#37474f", rarity: "Super Rare", ability: "なし" },
+      { id: "cat_kotatsu", name: "ねこタツ", evolvedName: "コタツネコ", cost: 880, hp: 1100, atk: 50, range: 30, speed: 0.9, interval: 55, cdMax: 820, isArea: false, drawType: "object", color: "#ffcc80", evColor: "#ef6c00", rarity: "Super Rare", ability: "なし" },
 
-      // Legend Rare (45-49)
-      { id: "cat_valkyrie", name: "ヴァルキリー", evolvedName: "真・ヴァルキリー", cost: 2000, hp: 1800, atk: 750, range: 160, speed: 2.8, interval: 30, cdMax: 1800, isArea: true, drawType: "valkyrie", color: "#ffeb3b", evColor: "#ffd700", rarity: "Legend Rare", ability: "浮いてる敵にダメージ3倍" },
-      { id: "cat_bahamut", name: "バハムート", evolvedName: "狂乱バハムート", cost: 3000, hp: 3500, atk: 1800, range: 200, speed: 1.8, interval: 80, cdMax: 3000, isArea: true, drawType: "dragon", color: "#9c27b0", evColor: "#e91e63", rarity: "Legend Rare", ability: "属性持ち（白以外）にダメージ2倍＆極大範囲攻撃" },
-      { id: "cat_odin", name: "オーディン", evolvedName: "グングニル神", cost: 2800, hp: 3200, atk: 1500, range: 190, speed: 1.5, interval: 75, cdMax: 2800, isArea: true, drawType: "valkyrie", color: "#00bcd4", evColor: "#00838f", rarity: "Legend Rare", ability: "なし" },
-      { id: "cat_anubis", name: "アヌビス", evolvedName: "死冥府王", cost: 2500, hp: 2800, atk: 1200, range: 150, speed: 2.0, interval: 60, cdMax: 2400, isArea: true, drawType: "titan", color: "#ff9800", evColor: "#ff5722", rarity: "Legend Rare", ability: "なし" },
-      { id: "cat_god", name: "ネコ神霊", evolvedName: "太陽神アポロ", cost: 3500, hp: 4500, atk: 2500, range: 250, speed: 0.9, interval: 90, cdMax: 3500, isArea: true, drawType: "floating", color: "#ffd700", evColor: "#ff3300", rarity: "Legend Rare", ability: "すべての敵にダメージ2倍" }
+      // 新規追加 Super Rare 10体
+      { id: "cat_drone", name: "ネコドローン", evolvedName: "ネコUFO改", cost: 720, hp: 280, atk: 160, range: 100, speed: 2.2, interval: 42, cdMax: 700, isArea: true, drawType: "bird", color: "#80deea", evColor: "#00acc1", rarity: "Super Rare", ability: "浮いてる敵に超ダメージ" },
+      { id: "cat_snowboard", name: "ネコスノボ", evolvedName: "ネコスノーボーダー", cost: 640, hp: 310, atk: 95, range: 90, speed: 1.8, interval: 38, cdMax: 620, isArea: true, drawType: "normal", color: "#80d8ff", evColor: "#0091ea", rarity: "Super Rare", ability: "赤い敵の動きを100%遅くする" },
+      { id: "cat_barista", name: "ネコバリスタ", evolvedName: "ネコラテアーティスト", cost: 580, hp: 260, atk: 85, range: 70, speed: 1.2, interval: 35, cdMax: 580, isArea: true, drawType: "object", color: "#d7ccc8", evColor: "#8d6e63", rarity: "Super Rare", ability: "低確率でLv.1波動を放ち後方を巻き込む" },
+      { id: "cat_grenade", name: "ネコグレネード", evolvedName: "ネコヘヴィランッチャー", cost: 950, hp: 420, atk: 320, range: 170, speed: 0.9, interval: 90, cdMax: 1100, isArea: true, drawType: "object", color: "#90a4ae", evColor: "#37474f", rarity: "Super Rare", ability: "再生産は遅いが圧倒的威力の範囲爆撃" },
+      { id: "cat_magnet", name: "ネコマグネット", evolvedName: "ネコ電磁ホバー", cost: 680, hp: 390, atk: 110, range: 110, speed: 1.5, interval: 40, cdMax: 750, isArea: false, drawType: "floating", color: "#b3e5fc", evColor: "#0288d1", rarity: "Super Rare", ability: "エイリアンをふっとばす・ワープ無効" },
+      { id: "cat_car", name: "ネコカー", evolvedName: "ネコデリバリートラック", cost: 520, hp: 350, atk: 240, range: 25, speed: 3.8, interval: 60, cdMax: 800, isArea: false, drawType: "cow", color: "#eee", evColor: "#424242", rarity: "Super Rare", ability: "超高速で突進し強烈な一撃を与える" },
+      { id: "cat_sniper", name: "ネコスナイパー", evolvedName: "ネコゴルゴ", cost: 1100, hp: 200, atk: 150, range: 300, speed: 0.7, interval: 120, cdMax: 1500, isArea: false, drawType: "normal", color: "#cfd8dc", evColor: "#546e7a", rarity: "Super Rare", ability: "超長射程から敵を100%ふっとばして仕切り直す" },
+      { id: "cat_hacker", name: "ネコハッカー", evolvedName: "ネコスーパーハッカー", cost: 1300, hp: 250, atk: 60, range: 350, speed: 0.5, interval: 100, cdMax: 1800, isArea: true, drawType: "normal", color: "#b2dfdb", evColor: "#009688", rarity: "Super Rare", ability: "超遠距離から全属性の敵を遅くする" },
+      { id: "cat_dj", name: "ネコDJ", evolvedName: "ネコクラブミキサー", cost: 610, hp: 330, atk: 120, range: 45, speed: 1.6, interval: 25, cdMax: 640, isArea: false, drawType: "object", color: "#ea80fc", evColor: "#aa00ff", rarity: "Super Rare", ability: "高速の多段ヒット攻撃で黒い敵の動きを止める" },
+      { id: "cat_spring", name: "ネコスプリング", evolvedName: "ネコスプリングホッパー", cost: 450, hp: 220, atk: 70, range: 35, speed: 1.5, interval: 30, cdMax: 520, isArea: false, drawType: "normal", color: "#ff8a80", evColor: "#ff1744", rarity: "Super Rare", ability: "被弾時に大きく後方へ飛び跳ねて延命する" },
+
+      // Uber Rare (50-64)
+      { id: "cat_fish", name: "フィッシュ", evolvedName: "ネコクジラ", cost: 800, hp: 800, atk: 150, range: 35, speed: 1.4, interval: 42, cdMax: 840, isArea: false, drawType: "fish", color: "#eef", evColor: "#ffd700", rarity: "Uber Rare", ability: "なし" },
+      { id: "cat_lizard", name: "トカゲ", evolvedName: "ネコドラゴン", cost: 1000, hp: 600, atk: 220, range: 240, speed: 1.0, interval: 55, cdMax: 960, isArea: false, drawType: "lizard", color: "#eef", evColor: "#ffd700", rarity: "Uber Rare", ability: "なし" },
+      { id: "cat_titan", name: "巨神ネコ", evolvedName: "ダラボッチ", cost: 1500, hp: 2000, atk: 500, range: 30, speed: 0.8, interval: 70, cdMax: 1440, isArea: false, drawType: "titan", color: "#555", evColor: "#ffd700", rarity: "Uber Rare", ability: "なし" },
+      { id: "cat_salon", name: "ネコエステ", evolvedName: "ネコジェンヌ", cost: 1200, hp: 1000, atk: 250, range: 180, speed: 1.2, interval: 38, cdMax: 1100, isArea: true, drawType: "salon", color: "#fff", evColor: "#ffd700", rarity: "Uber Rare", ability: "黒い敵・エイリアンにダメージ3倍" },
+      { id: "cat_surfer", name: "サーファー", evolvedName: "サーフニャン", cost: 1100, hp: 950, atk: 230, range: 140, speed: 1.5, interval: 40, cdMax: 980, isArea: true, drawType: "object", color: "#80deea", evColor: "#00838f", rarity: "Uber Rare", ability: "赤い敵とエイリアンを30%で1.5秒停止" },
+      { id: "cat_skater", name: "スケート", evolvedName: "フィギュア", cost: 1250, hp: 1100, atk: 280, range: 150, speed: 1.6, interval: 45, cdMax: 1150, isArea: true, drawType: "gross", color: "#b3e5fc", evColor: "#0288d1", rarity: "Uber Rare", ability: "なし" },
+      { id: "cat_toaster", name: "トースター", evolvedName: "家電トースタ", cost: 1300, hp: 1300, atk: 310, range: 130, speed: 1.1, interval: 50, cdMax: 1200, isArea: true, drawType: "object", color: "#ffecb3", evColor: "#ff8f00", rarity: "Uber Rare", ability: "なし" },
+      { id: "cat_tv", name: "ねこTV", evolvedName: "シネマニャンコ", cost: 1400, hp: 1500, atk: 180, range: 60, speed: 1.0, interval: 45, cdMax: 1250, isArea: true, drawType: "object", color: "#b2dfdb", evColor: "#00695c", rarity: "Uber Rare", ability: "なし" },
+      { id: "cat_explorer", name: "冒険家ネコ", evolvedName: "インディネコ", cost: 1050, hp: 880, atk: 240, range: 110, speed: 1.3, interval: 38, cdMax: 980, isArea: false, drawType: "normal", color: "#ffe082", evColor: "#ff8f00", rarity: "Uber Rare", ability: "なし" },
+      { id: "cat_jumper", name: "ジャンパー", evolvedName: "スカイニャン", cost: 1150, hp: 920, atk: 260, range: 120, speed: 1.7, interval: 40, cdMax: 1050, isArea: false, drawType: "normal", color: "#e1bee7", evColor: "#7b1fa2", rarity: "Uber Rare", ability: "なし" },
+      { id: "cat_butterfly", name: "バタフライ", evolvedName: "真・パピヨン", cost: 1220, hp: 750, atk: 350, range: 100, speed: 2.5, interval: 42, cdMax: 1100, isArea: true, drawType: "floating", color: "#f8bbd0", evColor: "#c2185b", rarity: "Uber Rare", ability: "なし" },
+      { id: "cat_bodhi", name: "ネコぼさつ", evolvedName: "千手観音ニャン", cost: 1600, hp: 1700, atk: 450, range: 160, speed: 1.0, interval: 55, cdMax: 1350, isArea: true, drawType: "normal", color: "#ffcc80", evColor: "#e65100", rarity: "Uber Rare", ability: "なし" },
+      { id: "cat_onigiri", name: "おにぎり", evolvedName: "神米おにぎり", cost: 850, hp: 1200, atk: 90, range: 30, speed: 1.1, interval: 32, cdMax: 780, isArea: false, drawType: "object", color: "#fff", evColor: "#3e2723", rarity: "Uber Rare", ability: "なし" },
+      { id: "cat_gigant", name: "ギガント", evolvedName: "メガトンネコ", cost: 1750, hp: 2400, atk: 600, range: 35, speed: 0.7, interval: 75, cdMax: 1550, isArea: true, drawType: "titan", color: "#b0bec5", evColor: "#37474f", rarity: "Uber Rare", ability: "なし" },
+      { id: "cat_knight", name: "聖騎士", evolvedName: "真・ロイヤル", cost: 1450, hp: 1400, atk: 400, range: 120, speed: 1.4, interval: 46, cdMax: 1300, isArea: false, drawType: "normal", color: "#b3e5fc", evColor: "#0288d1", rarity: "Uber Rare", ability: "なし" },
+
+      // 新規追加 Uber Rare 15体
+      { id: "cat_dragon_knight", name: "竜騎士ネコ", evolvedName: "聖竜神ネコ", cost: 2200, hp: 2100, atk: 900, range: 150, speed: 1.3, interval: 65, cdMax: 2200, isArea: true, drawType: "dragon", color: "#ff8f00", evColor: "#ff6f00", rarity: "Uber Rare", ability: "赤い敵と黒い敵に超ダメージを与える" },
+      { id: "cat_demon_prince", name: "魔界皇子", evolvedName: "冥界魔王ネコ", cost: 1850, hp: 3100, atk: 550, range: 80, speed: 1.0, interval: 50, cdMax: 1900, isArea: true, drawType: "titan", color: "#7b1fa2", evColor: "#4a148c", rarity: "Uber Rare", ability: "ゾンビからの被ダメを大幅カット（ゾンビキラー）" },
+      { id: "cat_mech_god", name: "機甲神ネコ", evolvedName: "オメガ・キャノン", cost: 2500, hp: 4200, atk: 1200, range: 220, speed: 0.6, interval: 80, cdMax: 2600, isArea: true, drawType: "titan", color: "#90a4ae", evColor: "#37474f", rarity: "Uber Rare", ability: "超鈍足だが広範囲をカバーするレーザー射撃" },
+      { id: "cat_princess", name: "ネコ戦姫", evolvedName: "氷刃の戦姫にゃんこ", cost: 1950, hp: 1800, atk: 650, range: 130, speed: 1.6, interval: 48, cdMax: 2000, isArea: true, drawType: "valkyrie", color: "#80d8ff", evColor: "#00e5ff", rarity: "Uber Rare", ability: "浮いてる敵とエイリアンを100%の確率で停止" },
+      { id: "cat_monster", name: "古代怪獣ネコ", evolvedName: "キング・ネコゴジラ", cost: 3000, hp: 6500, atk: 1300, range: 35, speed: 0.7, interval: 75, cdMax: 2800, isArea: false, drawType: "dragon", color: "#424242", evColor: "#212121", rarity: "Uber Rare", ability: "圧倒的ステータスでデバフや波動を完全無効化" },
+      { id: "cat_sword", name: "神速ネコ", evolvedName: "神速剣士ミュート", cost: 1400, hp: 1200, atk: 480, range: 40, speed: 2.8, interval: 25, cdMax: 1300, isArea: false, drawType: "ninja", color: "#ff8a80", evColor: "#d50000", rarity: "Uber Rare", ability: "超高速3連撃・エイリアンのバリアを確定ブレイク" },
+      { id: "cat_gold_statue", name: "黄金像ネコ", evolvedName: "エルドラドにゃんこ", cost: 3500, hp: 2500, atk: 600, range: 90, speed: 0.8, interval: 70, cdMax: 3000, isArea: true, drawType: "object", color: "#ffd700", evColor: "#ffb300", rarity: "Uber Rare", ability: "敵撃破時のお金獲得量が3倍になる" },
+      { id: "cat_element", name: "精霊術師", evolvedName: "四大元素の大魔導士", cost: 1750, hp: 1500, atk: 500, range: 140, speed: 1.1, interval: 55, cdMax: 1800, isArea: true, drawType: "normal", color: "#e1bee7", evColor: "#8e24aa", rarity: "Uber Rare", ability: "敵にランダムで100%デバフを付与する魔法攻撃" },
+      { id: "cat_phoenix", name: "不死鳥ネコ", evolvedName: "不死鳥フェニックスにゃん", cost: 2100, hp: 2200, atk: 780, range: 100, speed: 1.5, interval: 45, cdMax: 2100, isArea: true, drawType: "bird", color: "#ffab91", evColor: "#ff3d00", rarity: "Uber Rare", ability: "撃破されても1度だけその場で半分HPで即時蘇生" },
+      { id: "cat_pirate_king", name: "海賊王ネコ", evolvedName: "キャプテン・キャットレッド", cost: 1650, hp: 1900, atk: 700, range: 120, speed: 1.2, interval: 50, cdMax: 1750, isArea: true, drawType: "normal", color: "#ff8a80", evColor: "#b71c1c", rarity: "Uber Rare", ability: "浮いてる敵と赤い敵を50%でふっとばし遅くする" },
+      { id: "cat_time_traveler", name: "次元旅行者", evolvedName: "クロノス・タイムトラベラー", cost: 1800, hp: 1700, atk: 600, range: 110, speed: 1.4, interval: 46, cdMax: 1900, isArea: true, drawType: "normal", color: "#80deea", evColor: "#006064", rarity: "Uber Rare", ability: "エイリアンを2.5秒停止・後方に引き戻す" },
+      { id: "cat_armor_fort", name: "重装機兵", evolvedName: "アルマード・フォートレス", cost: 2400, hp: 4800, atk: 450, range: 30, speed: 0.8, interval: 60, cdMax: 2500, isArea: false, drawType: "titan", color: "#78909c", evColor: "#263238", rarity: "Uber Rare", ability: "黒とエイリアンを1/5被ダメに抑え被弾時攻撃上昇" },
+      { id: "cat_maid", name: "ネコメイド", evolvedName: "メイド長・ロイヤルキャット", cost: 1150, hp: 1300, atk: 580, range: 50, speed: 1.7, interval: 22, cdMax: 720, isArea: false, drawType: "normal", color: "#cfd8dc", evColor: "#37474f", rarity: "Uber Rare", ability: "再生産が非常に早い高DPS単体アタッカー" },
+      { id: "cat_sky_fairy", name: "星空天女", evolvedName: "ルナ・ミラージュ", cost: 1900, hp: 1100, atk: 720, range: 220, speed: 1.0, interval: 58, cdMax: 2000, isArea: true, drawType: "floating", color: "#e1bee7", evColor: "#ab47bc", rarity: "Uber Rare", ability: "遠方範囲攻撃（近距離に死角あり、対空・対エイリアン）" },
+      { id: "cat_alchemist", name: "錬金術師にゃんこ", evolvedName: "ホムンクルス・キャット", cost: 1550, hp: 1600, atk: 400, range: 40, speed: 1.1, interval: 42, cdMax: 1600, isArea: false, drawType: "object", color: "#ebdcc8", evColor: "#ff9800", rarity: "Uber Rare", ability: "倒された瞬間に頑強な泥人形（壁）を残す" },
+
+      // Legend Rare (80-84)
+      { id: "cat_valkyrie", name: "ヴァルキリー", evolvedName: "真・ヴァルキリー", cost: 2000, hp: 1800, atk: 750, range: 160, speed: 2.8, interval: 30, cdMax: 2100, isArea: true, drawType: "valkyrie", color: "#ffeb3b", evColor: "#ffd700", rarity: "Legend Rare", ability: "浮いてる敵・エイリアンにダメージ3倍＆バリアブレイク＆ワープ無効" },
+      { id: "cat_bahamut", name: "バハムート", evolvedName: "狂乱バハムート", cost: 3000, hp: 3500, atk: 1800, range: 200, speed: 1.8, interval: 80, cdMax: 3600, isArea: true, drawType: "dragon", color: "#9c27b0", evColor: "#e91e63", rarity: "Legend Rare", ability: "属性持ち（白以外）にダメージ2倍＆極大範囲攻撃" },
+      { id: "cat_odin", name: "オーディン", evolvedName: "グングニル神", cost: 2800, hp: 3200, atk: 1500, range: 190, speed: 1.5, interval: 75, cdMax: 3300, isArea: true, drawType: "valkyrie", color: "#00bcd4", evColor: "#00838f", rarity: "Legend Rare", ability: "なし" },
+      { id: "cat_anubis", name: "アヌビス", evolvedName: "死冥府王", cost: 2500, hp: 2800, atk: 1200, range: 150, speed: 2.0, interval: 60, cdMax: 2800, isArea: true, drawType: "titan", color: "#ff9800", evColor: "#ff5722", rarity: "Legend Rare", ability: "なし" },
+      { id: "cat_god", name: "ネコ神霊", evolvedName: "太陽神アポロ", cost: 3500, hp: 4500, atk: 2500, range: 250, speed: 0.9, interval: 90, cdMax: 4200, isArea: true, drawType: "floating", color: "#ffd700", evColor: "#ff3300", rarity: "Legend Rare", ability: "すべての敵にダメージ2倍＆ワープ無効" },
+
+      // 新規追加 Legend Rare 5体
+      { id: "cat_amaterasu", name: "天照大御神", evolvedName: "皇祖神アマテラス", cost: 3200, hp: 3800, atk: 1600, range: 180, speed: 1.3, interval: 70, cdMax: 3500, isArea: true, drawType: "valkyrie", color: "#fff9c4", evColor: "#ffd700", rarity: "Legend Rare", ability: "白い敵以外、全属性に超極大ダメージ（4倍）" },
+      { id: "cat_shiva", name: "破壊神シヴァ", evolvedName: "終焉のシヴァにゃん", cost: 3600, hp: 4200, atk: 2200, range: 45, speed: 0.9, interval: 85, cdMax: 3800, isArea: true, drawType: "titan", color: "#1a237e", evColor: "#4a148c", rarity: "Legend Rare", ability: "確定で広範囲を殲滅するLv.4波動攻撃" },
+      { id: "cat_null", name: "虚空神ヌル", evolvedName: "アブソリュート・ゼロ", cost: 2900, hp: 2900, atk: 1300, range: 140, speed: 1.2, interval: 65, cdMax: 3100, isArea: true, drawType: "floating", color: "#212121", evColor: "#000", rarity: "Legend Rare", ability: "出撃時すべての敵バリアを破壊し4秒凍結（全無効）" },
+      { id: "cat_chronos", name: "時空神クロノス", evolvedName: "クロノトリガー", cost: 3300, hp: 3500, atk: 1500, range: 190, speed: 1.1, interval: 75, cdMax: 3600, isArea: true, drawType: "valkyrie", color: "#e1bee7", evColor: "#ffd700", rarity: "Legend Rare", ability: "3連撃で全属性の敵を確実に時間差足止め" },
+      { id: "cat_gravity", name: "創造神グラビティ", evolvedName: "ギャラクシー・コア", cost: 3800, hp: 5500, atk: 2000, range: 240, speed: 0.7, interval: 95, cdMax: 4500, isArea: true, drawType: "dragon", color: "#00e5ff", evColor: "#006064", rarity: "Legend Rare", ability: "超長射程ノックバック・超耐久・ワープ完全無効" },
+
+      // 旧追加エイリアン枠
+      { id: "cat_macho", name: "ムキあしネコ", evolvedName: "大狂乱ムキあし", cost: 600, hp: 450, atk: 110, range: 140, speed: 1.1, interval: 45, cdMax: 500, isArea: false, drawType: "gross", color: "#fff", evColor: "#00e5ff", rarity: "Rare", ability: "エイリアンに打たれ強い" },
+      { id: "cat_super_wall", name: "ゴムネコ", evolvedName: "大狂乱ゴムネコ", cost: 150, hp: 600, atk: 5, range: 15, speed: 0.9, interval: 50, cdMax: 300, isArea: false, drawType: "tank", color: "#eee", evColor: "#00e5ff", rarity: "Rare", ability: "エイリアンからの被ダメージ半減" },
+      { id: "cat_dark", name: "暗黒ネコ", evolvedName: "大狂乱暗黒ネコ", cost: 300, hp: 300, atk: 50, range: 45, speed: 1.8, interval: 35, cdMax: 500, isArea: false, drawType: "normal", color: "#ebdcc8", evColor: "#ff0033", rarity: "Rare", ability: "赤い敵とエイリアンにダメージ2倍" },
+      { id: "cat_island", name: "ネコ島", evolvedName: "大狂乱ネコ島", cost: 850, hp: 1100, atk: 180, range: 40, speed: 1.4, interval: 42, cdMax: 700, isArea: false, drawType: "fish", color: "#ffd700", evColor: "#e67e22", rarity: "Super Rare", ability: "赤い敵とエイリアンにめっぽう強い" },
+      { id: "cat_flying", name: "天空のネコ", evolvedName: "大狂乱天空", cost: 650, hp: 320, atk: 210, range: 80, speed: 1.6, interval: 48, cdMax: 600, isArea: true, drawType: "bird", color: "#fff", evColor: "#2ecc71", rarity: "Super Rare", ability: "ゾンビとエイリアンにダメージ2倍" },
+      { id: "cat_king_dragon", name: "キングドラゴン", evolvedName: "大狂乱ドラゴン", cost: 1100, hp: 900, atk: 350, range: 250, speed: 1.0, interval: 55, cdMax: 900, isArea: false, drawType: "lizard", color: "#fff", evColor: "#e74c3c", rarity: "Super Rare", ability: "遠距離からエイリアンに強ダメージ" },
+      { id: "cat_jamiera", name: "ネコジャラミ", evolvedName: "大狂乱ジャラミ", cost: 1600, hp: 2800, atk: 700, range: 30, speed: 0.8, interval: 70, cdMax: 1300, isArea: false, drawType: "titan", color: "#555", evColor: "#9c27b0", rarity: "Uber Rare", ability: "100%の確率でふっとばす＆ワープ無効" },
+      { id: "cat_psycho", name: "サイキックネコ", evolvedName: "ネコサイキック", cost: 420, hp: 450, atk: 30, range: 180, speed: 1.1, interval: 45, cdMax: 480, isArea: false, drawType: "normal", color: "#00e5ff", evColor: "#00838f", rarity: "Rare", ability: "エイリアンの動きを100%遅くする" },
+      { id: "cat_fencing", name: "フェンシング", evolvedName: "自由のネコ", cost: 680, hp: 650, atk: 120, range: 100, speed: 1.3, interval: 40, cdMax: 650, isArea: false, drawType: "object", color: "#fff", evColor: "#ffd700", rarity: "Super Rare", ability: "確定バリアブレイカー＆ワープ無効" },
+      { id: "cat_castaway", name: "ネコ漂流記", evolvedName: "ネコ超漂流記", cost: 950, hp: 1300, atk: 150, range: 110, speed: 1.4, interval: 40, cdMax: 900, isArea: true, drawType: "normal", color: "#00e5ff", evColor: "#3f51b5", rarity: "Uber Rare", ability: "エイリアンを40%で2秒停止・ワープ無効" }
     ];
 
-    // キャラクターの系統ごとのサイズ規定値マップ
-    const sizeMap = {
+    // 系統サイズマップ
+    var sizeMap = {
       normal: { width: 22, height: 22 },
       tank: { width: 24, height: 42 },
       gross: { width: 22, height: 38 },
@@ -1030,24 +1025,24 @@
     };
 
     // --- 2. データベース関連マップ処理 ---
-    const catTemplates = {};
-    catListConfigs.forEach(c => {
-      const size = sizeMap[c.drawType] || { width: 22, height: 22 };
+    var catTemplates = {};
+    catListConfigs.forEach(function(c) {
+      var size = sizeMap[c.drawType] || { width: 22, height: 22 };
       c.width = c.width || size.width;
       c.height = c.height || size.height;
       catTemplates[c.id] = c;
     });
-    const catKeys = catListConfigs.map(c => c.id);
+    var catKeys = catListConfigs.map(function(c) { return c.id; });
 
     // --- 3. アップグレード仕様定義 ---
-    const specUpgrades = [
+    var specUpgrades = [
       {
         key: "moneySpeedLevel",
         name: "働きネコ仕事効率",
         emoji: "⚡",
         baseCost: 100,
         cap: 30,
-        desc: (lvl) => `お金の生産速度を上昇させ、さらにキャラ生産ペースを底上げします（現在: 生産速度+${(lvl - 1) * 15}% / 全クールダウン -${((lvl - 1) * 1.5).toFixed(1)}%）`
+        desc: function(lvl) { return "お金の生産速度を上昇させます。（現在: 生産速度+" + ((lvl - 1) * 10).toFixed(1) + "%）"; }
       },
       {
         key: "walletCapacityLevel",
@@ -1055,7 +1050,7 @@
         emoji: "👛",
         baseCost: 80,
         cap: 30,
-        desc: (lvl) => `働きネコの最大お金上限を上昇させます。1レベル毎に容量+$100（現在: 財布容量上限 +$${(lvl - 1) * 100}）`
+        desc: function(lvl) { return "働きネコの最大お金上限を上昇させます。1レベル毎に容量+$100（現在: 財布容量上限 +$" + ((lvl - 1) * 100) + "）"; }
       },
       {
         key: "researchLevel",
@@ -1063,7 +1058,7 @@
         emoji: "📖",
         baseCost: 120,
         cap: 30,
-        desc: (lvl) => `キャラ生産の再生産ディレイ（クールダウン）を直接短縮します（現在: クールダウン縮小 -${(lvl - 1) * 3}%）`
+        desc: function(lvl) { return "キャラの再生産ディレイ（クールダウン）を直接短縮します（現在: クールダウン縮小 -" + ((lvl - 1) * 1.5).toFixed(1) + "%）"; }
       },
       {
         key: "cannonRangeLevel",
@@ -1071,7 +1066,7 @@
         emoji: "📏",
         baseCost: 110,
         cap: 30,
-        desc: (lvl) => `レベルでにゃんこ砲の射程が伸び、Lv.10で相手の城前まで到達します（現在: 射程到達率 ${Math.min(100, Math.floor(lvl * 10))}%）`
+        desc: function(lvl) { return "レベルでにゃんこ砲の射程が伸び、Lv.10で相手の城前まで到達します（現在: 射程到達率 " + Math.min(100, Math.floor(lvl * 10)) + "%）"; }
       },
       {
         key: "cannonChargeLevel",
@@ -1079,7 +1074,7 @@
         emoji: "🔋",
         baseCost: 90,
         cap: 30,
-        desc: (lvl) => `にゃんこ砲のチャージ時間を短縮し回転率を向上します（現在: チャージ蓄積速度+${(lvl - 1) * 10}%）`
+        desc: function(lvl) { return "にゃんこ砲のチャージ時間を短縮し回転率を向上します（現在: チャージ蓄積速度+" + ((lvl - 1) * 10) + "%）"; }
       },
       {
         key: "baseLevel",
@@ -1087,7 +1082,7 @@
         emoji: "🏰",
         baseCost: 100,
         cap: 30,
-        desc: (lvl) => `味方お城の最大HPを強化します（現在: HP ${1000 + (lvl - 1) * 500}）`
+        desc: function(lvl) { return "味方お城の最大HPを強化します（現在: HP " + (1000 + (lvl - 1) * 500) + "）"; }
       },
       {
         key: "cannonPowerLevel",
@@ -1095,23 +1090,22 @@
         emoji: "💥",
         baseCost: 130,
         cap: 30,
-        desc: (lvl) => `にゃんこ砲の火力を強化しワンパン可能な敵を増やします（現在: ダメージ ${200 + (lvl - 1) * 150}）`
+        desc: function(lvl) { return "にゃんこ砲の火力を強化しワンパン可能な敵を増やします（現在: ダメージ " + (200 + (lvl - 1) * 150) + "）"; }
       }
     ];
 
-    // walletConfig と enemyTemplates の定義
-    const walletConfig = [
-      { cap: 200, income: 0.2, cost: 100 },
-      { cap: 350, income: 0.35, cost: 150 },
-      { cap: 550, income: 0.5, cost: 250 },
-      { cap: 800, income: 0.7, cost: 400 },
-      { cap: 1100, income: 1.0, cost: 600 },
-      { cap: 1500, income: 1.3, cost: 900 },
-      { cap: 2000, income: 1.7, cost: 1300 },
-      { cap: 3000, income: 2.2, cost: null }
+    var walletConfig = [
+      { cap: 200,  income: 0.225,  cost: 100 },
+      { cap: 350,  income: 0.375,  cost: 150 },
+      { cap: 550,  income: 0.57,   cost: 250 },
+      { cap: 800,  income: 0.78,   cost: 400 },
+      { cap: 1100, income: 1.05,   cost: 600 },
+      { cap: 1500, income: 1.35,   cost: 900 },
+      { cap: 2000, income: 1.725,  cost: 1300 },
+      { cap: 3000, income: 2.175,  cost: null }
     ];
 
-    const enemyTemplates = {
+    var enemyTemplates = {
       doge: { name: 'わんこ', hp: 90, atk: 10, range: 25, speed: 1.1, interval: 35, width: 22, height: 22, reward: 35, isArea: false, attribute: "white" },
       snache: { name: 'にょろ', hp: 50, atk: 12, range: 20, speed: 1.8, interval: 30, width: 30, height: 12, reward: 25, isArea: false, attribute: "red" },
       gorilla: { name: 'ゴリラ', hp: 350, atk: 28, range: 30, speed: 2.1, interval: 40, width: 28, height: 35, reward: 75, isArea: false, attribute: "black" },
@@ -1120,9 +1114,9 @@
     };
 
     // --- 4. セーブデータ構造の定義 ---
-    const defaultData = {
-      xp: 2000, 
-      catFood: 450, 
+    var defaultData = {
+      xp: 5000, 
+      catFood: 600, 
       baseLevel: 1, 
       cannonRangeLevel: 1,  
       cannonPowerLevel: 1,  
@@ -1130,53 +1124,62 @@
       walletCapacityLevel: 1,
       researchLevel: 1,
       cannonChargeLevel: 1,
-      maxStageCleared: 0, 
+      maxStageCleared: [0, 0, 0], 
       cats: {},
-      deck: ["cat1", "cat2", "cat3", "cat_gross", "cat_cow", "cat_bird", "cat_fish", "cat_lizard", "cat_titan", "cat_salon"],
-      treasures: {} // 日本編お宝収集データ（キー: stageIndex, 値: 1=銅, 2=銀, 3=金）
+      deck: ["cat1", "cat2", "cat3", "cat_super_wall", "cat_macho", "cat_gross", "cat_cow", "cat_bird", "cat_salon", "cat_valkyrie"],
+      treasures: [{}, {}, {}] 
     };
 
-    // catsデータを自動補完
-    catKeys.forEach(k => {
-      defaultData.cats[k] = { unlocked: (k === "cat1"), level: 1, plus: 0 };
+    catKeys.forEach(function(k) {
+      defaultData.cats[k] = { unlocked: (k === "cat1" || k === "cat2" || k === "cat3" || k === "cat_macho" || k === "cat_super_wall"), level: 1, plus: 0 };
     });
 
     // --- 5. グローバル変数宣言ブロック ---
-    let player = JSON.parse(JSON.stringify(defaultData));
-    let puEffects = {};
-    let cooldowns = {};
-    let deathEffects = []; // 可愛い「魂昇天」死亡エフェクト管理用配列
-    let previewIntervalId = null;
-    let previewFrame = 0;
-    let gameFrame = 0; // 全アニメーション・システム用共通フレーム数
-    let audioCtx = null;
-    let cannonBeamTimer = 0; 
-    let cannonFlash = 0;
-    let canvas = null;
-    let ctx = null;
-    let battleAnimationFrameId = null;
+    var player = JSON.parse(JSON.stringify(defaultData));
+    var puEffects = {};
+    var cooldowns = {};
+    var maxCooldowns = {}; 
+    var deathEffects = []; 
+    var previewIntervalId = null;
+    var previewFrame = 0;
+    var gameFrame = 0; 
+    var audioCtx = null;
+    var cannonBeamTimer = 0; 
+    var cannonFlash = 0;
+    var canvas = null;
+    var ctx = null;
+    var battleAnimationFrameId = null;
 
-    // にゃんこ砲チャージの最大値定義
-    const maxCannonCharge = 600; 
+    var maxCannonCharge = 1800; 
 
-    // ゲーム内のバトル制御用グローバル
-    let game = {};
-    let allies = [];
-    let enemies = [];
-    let allyBase = {}; 
-    let enemyBase = {};
-    let enemyUniqueIdCounter = 0; // 敵の個別判定用ユニークIDカウンター
+    var game = {
+      currentChapter: 0, 
+      currentStage: 0,
+      state: 'playing',
+      money: 0,
+      walletLevel: 1,
+      cannonCharge: 0,
+      cannonActive: false,
+      cannonDamageDealt: {}
+    };
+    var allies = [];
+    var enemies = [];
+    var allyBase = {}; 
+    var enemyBase = {};
+    var enemyUniqueIdCounter = 0; 
 
-    // 育成カテゴリ用
-    let currentPowerUpCategory = 'cats';
+    // セーブデータや定義の不整合による初期起動クラッシュを避けるため、ステージ定義配列を先行宣言
+    var stagesList = [];
+    var selectedStageIndex = 0;
 
-    // ガチャ順次公開フロー用ステート
-    let gachaResultsQueue = [];
-    let currentGachaRevealIndex = 0;
-    let isTenRollMode = false;
-    let isGachaPlaying = false; // ガチャ連打による二重消費防止ロック
+    var currentPowerUpCategory = 'cats';
 
-    catKeys.forEach(key => {
+    var gachaResultsQueue = [];
+    var currentGachaRevealIndex = 0;
+    var isTenRollMode = false;
+    var isGachaPlaying = false; 
+
+    catKeys.forEach(function(key) {
       puEffects[key] = 0;
       cooldowns[key] = 0;
     });
@@ -1230,7 +1233,7 @@
       } 
       else if (type === 'victory') {
         const notes = [261.63, 329.63, 392.00, 523.25];
-        notes.forEach((freq, index) => {
+        notes.forEach(function(freq, index) {
           const o = audioCtx.createOscillator();
           const g = audioCtx.createGain();
           o.type = 'triangle';
@@ -1245,7 +1248,7 @@
       } 
       else if (type === 'lose') {
         const notes = [392.00, 311.13, 261.63];
-        notes.forEach((freq, index) => {
+        notes.forEach(function(freq, index) {
           const o = audioCtx.createOscillator();
           const g = audioCtx.createGain();
           o.type = 'sine';
@@ -1264,7 +1267,10 @@
     document.addEventListener('touchend', initAudio); 
 
     // --- 7. カスタムモーダルシステム ---
-    function showCustomModal(title, msg, badgeText = "おしらせ", badgeBg = "#f5c542", buttons = []) {
+    function showCustomModal(title, msg, badgeText, badgeBg, buttons) {
+      if (!badgeText) badgeText = "おしらせ";
+      if (!badgeBg) badgeBg = "#f5c542";
+      if (!buttons) buttons = [];
       const overlay = document.getElementById('customModalOverlay');
       document.getElementById('modalTitle').innerText = title;
       document.getElementById('modalMessage').innerText = msg;
@@ -1281,17 +1287,17 @@
         buttons.push({
           text: "OK",
           class: "btn-primary",
-          onClick: () => {}
+          onClick: function() {}
         });
       }
       
-      buttons.forEach(btnSpec => {
+      buttons.forEach(function(btnSpec) {
         const btn = document.createElement('button');
         btn.className = btnSpec.class || 'btn-primary';
         btn.innerText = btnSpec.text;
         btn.style.padding = '8px 16px';
         btn.style.fontSize = '0.9rem';
-        btn.addEventListener('click', () => {
+        btn.addEventListener('click', function() {
           btnSpec.onClick();
           overlay.style.display = 'none';
         });
@@ -1299,6 +1305,35 @@
       });
       
       overlay.style.display = 'flex';
+    }
+
+    function showChapterSelectModal() {
+      showCustomModal(
+        "出撃エリア選択",
+        "", 
+        "出撃門",
+        "#f5c542",
+        [
+          { text: "日本編（第1章・日本全国攻略）\n▶ 初心者向け：基本操作とお宝集めを学ぶ、にゃんこ大作戦の原点となる章", class: "btn-primary", onClick: function() { changeChapter(0); switchScreen('mapScreen'); } },
+          { text: "未来編（第2章・世界大攻略）\n▶ 中級者向け：難易度が大幅に向上。世界地図を舞台に、強力なエイリアン属性のエネミーと決戦", class: "btn-primary", onClick: function() { changeChapter(1); switchScreen('mapScreen'); } },
+          { text: "宇宙編（第3章・全銀河スターエイリアン攻略）\n▶ 上級者向け：バリアやワープ、特定のレアリティやコストに縛られる難解な出撃制限が発生する極限エリア", class: "btn-primary", onClick: function() { changeChapter(2); switchScreen('mapScreen'); } },
+          { text: "デイリーイベント\n▶ 日替わり限定：『ゲリラ経験値(XP)』『ゴールドラッシュ(ネコ缶)』『木曜ボスラッシュ』等、戦力強化用の特別エリアに挑戦！", class: "btn-danger", onClick: function() { launchEventStage(); } }
+        ]
+      );
+      
+      // 出撃門モーダルの縦型レイアウト適用
+      var btnContainer = document.getElementById('modalButtons');
+      btnContainer.style.flexDirection = 'column';
+      btnContainer.style.gap = '10px';
+      
+      var btns = btnContainer.getElementsByTagName('button');
+      for (var i = 0; i < btns.length; i++) {
+        btns[i].style.width = '100%';
+        btns[i].style.textAlign = 'left';
+        btns[i].style.whiteSpace = 'pre-line';
+        btns[i].style.fontSize = '0.85rem';
+        btns[i].style.padding = '10px 14px';
+      }
     }
 
     // --- 8. 能力計算関数定義 ---
@@ -1310,7 +1345,6 @@
 
       const effectiveLvl = pCat.level + pCat.plus;
       
-      // お宝バフ（Region 1: HP, Region 2: ATK）
       const buffs = getTreasureBuffs();
       const mult = 1 + (effectiveLvl - 1) * 0.1; 
       const isEvolved = pCat.level >= 10;        
@@ -1327,26 +1361,32 @@
       };
     }
 
-    // お宝収集バフ状況を動的に計算する処理
+    // ヘッダー情報（XP、ネコ缶）更新関数
+    function updateGlobalHeader() {
+      document.getElementById('headerXp').innerText = player.xp.toLocaleString();
+      document.getElementById('headerCf').innerText = player.catFood.toLocaleString();
+    }
+
     function getTreasureBuffs() {
-      if (!player.treasures) player.treasures = {};
-      let r1Score = 0; // 九州・四国地方 [stages 0-10]
-      let r2Score = 0; // 中国・関西・中部地方 [stages 11-29]
-      let r3Score = 0; // 関東・東北・北海道地方 [stages 30-47]
+      if (!player.treasures) player.treasures = [{}, {}, {}];
+      const ch = game.currentChapter || 0;
+      const tr = player.treasures[ch] || {};
+      var r1Score = 0; 
+      var r2Score = 0; 
+      var r3Score = 0; 
 
-      for (let i = 0; i <= 10; i++) r1Score += (player.treasures[i] || 0);
-      for (let i = 11; i <= 29; i++) r2Score += (player.treasures[i] || 0);
-      for (let i = 30; i <= 47; i++) r3Score += (player.treasures[i] || 0);
+      for (var i = 0; i <= 10; i++) r1Score += (tr[i] || 0);
+      for (var i = 11; i <= 29; i++) r2Score += (tr[i] || 0);
+      for (var i = 30; i <= 47; i++) r3Score += (tr[i] || 0);
 
-      // 進捗割合（最高点は各県金=3点）
       const r1Pct = (r1Score / 33) * 100;
       const r2Pct = (r2Score / 57) * 100;
       const r3Pct = (r3Score / 54) * 100;
 
       return {
-        hpMult: 1 + (r1Score / 33) * 0.30,   // 最大HP +30%
-        atkMult: 1 + (r2Score / 57) * 0.30,  // 最大ATK +30%
-        speedMult: 1 + (r3Score / 54) * 0.30,// 最大財布生産速度 +30%
+        hpMult: 1 + (r1Score / 33) * 0.30,   
+        atkMult: 1 + (r2Score / 57) * 0.30,  
+        speedMult: 1 + (r3Score / 54) * 0.30,
         r1Pct: Math.floor(r1Pct),
         r2Pct: Math.floor(r2Pct),
         r3Pct: Math.floor(r3Pct)
@@ -1355,10 +1395,11 @@
 
     // --- 9. セーブ・ロード機能 ---
     function loadGame() {
-      const saved = localStorage.getItem('nyanko_save_v7');
+      const saved = localStorage.getItem('nyanko_save_v8');
       if (saved) {
         player = JSON.parse(saved);
-        if (player.maxStageCleared === undefined) player.maxStageCleared = 0;
+        if (!Array.isArray(player.maxStageCleared)) player.maxStageCleared = [0, 0, 0];
+        if (!Array.isArray(player.treasures)) player.treasures = [{}, {}, {}];
         
         if (player.cannonRangeLevel === undefined) player.cannonRangeLevel = 1;
         if (player.cannonPowerLevel === undefined) player.cannonPowerLevel = 1;
@@ -1367,14 +1408,13 @@
         if (player.researchLevel === undefined) player.researchLevel = 1;
         if (player.cannonChargeLevel === undefined) player.cannonChargeLevel = 1;
         if (player.baseLevel === undefined) player.baseLevel = 1;
-        if (!player.treasures) player.treasures = {};
 
         if (!player.deck || player.deck.length !== 10) {
-          player.deck = ["cat1", "cat2", "cat3", "cat_gross", "cat_cow", "cat_bird", "cat_fish", "cat_lizard", "cat_titan", "cat_salon"];
+          player.deck = ["cat1", "cat2", "cat3", "cat_super_wall", "cat_macho", "cat_gross", "cat_cow", "cat_bird", "cat_salon", "cat_valkyrie"];
         }
 
         const keys = Object.keys(defaultData.cats);
-        keys.forEach(k => {
+        keys.forEach(function(k) {
           if (!player.cats[k]) {
             player.cats[k] = { unlocked: false, level: 1, plus: 0 };
           }
@@ -1385,21 +1425,21 @@
     }
 
     function saveGame() {
-      localStorage.setItem('nyanko_save_v7', JSON.stringify(player));
+      localStorage.setItem('nyanko_save_v8', JSON.stringify(player));
       updateGlobalHeader();
     }
 
     function resetData() {
       showCustomModal(
         "基地データの初期化",
-        "これまでの進行状況やお財布レベル、獲得したにゃんこ達、収集したお宝などのセーブデータをすべて消去します。\n本当に初期化してもよろしいですか？",
+        "進行状況、お宝、にゃんこ、XPを含むすべてのセーブデータをリセットします。本当によろしいですか？",
         "警告",
         "#ff4d4d",
         [
           {
             text: "初期化する",
             class: "btn-danger",
-            onClick: () => {
+            onClick: function() {
               player = JSON.parse(JSON.stringify(defaultData));
               saveGame();
               location.reload();
@@ -1408,136 +1448,181 @@
           {
             text: "キャンセル",
             class: "btn-primary",
-            onClick: () => {}
+            onClick: function() {}
           }
         ]
       );
     }
 
-    function updateGlobalHeader() {
-      document.getElementById('headerXp').innerText = player.xp;
-      document.getElementById('headerCf').innerText = player.catFood;
-    }
-
-    // --- 10. 本家日本編・ステージリスト ---
-    const stagePrefectures = [
-      { name: "長崎県", x: 340, y: 410 },
-      { name: "佐賀県", x: 370, y: 390 },
-      { name: "鹿児島県", x: 350, y: 480 },
-      { name: "熊本県", x: 380, y: 440 },
-      { name: "宮崎県", x: 410, y: 460 },
-      { name: "大分県", x: 410, y: 410 },
-      { name: "福岡県", x: 390, y: 380 },
-      { name: "高知県", x: 590, y: 440 },
-      { name: "愛媛県", x: 580, y: 410 },
-      { name: "徳島県", x: 650, y: 420 },
-      { name: "香川県", x: 630, y: 400 },
-      { name: "山口県", x: 480, y: 340 },
-      { name: "島根県", x: 540, y: 310 },
-      { name: "広島県", x: 550, y: 340 },
-      { name: "鳥取県", x: 640, y: 290 },
-      { name: "岡山県", x: 650, y: 330 },
-      { name: "兵庫県", x: 740, y: 320 },
-      { name: "京都府", x: 780, y: 290 },
-      { name: "滋賀県", x: 830, y: 300 },
-      { name: "和歌山県", x: 820, y: 410 },
-      { name: "奈良県", x: 840, y: 370 },
-      { name: "大阪府", x: 800, y: 340 },
-      { name: "三重県", x: 880, y: 370 },
-      { name: "愛知県", x: 940, y: 350 },
-      { name: "岐阜県", x: 930, y: 300 },
-      { name: "福井県", x: 860, y: 260 },
-      { name: "石川県", x: 860, y: 190 },
-      { name: "富山県", x: 910, y: 210 },
-      { name: "静岡県", x: 1020, y: 350 },
-      { name: "山梨県", x: 1050, y: 300 },
-      { name: "長野県", x: 1010, y: 260 },
-      { name: "新潟県", x: 1010, y: 180 },
-      { name: "群馬県", x: 1080, y: 230 },
-      { name: "埼玉県", x: 1110, y: 280 },
-      { name: "東京都", x: 1130, y: 310 },
-      { name: "神奈川県", x: 1110, y: 340 },
-      { name: "千葉県", x: 1180, y: 330 },
-      { name: "栃木県", x: 1150, y: 210 },
-      { name: "茨城県", x: 1190, y: 250 },
-      { name: "福島県", x: 1230, y: 190 },
-      { name: "山形県", x: 1210, y: 130 },
-      { name: "宮城県", x: 1270, y: 140 },
-      { name: "秋田県", x: 1240, y: 80 },
-      { name: "岩手県", x: 1290, y: 80 },
-      { name: "青森県", x: 1290, y: 30 },
-      { name: "北海道", x: 1550, y: 60 },
-      { name: "沖縄県", x: 100, y: 430 },
-      { name: "西表島", x: 60, y: 450 } 
+    // --- 10. ステージリストデータ（日本編・未来編・宇宙編の各リストと難易度動的作成） ---
+    var japanNamesOnly = [
+      "長崎県", "佐賀県", "鹿児島県", "熊本県", "宮崎県", "大分県", "福岡県", "高知県", "愛媛県", "徳島県", "香川県", "山口県", "島根県", "広島県", "鳥取県", "岡山県", "兵庫県", "京都府", "滋賀県", "和歌山県", "奈良県", "大阪府", "三重県", "愛知県", "岐阜県", "福井県", "石川県", "富山県", "静岡県", "山梨県", "長野県", "新潟県", "群馬県", "埼玉県", "東京都", "神奈川県", "千葉県", "栃木県", "茨城県", "福島県", "山形県", "宮城県", "秋田県", "岩手県", "青森県", "北海道", "沖縄県", "西表島"
+    ];
+    var futureNamesOnly = [
+      "韓国", "中国", "モンゴル", "タイ", "インド", "キルギス", "ドバイ", "サウジアラビア", "エジプト", "南アフリカ", "ケニア", "マダガスカル", "トルコ", "ギリシャ", "イタリア", "フランス", "スペイン", "イギリス", "ドイツ", "ポーランド", "ロシア", "スウェーデン", "アイスランド", "カナダ", "アメリカ", "メキシコ", "ジャマイカ", "コロンビア", "ブラジル", "ペルー", "アルゼンチン", "チリ", "オーストラリア", "ニュージーランド", "フィジー", "深海", "ハワイ", "ラスベガス", "ハリウッド", "アラスカ", "グリーンランド", "ノルウェー", "極東ロシア", "シンガポール", "台湾", "南極", "浮遊大陸", "月"
+    ];
+    var cosmosNamesOnly = [
+      "地球", "地球軌道", "月", "火星", "木星", "土星", "天王星", "海王星", "冥王星", "彗星ハレー", "水星", "金星", "太陽軌道", "シリウス", "ベガ", "アルタイル", "デネブ", "プロキシマ", "ケンタウリ", "カペラ", "リゲル", "ベテルギウス", "アンタレス", "アルデバラン", "ポルックス", "カストル", "レグルス", "スピカ", "アークトゥルス", "プロキオン", "カノープス", "アケルナル", "フォーマルハウト", "カシオペア座", "オリオン星雲", "かに星雲", "プレアデス", "アンドロメダ", "銀河系中心", "異次元", "マゼラン星雲", "スターゲート", "ブラックホール", "ホワイトホール", "次元の狭間", "暗黒星雲", "超新星", "神霊の座"
     ];
 
-    let selectedStageIndex = 0;
+    var japanCoords = [
+      { x: 340, y: 410 }, { x: 370, y: 390 }, { x: 350, y: 480 }, { x: 380, y: 440 },
+      { x: 410, y: 460 }, { x: 410, y: 410 }, { x: 390, y: 380 }, { x: 590, y: 440 },
+      { x: 580, y: 410 }, { x: 650, y: 420 }, { x: 630, y: 400 }, { x: 480, y: 340 },
+      { x: 540, y: 310 }, { x: 550, y: 340 }, { x: 640, y: 290 }, { x: 650, y: 330 },
+      { x: 740, y: 320 }, { x: 780, y: 290 }, { x: 830, y: 300 }, { x: 820, y: 410 },
+      { x: 840, y: 370 }, { x: 800, y: 340 }, { x: 880, y: 370 }, { x: 940, y: 350 },
+      { x: 930, y: 300 }, { x: 860, y: 260 }, { x: 860, y: 190 }, { x: 910, y: 210 },
+      { x: 1020, y: 350 }, { x: 1050, y: 300 }, { x: 1010, y: 260 }, { x: 1010, y: 180 },
+      { x: 1080, y: 230 }, { x: 1110, y: 280 }, { x: 1130, y: 310 }, { x: 1110, y: 340 },
+      { x: 1180, y: 330 }, { x: 1150, y: 210 }, { x: 1190, y: 250 }, { x: 1230, y: 190 },
+      { x: 1210, y: 130 }, { x: 1270, y: 140 }, { x: 1240, y: 80 }, { x: 1290, y: 80 },
+      { x: 1290, y: 30 }, { x: 1550, y: 60 }, { x: 100, y: 430 }, { x: 60, y: 450 }
+    ];
 
-    const stagesList = stagePrefectures.map((p, index) => {
-      const isFinal = (index === 47); 
-      const baseHp = isFinal ? 15000 : 1000 + index * 250;
-      const rewardXp = 500 + index * 100;
-      const rewardCf = 50 + index * 5;
-      const desc = isFinal 
-        ? "日本編・第1章 最終決戦！巨大要塞ボス「カオル君」が出現！" 
-        : `${p.name}を制圧し、にゃんこ軍団の支配率を高めよ！`;
+    var futureCoords = [
+      // アジアエリア (x: 300-650, y: 250-480)
+      { x: 460, y: 340 }, { x: 520, y: 310 }, { x: 530, y: 250 }, { x: 510, y: 400 },
+      { x: 420, y: 410 }, { x: 400, y: 310 }, { x: 340, y: 380 }, { x: 300, y: 420 },
+      { x: 230, y: 410 }, { x: 240, y: 640 }, { x: 280, y: 520 }, { x: 350, y: 650 },
+      { x: 220, y: 310 }, { x: 180, y: 300 }, { x: 140, y: 280 },
+      // ヨーロッパ・北シベリアエリア (x: 80-750, y: 80-250)
+      { x: 90, y: 240 }, { x: 60, y: 290 }, { x: 80, y: 180 }, { x: 140, y: 200 },
+      { x: 180, y: 190 }, { x: 320, y: 140 }, { x: 160, y: 120 }, { x: 40, y: 100 },
+      { x: 1050, y: 140 }, { x: 1080, y: 220 },
+      // 南北アメリカエリア (x: 1000-1400, y: 100-700)
+      { x: 1060, y: 320 }, { x: 1120, y: 360 }, { x: 1140, y: 440 }, { x: 1250, y: 480 },
+      { x: 1150, y: 530 }, { x: 1200, y: 650 }, { x: 1140, y: 670 }, { x: 720, y: 530 },
+      { x: 850, y: 580 }, { x: 950, y: 550 }, { x: 600, y: 700 },
+      // 特殊・アラスカ・グリーンランド・南極など
+      { x: 1450, y: 340 }, { x: 1020, y: 240 }, { x: 990, y: 260 }, { x: 900, y: 100 },
+      { x: 1350, y: 80 }, { x: 210, y: 100 }, { x: 650, y: 100 }, { x: 580, y: 460 },
+      { x: 620, y: 380 }, { x: 800, y: 760 }, { x: 1550, y: 450 }, { x: 1650, y: 120 }
+    ];
 
-      let waves = [];
-      if (isFinal) {
-        waves = [
-          { time: 100, type: 'face' }, 
-          { time: 300, type: 'gorilla' },
-          { time: 550, type: 'kaba' },
-          { time: 700, type: 'gorilla' }
-        ];
-      } else {
-        if (index < 8) {
-          waves = [
-            { time: 150, type: 'doge' },
-            { time: 300, type: 'doge' }
-          ];
-        } else if (index < 18) {
-          waves = [
-            { time: 100, type: 'snache' },
-            { time: 250, type: 'doge' },
-            { time: 400, type: 'snache' }
-          ];
-        } else if (index < 32) {
-          waves = [
-            { time: 100, type: 'snache' },
-            { time: 220, type: 'gorilla' },
-            { time: 350, type: 'doge' }
-          ];
-        } else {
-          waves = [
-            { time: 80, type: 'snache' },
-            { time: 200, type: 'gorilla' },
-            { time: 350, type: 'kaba' },
-            { time: 500, type: 'gorilla' }
-          ];
-        }
+    var cosmosCoords = [
+      // 内周公転軌道
+      { x: 800, y: 250 }, { x: 880, y: 270 }, { x: 940, y: 320 }, { x: 970, y: 390 },
+      { x: 970, y: 470 }, { x: 930, y: 540 }, { x: 860, y: 580 }, { x: 780, y: 580 },
+      { x: 700, y: 550 }, { x: 650, y: 490 }, { x: 630, y: 410 }, { x: 650, y: 330 },
+      // 中周公転軌道
+      { x: 800, y: 150 }, { x: 910, y: 170 }, { x: 1010, y: 220 }, { x: 1090, y: 290 },
+      { x: 1140, y: 380 }, { x: 1150, y: 480 }, { x: 1110, y: 580 }, { x: 1040, y: 660 },
+      { x: 950, y: 710 }, { x: 850, y: 720 }, { x: 750, y: 700 }, { x: 650, y: 650 },
+      { x: 570, y: 580 }, { x: 520, y: 490 }, { x: 510, y: 390 }, { x: 530, y: 290 },
+      // 外周銀河軌道・星雲渦クラスター
+      { x: 580, y: 190 }, { x: 650, y: 120 }, { x: 750, y: 80 },  { x: 870, y: 60 },
+      { x: 990, y: 70 },  { x: 1110, y: 100 }, { x: 1220, y: 150 }, { x: 1320, y: 220 },
+      { x: 1390, y: 310 }, { x: 1420, y: 420 }, { x: 1400, y: 530 }, { x: 1340, y: 640 },
+      { x: 1250, y: 720 }, { x: 1140, y: 780 }, { x: 420, y: 220 }, 
+      { x: 420, y: 150 },  { x: 350, y: 220 },  { x: 280, y: 300 }, 
+      { x: 800, y: 450 },  { x: 820, y: 420 }   
+    ];
+
+    // 各章に基づく難易度・ステージ・座標情報の動的作成処理
+    function generateStagesList() {
+      var names = japanNamesOnly;
+      var coords = japanCoords;
+      var ch = game.currentChapter || 0;
+
+      if (ch === 1) {
+        names = futureNamesOnly;
+        coords = futureCoords;
+      } else if (ch === 2) {
+        names = cosmosNamesOnly;
+        coords = cosmosCoords;
       }
 
-      let infinites = [];
-      if (index < 12) infinites = [{ type: 'doge', interval: 400 }];
-      else if (index < 24) infinites = [{ type: 'doge', interval: 400 }, { type: 'snache', interval: 350 }];
-      else if (index < 38) infinites = [{ type: 'snache', interval: 350 }, { type: 'gorilla', interval: 700 }];
-      else infinites = [{ type: 'doge', interval: 300 }, { type: 'gorilla', interval: 650 }, { type: 'kaba', interval: 1000 }];
+      stagesList = coords.map(function(coord, index) {
+        var isFinal = (index === 47);
+        
+        // 難易度調整: 日本編 < 未来編 < 宇宙編
+        // 日本編: 等倍基準
+        // 未来編: お城最大HPおよび敵HPが 2.5倍
+        // 宇宙編: お城最大HPおよび敵HPが 5.5倍 (エイリアン対策が必要な極限難度)
+        var diffMult = 1.0;
+        if (ch === 1) diffMult = 2.5;
+        if (ch === 2) diffMult = 5.5;
 
-      return {
-        name: p.name,
-        mapX: p.x,
-        mapY: p.y,
-        baseHp,
-        rewardXp,
-        rewardCf,
-        desc,
-        waves,
-        infinites
-      };
-    });
+        var baseHp = isFinal ? Math.floor(15000 * diffMult) : Math.floor((1000 + index * 250) * diffMult);
+        var rewardXp = Math.floor((500 + index * 100) * (ch === 0 ? 1.0 : (ch === 1 ? 1.5 : 2.0)));
+        var rewardCf = Math.floor((50 + index * 5) * (ch === 0 ? 1.0 : (ch === 1 ? 1.2 : 1.5)));
+        
+        var desc = "";
+        if (ch === 0) {
+          desc = isFinal ? "日本編 最終決戦！巨大要塞ボス「カオル君」が出現！" : (names[index] + "を制圧し、にゃんこ軍団の支配率を高めよ！");
+        } else if (ch === 1) {
+          desc = isFinal ? "未来編 最終決戦！月面のエイリアン司令塔を破壊せよ！" : ("世界の強豪「" + names[index] + "」に眠るエイリアン基地を攻略せよ！");
+        } else {
+          desc = isFinal ? "宇宙編 最終決戦！宇宙の深淵「神霊の座」を制覇せよ！" : ("広大な宇宙の惑星「" + names[index] + "」のバリアを突破せよ！");
+        }
 
-    // --- 11. マップ機能 ---
+        var waves = [];
+        if (isFinal) {
+          waves = [
+            { time: 100, type: 'face' }, 
+            { time: 300, type: 'gorilla' },
+            { time: 550, type: 'kaba' },
+            { time: 700, type: 'gorilla' }
+          ];
+        } else {
+          if (index < 8) {
+            waves = [
+              { time: 150, type: 'doge' },
+              { time: 300, type: 'doge' }
+            ];
+          } else if (index < 18) {
+            waves = [
+              { time: 100, type: 'snache' },
+              { time: 250, type: 'doge' },
+              { time: 400, type: 'snache' }
+            ];
+          } else if (index < 32) {
+            waves = [
+              { time: 100, type: 'snache' },
+              { time: 220, type: 'gorilla' },
+              { time: 350, type: 'doge' }
+            ];
+          } else {
+            waves = [
+              { time: 80, type: 'snache' },
+              { time: 200, type: 'gorilla' },
+              { time: 350, type: 'kaba' },
+              { time: 500, type: 'gorilla' }
+            ];
+          }
+        }
+
+        var infinites = [];
+        if (index < 12) infinites = [{ type: 'doge', interval: 400 }];
+        else if (index < 24) infinites = [{ type: 'doge', interval: 400 }, { type: 'snache', interval: 350 }];
+        else if (index < 38) infinites = [{ type: 'snache', interval: 350 }, { type: 'gorilla', interval: 700 }];
+        else infinites = [{ type: 'doge', interval: 300 }, { type: 'gorilla', interval: 650 }, { type: 'kaba', interval: 1000 }];
+
+        return {
+          name: names[index],
+          mapX: coord.x,
+          mapY: coord.y,
+          baseHp: baseHp,
+          rewardXp: rewardXp,
+          rewardCf: rewardCf,
+          desc: desc,
+          waves: waves,
+          infinites: infinites
+        };
+      });
+    }
+// --- 11. マップ機能＆章切り替え ---
+    function changeChapter(index) {
+      game.currentChapter = parseInt(index);
+      generateStagesList(); 
+      selectedStageIndex = Math.min(player.maxStageCleared[game.currentChapter] || 0, stagesList.length - 1);
+      drawJapanMap();
+      updateStageInfoPanel();
+      centerMapOnSelectedStage();
+      playSound('spawn');
+    }
+
     function centerMapOnSelectedStage() {
       const container = document.getElementById('mapScrollContainer');
       const stg = stagesList[selectedStageIndex];
@@ -1550,7 +1635,6 @@
       }
     }
 
-    // ステージ情報のパネル更新
     function updateStageInfoPanel() {
       const stg = stagesList[selectedStageIndex];
       if (!stg) return;
@@ -1560,125 +1644,248 @@
       document.getElementById('stageInfoXp').innerText = stg.rewardXp;
       document.getElementById('stageInfoCf').innerText = stg.rewardCf;
 
-      const isUnlocked = player.maxStageCleared >= selectedStageIndex;
+      const currentCleared = player.maxStageCleared[game.currentChapter] || 0;
+      const isUnlocked = currentCleared >= selectedStageIndex;
       document.getElementById('stageLaunchBtn').disabled = !isUnlocked;
+
+      // 宇宙編用の出撃制限インジケータ
+      const indicator = document.getElementById('restrictionIndicator');
+      if (game.currentChapter === 2) {
+        indicator.style.display = 'block';
+        if (selectedStageIndex % 4 === 1) {
+          indicator.innerText = "出撃制限: レア・EXのみ出撃可能";
+        } else if (selectedStageIndex % 4 === 2) {
+          indicator.innerText = "出撃制限: 同時最大出撃制限（8体まで）";
+        } else if (selectedStageIndex % 4 === 3) {
+          indicator.innerText = "出撃制限: コスト制限（$1000以下）";
+        } else {
+          indicator.innerText = "出撃制限: なし";
+        }
+      } else {
+        indicator.style.display = 'none';
+      }
     }
 
     function launchSelectedStage() {
       startBattle(selectedStageIndex);
     }
 
-    // 日本地図の描画
+    // イベントステージ挑戦用
+    function getTodayEventName() {
+      const day = new Date().getDay();
+      const events = [
+        "日曜日: ネコ缶争奪ボスラッシュ！",
+        "月曜日: ゲリラ経験値(XP)チャレンジ！",
+        "火曜日: 火曜XPハザードステージ",
+        "水曜日: エイリアン大侵略(Alien Outbreak)",
+        "木曜日: 木曜ボスラッシュ！",
+        "金曜日: 金曜極ムズゴールドラッシュ",
+        "土曜日: 土日お宝ドロップ率UPフェスティバル！"
+      ];
+      return events[day];
+    }
+
+    function launchEventStage() {
+      const day = new Date().getDay();
+      selectedStageIndex = 48; 
+      const dayNames = ["日曜日", "月曜日", "火曜日", "水曜日", "木曜日", "金曜日", "土曜日"];
+      
+      stagesList[48] = {
+        name: dayNames[day] + "の特別イベント",
+        mapX: 950,
+        mapY: 260,
+        baseHp: 5000 + day * 1500,
+        rewardXp: 3000 + day * 1000,
+        rewardCf: 120 + day * 20,
+        desc: getTodayEventName() + "。強力な日替わりエネミープールが出現します！",
+        waves: [
+          { time: 100, type: day % 2 === 0 ? 'gorilla' : 'kaba' },
+          { time: 250, type: 'face' }
+        ],
+        infinites: [
+          { type: 'doge', interval: 220 },
+          { type: 'snache', interval: 190 }
+        ]
+      };
+      
+      startBattle(48);
+    }
+
     function drawJapanMap() {
       const mc = document.getElementById('mapCanvas');
       if (!mc) return;
       const mCtx = mc.getContext('2d');
       mCtx.clearRect(0, 0, mc.width, mc.height);
 
-      mCtx.fillStyle = '#b2ebf2';
-      mCtx.fillRect(0, 0, mc.width, mc.height);
+      var ch = game.currentChapter || 0;
 
-      mCtx.strokeStyle = 'rgba(61,31,5,0.04)';
-      mCtx.lineWidth = 1;
-      for(let x=0; x<mc.width; x+=40) {
-        mCtx.beginPath(); mCtx.moveTo(x, 0); mCtx.lineTo(x, mc.height); mCtx.stroke();
+      if (ch === 0) {
+        // --- Chapter 0: 日本編 (和風日本列島地図) ---
+        mCtx.fillStyle = '#b2ebf2';
+        mCtx.fillRect(0, 0, mc.width, mc.height);
+
+        mCtx.strokeStyle = 'rgba(61,31,5,0.04)';
+        mCtx.lineWidth = 1;
+        for(var x=0; x<mc.width; x+=40) {
+          mCtx.beginPath(); mCtx.moveTo(x, 0); mCtx.lineTo(x, mc.height); mCtx.stroke();
+        }
+        for(var y=0; y<mc.height; y+=40) {
+          mCtx.beginPath(); mCtx.moveTo(0, y); mCtx.lineTo(mc.width, y); mCtx.stroke();
+        }
+
+        mCtx.strokeStyle = '#81c784';
+        mCtx.lineWidth = 4;
+
+        // 九州
+        mCtx.fillStyle = '#c8e6c9';
+        mCtx.beginPath();
+        mCtx.moveTo(330, 390); mCtx.lineTo(380, 370); mCtx.lineTo(350, 420); mCtx.lineTo(360, 460); mCtx.lineTo(320, 520); mCtx.lineTo(350, 530); mCtx.lineTo(410, 480); mCtx.lineTo(430, 410);
+        mCtx.closePath(); mCtx.fill(); mCtx.stroke();
+
+        // 四国
+        mCtx.beginPath();
+        mCtx.moveTo(560, 410); mCtx.lineTo(640, 390); mCtx.lineTo(670, 420); mCtx.lineTo(600, 460);
+        mCtx.closePath(); mCtx.fill(); mCtx.stroke();
+
+        // 本州
+        mCtx.fillStyle = '#a5d6a7';
+        mCtx.strokeStyle = '#66bb6a';
+        mCtx.beginPath();
+        mCtx.moveTo(450, 350); mCtx.lineTo(550, 310); mCtx.lineTo(680, 270); mCtx.lineTo(760, 250); mCtx.lineTo(820, 240); mCtx.lineTo(850, 210); mCtx.lineTo(870, 160); mCtx.lineTo(910, 190); mCtx.lineTo(1020, 170); mCtx.lineTo(1150, 150); mCtx.lineTo(1250, 110); mCtx.lineTo(1280, 50); mCtx.lineTo(1310, 80); mCtx.lineTo(1330, 60); mCtx.lineTo(1330, 150); mCtx.lineTo(1280, 220); mCtx.lineTo(1250, 250); mCtx.lineTo(1200, 320); mCtx.lineTo(1210, 360); mCtx.lineTo(1150, 360); mCtx.lineTo(1120, 380); mCtx.lineTo(1090, 370); mCtx.lineTo(1030, 390); mCtx.lineTo(960, 380); mCtx.lineTo(910, 390); mCtx.lineTo(860, 420); mCtx.lineTo(810, 370); mCtx.lineTo(650, 340);
+        mCtx.closePath(); mCtx.fill(); mCtx.stroke();
+
+        // 北海道
+        mCtx.beginPath();
+        mCtx.moveTo(1400, 10); mCtx.lineTo(1450, -20); mCtx.lineTo(1550, -40); mCtx.lineTo(1700, 20); mCtx.lineTo(1700, 80); mCtx.lineTo(1600, 130); mCtx.lineTo(1460, 120);
+        mCtx.closePath(); mCtx.fill(); mCtx.stroke();
+
+      } else if (ch === 1) {
+        // --- Chapter 1: 未来編 (世界地図) ---
+        mCtx.fillStyle = '#0f2027'; 
+        mCtx.fillRect(0, 0, mc.width, mc.height);
+
+        mCtx.strokeStyle = 'rgba(0, 229, 255, 0.08)'; mCtx.lineWidth = 1;
+        for(var x=0; x<mc.width; x+=50) {
+          mCtx.beginPath(); mCtx.moveTo(x, 0); mCtx.lineTo(x, mc.height); mCtx.stroke();
+        }
+        for(var y=0; y<mc.height; y+=50) {
+          mCtx.beginPath(); mCtx.moveTo(0, y); mCtx.lineTo(mc.width, y); mCtx.stroke();
+        }
+
+        mCtx.fillStyle = '#1e3c72'; mCtx.strokeStyle = '#00e5ff'; mCtx.lineWidth = 3;
+
+        // ユーラシア・アフリカ大陸 (x: 50-750, y: 80-650)
+        mCtx.beginPath();
+        mCtx.moveTo(80, 150); mCtx.lineTo(250, 100); mCtx.lineTo(500, 80); mCtx.lineTo(750, 100); 
+        mCtx.lineTo(720, 250); mCtx.lineTo(650, 350); mCtx.lineTo(580, 420); mCtx.lineTo(510, 460);
+        mCtx.lineTo(440, 400); mCtx.lineTo(350, 360); mCtx.lineTo(310, 410); mCtx.lineTo(280, 380);
+        mCtx.lineTo(220, 320); mCtx.lineTo(240, 480); mCtx.lineTo(190, 620); mCtx.lineTo(140, 450); mCtx.lineTo(100, 340);
+        mCtx.closePath(); mCtx.fill(); mCtx.stroke();
+
+        // 南北アメリカ大陸 (x: 1000-1400, y: 100-700)
+        mCtx.fillStyle = '#2a5298';
+        mCtx.beginPath();
+        mCtx.moveTo(1000, 150); mCtx.lineTo(1150, 100); mCtx.lineTo(1350, 120); mCtx.lineTo(1400, 200); mCtx.lineTo(1250, 280); mCtx.lineTo(1120, 330);
+        mCtx.lineTo(1150, 420); mCtx.lineTo(1250, 460); mCtx.lineTo(1300, 520); mCtx.lineTo(1200, 670); mCtx.lineTo(1140, 630); mCtx.lineTo(1100, 480);
+        mCtx.closePath(); mCtx.fill(); mCtx.stroke();
+
+        // オーストラリア大陸
+        mCtx.fillStyle = '#1e3c72';
+        mCtx.beginPath();
+        mCtx.moveTo(700, 480); mCtx.lineTo(820, 460); mCtx.lineTo(800, 560); mCtx.lineTo(720, 550);
+        mCtx.closePath(); mCtx.fill(); mCtx.stroke();
+
+        // 南極大陸 (x: 80-1720, y: 740-810)
+        mCtx.fillStyle = '#3a7bd5'; mCtx.strokeStyle = '#00e5ff';
+        mCtx.beginPath();
+        mCtx.moveTo(80, 740); mCtx.lineTo(1720, 740); mCtx.lineTo(1550, 810); mCtx.lineTo(250, 810);
+        mCtx.closePath(); mCtx.fill(); mCtx.stroke();
+
+        // グリーンランド (x: 1300-1440, y: 30-100)
+        mCtx.fillStyle = '#e0f7fa';
+        mCtx.beginPath();
+        mCtx.moveTo(1320, 60); mCtx.lineTo(1420, 40); mCtx.lineTo(1440, 90); mCtx.lineTo(1350, 90);
+        mCtx.closePath(); mCtx.fill(); mCtx.stroke();
+
+      } else {
+        // --- Chapter 2: 宇宙編 (コスモ星雲公転軌道マップ) ---
+        mCtx.fillStyle = '#060012'; 
+        mCtx.fillRect(0, 0, mc.width, mc.height);
+
+        mCtx.fillStyle = '#fff';
+        for (var i = 0; i < 70; i++) {
+          var starX = (i * 47) % mc.width;
+          var starY = (i * 103) % mc.height;
+          var starR = (i % 4 === 0) ? 2.5 : 1;
+          mCtx.beginPath(); mCtx.arc(starX, starY, starR, 0, Math.PI * 2); mCtx.fill();
+        }
+
+        var spaceGrad = mCtx.createRadialGradient(800, 450, 50, 800, 450, 700);
+        spaceGrad.addColorStop(0, 'rgba(74, 20, 140, 0.4)');
+        spaceGrad.addColorStop(0.5, 'rgba(13, 71, 161, 0.2)');
+        spaceGrad.addColorStop(1, 'rgba(6, 0, 18, 0)');
+        mCtx.fillStyle = spaceGrad;
+        mCtx.fillRect(0, 0, mc.width, mc.height);
+
+        mCtx.strokeStyle = 'rgba(0, 229, 255, 0.12)'; mCtx.lineWidth = 2;
+        mCtx.beginPath(); mCtx.arc(800, 450, 280, 0, Math.PI * 2); mCtx.stroke();
+        mCtx.beginPath(); mCtx.arc(800, 450, 480, 0, Math.PI * 2); mCtx.stroke();
+
+        mCtx.fillStyle = '#ab47bc'; mCtx.strokeStyle = '#e1bee7'; mCtx.lineWidth = 3;
+        mCtx.beginPath(); mCtx.arc(420, 220, 32, 0, Math.PI * 2); mCtx.fill(); mCtx.stroke();
+        mCtx.strokeStyle = 'rgba(225, 190, 231, 0.5)'; mCtx.lineWidth = 6;
+        mCtx.beginPath(); mCtx.ellipse(420, 220, 60, 11, Math.PI/5, 0, Math.PI * 2); mCtx.stroke();
+
+        mCtx.fillStyle = '#ff1744'; mCtx.shadowColor = '#ff1744'; mCtx.shadowBlur = 25;
+        mCtx.beginPath(); mCtx.arc(800, 450, 45, 0, Math.PI * 2); mCtx.fill();
+        mCtx.shadowBlur = 0; 
       }
-      for(let y=0; y<mc.height; y+=40) {
-        mCtx.beginPath(); mCtx.moveTo(0, y); mCtx.lineTo(mc.width, y); mCtx.stroke();
+
+      mCtx.strokeStyle = ch === 2 ? 'rgba(255, 215, 0, 0.35)' : 'rgba(61,31,5,0.4)'; 
+      mCtx.lineWidth = 3; 
+      mCtx.setLineDash([5, 5]);
+      mCtx.beginPath();
+      for (var i = 0; i < stagesList.length - 1; i++) {
+        if (stagesList[i] && stagesList[i+1]) {
+          mCtx.moveTo(stagesList[i].mapX, stagesList[i].mapY);
+          mCtx.lineTo(stagesList[i+1].mapX, stagesList[i+1].mapY);
+        }
       }
+      mCtx.stroke(); 
+      mCtx.setLineDash([]); 
 
-      mCtx.strokeStyle = '#81c784';
-      mCtx.lineWidth = 4;
+      stagesList.forEach(function(stg, index) {
+        if (index > 47) return; 
+        var currentCleared = player.maxStageCleared[game.currentChapter] || 0;
+        var isUnlocked = currentCleared >= index;
+        var isCurrent = (selectedStageIndex === index);
 
-      // 九州
-      mCtx.fillStyle = '#c8e6c9';
-      mCtx.beginPath();
-      mCtx.moveTo(330, 390); mCtx.lineTo(380, 370); mCtx.lineTo(350, 420); mCtx.lineTo(360, 460); mCtx.lineTo(320, 520); mCtx.lineTo(350, 530); mCtx.lineTo(410, 480); mCtx.lineTo(430, 410);
-      mCtx.closePath(); mCtx.fill(); mCtx.stroke();
-
-      // 四国
-      mCtx.beginPath();
-      mCtx.moveTo(560, 410); mCtx.lineTo(640, 390); mCtx.lineTo(670, 420); mCtx.lineTo(600, 460);
-      mCtx.closePath(); mCtx.fill(); mCtx.stroke();
-
-      // 本州
-      mCtx.fillStyle = '#a5d6a7';
-      mCtx.strokeStyle = '#66bb6a';
-      mCtx.beginPath();
-      mCtx.moveTo(450, 350); mCtx.lineTo(550, 310); mCtx.lineTo(680, 270); mCtx.lineTo(760, 250); mCtx.lineTo(820, 240); mCtx.lineTo(850, 210); mCtx.lineTo(870, 160); mCtx.lineTo(910, 190); mCtx.lineTo(1020, 170); mCtx.lineTo(1150, 150); mCtx.lineTo(1250, 110); mCtx.lineTo(1280, 50); mCtx.lineTo(1310, 80); mCtx.lineTo(1330, 60); mCtx.lineTo(1330, 150); mCtx.lineTo(1280, 220); mCtx.lineTo(1250, 250); mCtx.lineTo(1200, 320); mCtx.lineTo(1210, 360); mCtx.lineTo(1150, 360); mCtx.lineTo(1120, 380); mCtx.lineTo(1090, 370); mCtx.lineTo(1030, 390); mCtx.lineTo(960, 380); mCtx.lineTo(910, 390); mCtx.lineTo(860, 420); mCtx.lineTo(810, 370); mCtx.lineTo(650, 340);
-      mCtx.closePath(); mCtx.fill(); mCtx.stroke();
-
-      // 佐渡島
-      mCtx.beginPath(); mCtx.ellipse(960, 150, 12, 6, Math.PI/4, 0, Math.PI*2); mCtx.fill(); mCtx.stroke();
-
-      // 北海道
-      mCtx.beginPath();
-      mCtx.moveTo(1400, 10); mCtx.lineTo(1450, -20); mCtx.lineTo(1550, -40); mCtx.lineTo(1700, 20); mCtx.lineTo(1700, 80); mCtx.lineTo(1600, 130); mCtx.lineTo(1460, 120);
-      mCtx.closePath(); mCtx.fill(); mCtx.stroke();
-
-      // 沖縄・西表島インセット
-      mCtx.fillStyle = '#f0e2be'; mCtx.strokeStyle = '#3d1f05'; mCtx.lineWidth = 2; mCtx.setLineDash([4, 4]);
-      mCtx.strokeRect(10, 360, 170, 170); mCtx.setLineDash([]); 
-
-      mCtx.fillStyle = '#c8e6c9'; mCtx.strokeStyle = '#81c784'; mCtx.lineWidth = 4;
-      mCtx.beginPath(); mCtx.ellipse(100, 430, 12, 4, -Math.PI/4, 0, Math.PI*2); mCtx.fill(); mCtx.stroke();
-      mCtx.beginPath(); mCtx.arc(60, 450, 8, 0, Math.PI*2); mCtx.fill(); mCtx.stroke();
-
-      mCtx.fillStyle = '#3d1f05'; mCtx.font = 'bold 11px Arial';
-      mCtx.fillText("沖縄地方", 20, 385);
-
-      // 進行経路
-      mCtx.strokeStyle = 'rgba(61,31,5,0.4)'; mCtx.lineWidth = 3; mCtx.setLineDash([5, 5]);
-      mCtx.beginPath();
-      for (let i = 0; i < stagesList.length - 1; i++) {
-        mCtx.moveTo(stagesList[i].mapX, stagesList[i].mapY);
-        mCtx.lineTo(stagesList[i+1].mapX, stagesList[i+1].mapY);
-      }
-      mCtx.stroke(); mCtx.setLineDash([]); 
-
-      // ステージプロット
-      stagesList.forEach((stg, index) => {
-        const isUnlocked = player.maxStageCleared >= index;
-        const isCurrent = (selectedStageIndex === index);
-
-        mCtx.fillStyle = isUnlocked ? (isCurrent ? '#ff3300' : '#4caf50') : '#9e9e9e';
+        if (ch === 2) {
+          mCtx.fillStyle = isUnlocked ? (isCurrent ? '#ff3300' : '#00e5ff') : '#455a64';
+        } else {
+          mCtx.fillStyle = isUnlocked ? (isCurrent ? '#ff3300' : '#4caf50') : '#9e9e9e';
+        }
 
         mCtx.beginPath();
         mCtx.arc(stg.mapX, stg.mapY, isCurrent ? 12 : 7, 0, Math.PI * 2);
         mCtx.fill();
-        mCtx.strokeStyle = '#3d1f05'; mCtx.lineWidth = 2; mCtx.stroke();
+        mCtx.strokeStyle = ch === 2 ? '#fff' : '#3d1f05'; 
+        mCtx.lineWidth = 2; 
+        mCtx.stroke();
 
         if (isCurrent) {
-          mCtx.strokeStyle = '#ff3300'; mCtx.lineWidth = 2;
+          mCtx.strokeStyle = isCurrent ? '#ff3300' : '#00e5ff'; 
+          mCtx.lineWidth = 2;
           mCtx.beginPath(); mCtx.arc(stg.mapX, stg.mapY, 18, 0, Math.PI * 2); mCtx.stroke();
         }
 
         if (index % 5 === 0 || index === 47 || isCurrent) {
-          mCtx.fillStyle = '#3d1f05'; mCtx.font = 'bold 11px Arial';
+          mCtx.fillStyle = ch === 2 ? '#fff' : '#3d1f05'; 
+          mCtx.font = 'bold 11px Arial';
           mCtx.fillText(stg.name, stg.mapX - 18, stg.mapY - 14);
         }
       });
     }
-
-    // キャンバスクリック判定
-    document.getElementById('mapCanvas').addEventListener('click', (e) => {
-      const rect = e.target.getBoundingClientRect();
-      const clickX = (e.clientX - rect.left) * (e.target.width / rect.width);
-      const clickY = (e.clientY - rect.top) * (e.target.height / rect.height);
-
-      stagesList.forEach((stg, index) => {
-        const isUnlocked = player.maxStageCleared >= index;
-        if (!isUnlocked) return;
-        const dist = Math.hypot(stg.mapX - clickX, stg.mapY - clickY);
-        if (dist < 20) { 
-          selectedStageIndex = index;
-          playSound('spawn');
-          drawJapanMap();
-          updateStageInfoPanel();
-          centerMapOnSelectedStage();
-        }
-      });
-    });
 
     // --- 12. 画面遷移処理 ---
     function switchScreen(screenId) {
@@ -1709,7 +1916,9 @@
       } else if (screenId === 'homeScreen') {
         drawBaseIllust();
       } else if (screenId === 'mapScreen') {
-        selectedStageIndex = Math.min(player.maxStageCleared, stagesList.length - 1);
+        const curCh = game.currentChapter || 0;
+        selectedStageIndex = Math.min(player.maxStageCleared[curCh] || 0, stagesList.length - 1);
+        document.getElementById('chapterSelect').value = curCh.toString();
         drawJapanMap();
         updateStageInfoPanel();
         setTimeout(centerMapOnSelectedStage, 100);
@@ -1737,97 +1946,92 @@
     }
 
     function renderPowerUp() {
-      const container = document.getElementById('powerupScrollArea');
+      var container = document.getElementById('powerupScrollArea');
       container.innerHTML = ''; 
 
       if (currentPowerUpCategory === 'base') {
-        specUpgrades.forEach(spec => {
-          const lvl = player[spec.key] || 1;
-          const cost = lvl * spec.baseCost;
-          const card = document.createElement('div');
+        specUpgrades.forEach(function(spec) {
+          var lvl = player[spec.key] || 1;
+          var cost = lvl * spec.baseCost;
+          var card = document.createElement('div');
           card.className = 'powerup-card';
           
           if (lvl >= spec.cap) {
-            card.innerHTML = `
-              <div class="card-top">
-                <div class="cat-preview-box" style="background:#fff7e6; display:flex; justify-content:center; align-items:center; font-size:2rem;">${spec.emoji}</div>
-                <div class="card-info">
-                  <div class="card-level">Lv.${lvl}</div>
-                  <div class="powerup-title" style="font-weight:900;">${spec.name}</div>
-                  <div style="font-size:0.8rem; color:#555;">${spec.desc(lvl)}</div>
-                </div>
-              </div>
-              <button class="btn-primary" disabled>Lv.MAX</button>
-            `;
+            card.innerHTML = 
+              '<div class="card-top">' +
+                '<div class="cat-preview-box" style="background:#fff7e6; display:flex; justify-content:center; align-items:center; font-size:2rem;">' + spec.emoji + '</div>' +
+                '<div class="card-info">' +
+                  '<div class="card-level">Lv.' + lvl + '</div>' +
+                  '<div class="powerup-title" style="font-weight:900;">' + spec.name + '</div>' +
+                  '<div style="font-size:0.8rem; color:#555;">' + spec.desc(lvl) + '</div>' +
+                '</div>' +
+              '</div>' +
+              '<button class="btn-primary" disabled>Lv.MAX</button>';
           } else {
-            card.innerHTML = `
-              <div class="card-top">
-                <div class="cat-preview-box" style="background:#fff7e6; display:flex; justify-content:center; align-items:center; font-size:2rem;">${spec.emoji}</div>
-                <div class="card-info">
-                  <div class="card-level">Lv.${lvl}</div>
-                  <div class="powerup-title" style="font-weight:900;">${spec.name}</div>
-                  <div style="font-size:0.8rem; color:#555;">${spec.desc(lvl)}</div>
-                </div>
-              </div>
-              <button class="btn-primary" ${player.xp < cost ? 'disabled' : ''} onclick="levelUpBaseSpec('${spec.key}')">強化 (${cost} XP)</button>
-            `;
+            card.innerHTML = 
+              '<div class="card-top">' +
+                '<div class="cat-preview-box" style="background:#fff7e6; display:flex; justify-content:center; align-items:center; font-size:2rem;">' + spec.emoji + '</div>' +
+                '<div class="card-info">' +
+                  '<div class="card-level">Lv.' + lvl + '</div>' +
+                  '<div class="powerup-title" style="font-weight:900;">' + spec.name + '</div>' +
+                  '<div style="font-size:0.8rem; color:#555;">' + spec.desc(lvl) + '</div>' +
+                '</div>' +
+              '</div>' +
+              '<button class="btn-primary" ' + (player.xp < cost ? 'disabled' : '') + ' onclick="levelUpBaseSpec(\'' + spec.key + '\')">強化 (' + cost + ' XP)</button>';
           }
           container.appendChild(card);
         });
       } else {
-        catKeys.forEach(key => {
-          const pCat = player.cats[key];
-          const card = document.createElement('div');
+        catKeys.forEach(function(key) {
+          var pCat = player.cats[key];
+          var card = document.createElement('div');
           card.className = 'powerup-card';
 
           if (!pCat.unlocked) {
-            card.innerHTML = `
-              <div class="card-top">
-                <div class="cat-preview-box">
-                  <canvas id="pre_${key}" width="60" height="60"></canvas>
-                </div>
-                <div class="card-info">
-                  <div class="card-level">Lv.--</div>
-                  <div class="powerup-title" style="color:#777; font-weight:900;">？？？</div>
-                  <div style="font-size:0.8rem; color:#888;">ガチャで解放されます</div>
-                </div>
-              </div>
-              <button class="btn-primary" disabled>未解放</button>
-            `;
+            card.innerHTML = 
+              '<div class="card-top">' +
+                '<div class="cat-preview-box">' +
+                  '<canvas id="pre_' + key + '" width="60" height="60"></canvas>' +
+                '</div>' +
+                '<div class="card-info">' +
+                  '<div class="card-level">Lv.--</div>' +
+                  '<div class="powerup-title" style="color:#777; font-weight:900;">？？？</div>' +
+                  '<div style="font-size:0.8rem; color:#888;">ガチャで解放されます</div>' +
+                '</div>' +
+              '</div>' +
+              '<button class="btn-primary" disabled>未解放</button>';
           } else {
-            const stats = getCatStats(key);
-            const cost = pCat.level * 100;
-            const evolutionText = stats.isEvolved ? " [進化]" : "";
-            const plusText = stats.plus > 0 ? ` +${stats.plus}` : "";
+            var stats = getCatStats(key);
+            var cost = pCat.level * 100;
+            var evolutionText = stats.isEvolved ? " [進化]" : "";
+            var plusText = stats.plus > 0 ? " +" + stats.plus : "";
 
             if (pCat.level >= 30) {
-              card.innerHTML = `
-                <div class="card-top">
-                  <div class="cat-preview-box">
-                    <canvas id="pre_${key}" width="60" height="60"></canvas>
-                  </div>
-                  <div class="card-info">
-                    <div class="card-level">Lv.${stats.level}${plusText}</div>
-                    <div class="powerup-title" style="font-weight:900;">${stats.name}${evolutionText}</div>
-                    <div style="font-size:0.8rem; color:#555;">体力: ${stats.hp} / 攻撃: ${stats.atk}</div>
-                  </div>
-                </div>
-                <button class="btn-primary" disabled>Lv.MAX</button>
-              `;
+              card.innerHTML = 
+                '<div class="card-top">' +
+                  '<div class="cat-preview-box">' +
+                    '<canvas id="pre_' + key + '" width="60" height="60"></canvas>' +
+                  '</div>' +
+                  '<div class="card-info">' +
+                    '<div class="card-level">Lv.' + stats.level + plusText + '</div>' +
+                    '<div class="powerup-title" style="font-weight:900;">' + stats.name + evolutionText + '</div>' +
+                    '<div style="font-size:0.8rem; color:#555;">体力: ' + stats.hp + ' / 攻撃: ' + stats.atk + '</div>' +
+                  '</div>' +
+                '</div>' +
+                '<button class="btn-primary" disabled>Lv.MAX</button>';
             } else {
-              card.innerHTML = `
-                <div class="card-top">
-                  <div class="cat-preview-box">
-                    <canvas id="pre_${key}" width="60" height="60"></canvas>
-                  </div>
-                  <div class="card-info">
-                    <div class="card-level">Lv.${stats.level}${plusText}</div>
-                    <div class="powerup-title" style="font-weight:900;">${stats.name}${evolutionText}</div>
-                    <div style="font-size:0.8rem; color:#555;">体力: ${stats.hp} / 攻撃: ${stats.atk}</div>
-                  </div>
-                </div>
-                <button class="btn-primary" ${player.xp < cost ? 'disabled' : ''} onclick="levelUpCat('${key}')">強化 (${cost} XP)</button>
-              `;
+              card.innerHTML = 
+                '<div class="card-top">' +
+                  '<div class="cat-preview-box">' +
+                    '<canvas id="pre_' + key + '" width="60" height="60"></canvas>' +
+                  '</div>' +
+                  '<div class="card-info">' +
+                    '<div class="card-level">Lv.' + stats.level + plusText + '</div>' +
+                    '<div class="powerup-title" style="font-weight:900;">' + stats.name + evolutionText + '</div>' +
+                    '<div style="font-size:0.8rem; color:#555;">体力: ' + stats.hp + ' / 攻撃: ' + stats.atk + '</div>' +
+                  '</div>' +
+                '</div>' +
+                '<button class="btn-primary" ' + (player.xp < cost ? 'disabled' : '') + ' onclick="levelUpCat(\'' + key + '\')">強化 (' + cost + ' XP)</button>';
             }
           }
           container.appendChild(card);
@@ -1836,7 +2040,7 @@
     }
 
     function levelUpBaseSpec(key) {
-      const spec = specUpgrades.find(s => s.key === key);
+      const spec = specUpgrades.find(function(s) { return s.key === key; });
       if (!spec) return;
       const currentLvl = player[key] || 1;
       if (currentLvl >= spec.cap) return;
@@ -1853,11 +2057,11 @@
 
     function updatePreviews() {
       if (previewIntervalId) clearInterval(previewIntervalId);
-      previewIntervalId = setInterval(() => {
+      previewIntervalId = setInterval(function() {
         previewFrame++;
         if (currentPowerUpCategory === 'cats') {
-          catKeys.forEach(key => {
-            drawCatPreview(`pre_${key}`, key);
+          catKeys.forEach(function(key) {
+            drawCatPreview("pre_" + key, key);
           });
         }
       }, 50);
@@ -1891,7 +2095,7 @@
       drawUnit(dummy, c);
 
       if (puEffects[key] > 0) {
-        c.strokeStyle = `rgba(245, 197, 66, ${puEffects[key] / 10})`; c.lineWidth = 3;
+        c.strokeStyle = "rgba(245, 197, 66, " + (puEffects[key] / 10) + ")"; c.lineWidth = 3;
         c.beginPath(); c.arc(30, 25, 24 - puEffects[key], 0, Math.PI * 2); c.stroke();
         puEffects[key]--;
       }
@@ -1931,7 +2135,7 @@
       
       playSound('victory'); 
 
-      requestAnimationFrame(() => {
+      requestAnimationFrame(function() {
         drawEvoCatPreviews(key);
       });
     }
@@ -1940,7 +2144,7 @@
       const base = catTemplates[key];
       if (!base) return;
 
-      const drawToCvs = (cvsId, isEvolved, color) => {
+      const drawToCvs = function(cvsId, isEvolved, color) {
         const cvs = document.getElementById(cvsId);
         if (!cvs) return;
         const c = cvs.getContext('2d');
@@ -1971,40 +2175,38 @@
     }
 
     // --- 14. キャラクター編成システム ---
-    let selectedDeckSlotIndex = 0; 
+    var selectedDeckSlotIndex = 0; 
 
-    // 重複プラス値の経験値(XP)変換システム
     function convertPlusToXp(key) {
       const stats = getCatStats(key);
       if (!stats || stats.plus <= 0) return;
 
-      // レア度に応じた報酬XPの設定
-      let xpReward = 10000;
+      var xpReward = 10000;
       if (stats.rarity === "Super Rare") xpReward = 30000;
       else if (stats.rarity === "Uber Rare") xpReward = 100000;
       else if (stats.rarity === "Legend Rare") xpReward = 250000;
 
       showCustomModal(
         "XP変換の確認",
-        `${stats.name} のプラス値 (+${stats.plus}) を1つ消費して、経験値(XP) +${xpReward.toLocaleString()} に変換しますか？\n(変換したプラス値は元に戻せません)`,
+        stats.name + " のプラス値を1つ消費して、経験値(XP) +" + xpReward.toLocaleString() + " に変換しますか？",
         "XP変換",
         "#00aa88",
         [
           {
             text: "変換する",
             class: "btn-primary",
-            onClick: () => {
+            onClick: function() {
               player.cats[key].plus--;
               player.xp += xpReward;
               playSound('spawn');
               saveGame();
-              renderDeckScreen(); // 再描画
+              renderDeckScreen(); 
             }
           },
           {
             text: "キャンセル",
             class: "btn-danger",
-            onClick: () => {}
+            onClick: function() {}
           }
         ]
       );
@@ -2043,33 +2245,30 @@
       else if (stats.rarity === "Uber Rare") rarityEl.style.background = "#e91e63";
       else if (stats.rarity === "Legend Rare") rarityEl.style.background = "#ffd700";
 
-      const plusText = stats.plus > 0 ? ` +${stats.plus}` : "";
-      document.getElementById('deckDetailLevel').innerText = `レベル: ${stats.level}${plusText}`;
+      var plusText = stats.plus > 0 ? " +" + stats.plus : "";
+      document.getElementById('deckDetailLevel').innerText = "レベル: " + stats.level + plusText;
       document.getElementById('deckDetailHp').innerText = stats.hp;
       document.getElementById('deckDetailAtk').innerText = stats.atk;
       document.getElementById('deckDetailRange').innerText = stats.range;
-      document.getElementById('deckDetailCost').innerText = `$${stats.cost}`;
+      document.getElementById('deckDetailCost').innerText = "$" + stats.cost;
 
       const abilityEl = document.getElementById('deckDetailAbility');
       if (abilityEl) {
-        abilityEl.innerText = stats.ability ? `特性: ${stats.ability}` : "特性: なし";
+        abilityEl.innerText = stats.ability ? "特性: " + stats.ability : "特性: なし";
       }
 
-      // プラス値XP変換ボタンの表示およびイベント設定
       if (convertBtn) {
         if (stats.plus > 0) {
           convertBtn.style.display = 'block';
-          let xpReward = 10000;
+          var xpReward = 10000;
           if (stats.rarity === "Super Rare") xpReward = 30000;
           else if (stats.rarity === "Uber Rare") xpReward = 100000;
           else if (stats.rarity === "Legend Rare") xpReward = 250000;
           
-          convertBtn.innerText = `プラス値をXPに変換 (+${xpReward.toLocaleString()} XP)`;
-          
-          // イベントリスナの重複登録を防ぐため、クローン経由で再バインド
+          convertBtn.innerText = "プラス値をXPに変換 (+" + xpReward.toLocaleString() + " XP)";
           const newBtn = convertBtn.cloneNode(true);
           convertBtn.parentNode.replaceChild(newBtn, convertBtn);
-          newBtn.addEventListener('click', () => convertPlusToXp(key));
+          newBtn.addEventListener('click', function() { convertPlusToXp(key); });
         } else {
           convertBtn.style.display = 'none';
         }
@@ -2079,9 +2278,9 @@
       c.beginPath(); c.ellipse(cvs.width/2, cvs.height - 6, 16, 4, 0, 0, Math.PI*2); c.fill();
 
       c.save();
-      c.scale(1.8, 1.8);
+      c.scale(2.5, 2.5);
       const dummy = {
-        x: (cvs.width/1.8)/2 - stats.width / 2, y: (cvs.height/1.8) - 6/1.8 - stats.height,
+        x: (cvs.width/2.5)/2 - stats.width / 2, y: (cvs.height/2.5) - 12/2.5 - stats.height,
         width: stats.width, height: stats.height, color: stats.color, isEvolved: stats.isEvolved,
         rawKey: key, type: 'ally', attackOffset: 0, isMoving: false, drawType: stats.drawType
       };
@@ -2101,38 +2300,37 @@
         const isSelected = (selectedDeckSlotIndex === i);
         const borderStyle = isSelected ? '3px solid #ff3300' : '2px solid #3d1f05';
         const bgStyle = isSelected ? '#fff3e0' : '#fff';
+        const shadowVal = isSelected ? '0 0 6px rgba(255,51,0,0.3)' : 'none';
 
-        slotEl.style.cssText = `background:${bgStyle}; border:${borderStyle}; border-radius:12px; padding:4px; cursor:pointer; text-align:center; display:flex; flex-direction:column; align-items:center; position:relative; box-shadow: ${isSelected ? '0 0 6px rgba(255,51,0,0.3)' : 'none'};`;
-        slotEl.addEventListener('click', () => {
+        slotEl.style.cssText = "background:" + bgStyle + "; border:" + borderStyle + "; border-radius:12px; padding:4px; cursor:pointer; text-align:center; display:flex; flex-direction:column; align-items:center; position:relative; box-shadow: " + shadowVal + ";";
+        slotEl.addEventListener('click', function() {
           selectedDeckSlotIndex = i;
           playSound('spawn');
           renderDeckScreen();
         });
 
         if (stats) {
-          slotEl.innerHTML = `
-            <div style="font-size:0.6rem; font-weight:900; background:#3d1f05; color:#fff; padding:1px 4px; border-radius:4px; margin-bottom:2px;">枠 ${i+1}</div>
-            <canvas id="deck_slot_cvs_${i}" width="40" height="40"></canvas>
-            <div style="font-size:0.65rem; font-weight:bold; color:#3d1f05; margin-top:1px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; width:100%;">${stats.name}</div>
-          `;
+          slotEl.innerHTML = 
+            '<div style="font-size:0.6rem; font-weight:900; background:#3d1f05; color:#fff; padding:1px 4px; border-radius:4px; margin-bottom:2px;">枠 ' + (i+1) + '</div>' +
+            '<canvas id="deck_slot_cvs_' + i + '" width="40" height="40"></canvas>' +
+            '<div style="font-size:0.65rem; font-weight:bold; color:#3d1f05; margin-top:1px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; width:100%;">' + stats.name + '</div>';
         } else {
-          slotEl.innerHTML = `
-            <div style="font-size:0.6rem; font-weight:900; background:#666; color:#fff; padding:1px 4px; border-radius:4px; margin-bottom:2px;">枠 ${i+1}</div>
-            <div style="width:40px; height:40px; display:flex; justify-content:center; align-items:center; font-size:1.2rem; color:#ccc;">✖</div>
-            <div style="font-size:0.65rem; font-weight:bold; color:#999;">空き</div>
-          `;
+          slotEl.innerHTML = 
+            '<div style="font-size:0.6rem; font-weight:900; background:#666; color:#fff; padding:1px 4px; border-radius:4px; margin-bottom:2px;">枠 ' + (i+1) + '</div>' +
+            '<div style="width:40px; height:40px; display:flex; justify-content:center; align-items:center; font-size:1.2rem; color:#ccc;">✖</div>' +
+            '<div style="font-size:0.65rem; font-weight:bold; color:#999;">空き</div>';
         }
         slotsContainer.appendChild(slotEl);
 
         if (stats) {
-          drawDeckSlotPreview(`deck_slot_cvs_${i}`, catKey);
+          drawDeckSlotPreview("deck_slot_cvs_" + i, catKey);
         }
       }
 
       const warehouseContainer = document.getElementById('warehouseGrid');
       warehouseContainer.innerHTML = '';
 
-      catKeys.forEach(key => {
+      catKeys.forEach(function(key) {
         const pCat = player.cats[key];
         if (!pCat.unlocked) return;
 
@@ -2140,30 +2338,27 @@
         const itemEl = document.createElement('div');
         
         const inDeckIdx = player.deck.indexOf(key);
-        const inDeckBadge = inDeckIdx !== -1 ? `<div style="position:absolute; top:-4px; right:-4px; background:#4caf50; color:#fff; font-size:0.55rem; font-weight:bold; padding:1px 3px; border-radius:4px; border:1px solid #3d1f05;">編成中</div>` : '';
+        const inDeckBadge = inDeckIdx !== -1 ? '<div style="position:absolute; top:-4px; right:-4px; background:#4caf50; color:#fff; font-size:0.55rem; font-weight:bold; padding:1px 3px; border-radius:4px; border:1px solid #3d1f05;">編成中</div>' : '';
 
-        itemEl.style.cssText = `background:#f9f9f9; border:2px solid #3d1f05; border-radius:10px; padding:4px; cursor:pointer; text-align:center; display:flex; flex-direction:column; align-items:center; position:relative;`;
-        itemEl.addEventListener('click', () => {
+        itemEl.style.cssText = "background:#f9f9f9; border:2px solid #3d1f05; border-radius:10px; padding:4px; cursor:pointer; text-align:center; display:flex; flex-direction:column; align-items:center; position:relative;";
+        itemEl.addEventListener('click', function() {
           swapDeckSlot(selectedDeckSlotIndex, key);
         });
 
-        itemEl.innerHTML = `
-          ${inDeckBadge}
-          <canvas id="wh_cvs_${key}" width="40" height="40"></canvas>
-          <div style="font-size:0.65rem; font-weight:bold; color:#3d1f05; margin-top:1px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; width:100%;">${stats.name}</div>
-        `;
+        itemEl.innerHTML = 
+          inDeckBadge +
+          '<canvas id="wh_cvs_' + key + '" width="40" height="40"></canvas>' +
+          '<div style="font-size:0.65rem; font-weight:bold; color:#3d1f05; margin-top:1px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; width:100%;">' + stats.name + '</div>';
         warehouseContainer.appendChild(itemEl);
 
-        drawDeckSlotPreview(`wh_cvs_${key}`, key);
+        drawDeckSlotPreview("wh_cvs_" + key, key);
       });
 
-      // 表示を更新
       updateDeckDetailPanel(player.deck[selectedDeckSlotIndex]);
     }
 
     function swapDeckSlot(slotIdx, newCatKey) {
       const currentInDeckIdx = player.deck.indexOf(newCatKey);
-      
       if (currentInDeckIdx !== -1) {
         const displacedCat = player.deck[slotIdx];
         player.deck[slotIdx] = newCatKey;
@@ -2171,7 +2366,6 @@
       } else {
         player.deck[slotIdx] = newCatKey;
       }
-      
       playSound('spawn');
       saveGame();
       renderDeckScreen();
@@ -2200,19 +2394,18 @@
       };
 
       drawUnit(dummy, c);
-
       c.restore();
     }
 
     // --- 15. ガチャシステム ---
-    function triggerGachaAnimation(pullCount = 1) {
+    function triggerGachaAnimation(pullCount) {
       if (isGachaPlaying) return; 
       
       const cost = pullCount * 150;
       if (player.catFood < cost) {
         showCustomModal(
           "ネコ缶が足りません",
-          `ガチャを回すにはネコ缶が ${cost} 個必要です。\n日本編の各ステージを制圧して、ネコ缶を集めましょう！`,
+          "ガチャを回すにはネコ缶が " + cost + " 個必要です。",
           "ネコ缶不足",
           "#ff4d4d"
         );
@@ -2233,26 +2426,25 @@
       card.classList.remove('show');
       capsule.className = "capsule shake-anim"; 
 
-      // ガチャ順送り用ステート初期化
       gachaResultsQueue = [];
       isTenRollMode = (pullCount === 10);
       currentGachaRevealIndex = 0;
 
-      for (let i = 0; i < pullCount; i++) {
+      for (var i = 0; i < pullCount; i++) {
         const r = Math.random();
         let rolledKey = 'cat1';
         
         if (r < 0.60) {
-          const keys = ['cat1', 'cat2', 'cat3', 'cat_ninja', 'cat_sumo', 'cat_samurai', 'cat_zombie', 'cat_apple', 'cat_pirate', 'cat_thief', 'cat_monk', 'cat_shaman', 'cat_pogo', 'cat_wheel', 'cat_jura'];
+          const keys = ['cat1', 'cat2', 'cat3', 'cat_ninja', 'cat_sumo', 'cat_samurai', 'cat_zombie', 'cat_apple', 'cat_pirate', 'cat_thief', 'cat_monk', 'cat_shaman', 'cat_pogo', 'cat_wheel', 'cat_jura', 'cat_macho', 'cat_super_wall', 'cat_dark', 'cat_psycho', 'cat_doc', 'cat_clover', 'cat_dumbbell', 'cat_marathon', 'cat_chef', 'cat_camera', 'cat_artist', 'cat_mike', 'cat_keeper', 'cat_mop'];
           rolledKey = keys[Math.floor(Math.random() * keys.length)];
         } else if (r < 0.88) {
-          const keys = ['cat_gross', 'cat_cow', 'cat_bird', 'cat_sushi', 'cat_boxer', 'cat_swimmer', 'cat_delinquent', 'cat_witch', 'cat_archer', 'cat_gunslinger', 'cat_fortune', 'cat_rocker', 'cat_mermaid', 'cat_waitress', 'cat_kotatsu'];
+          const keys = ['cat_gross', 'cat_cow', 'cat_bird', 'cat_sushi', 'cat_boxer', 'cat_swimmer', 'cat_delinquent', 'cat_witch', 'cat_archer', 'cat_gunslinger', 'cat_fortune', 'cat_rocker', 'cat_mermaid', 'cat_waitress', 'cat_kotatsu', 'cat_island', 'cat_flying', 'cat_king_dragon', 'cat_fencing', 'cat_drone', 'cat_snowboard', 'cat_barista', 'cat_grenade', 'cat_magnet', 'cat_car', 'cat_sniper', 'cat_hacker', 'cat_dj', 'cat_spring'];
           rolledKey = keys[Math.floor(Math.random() * keys.length)];
         } else if (r < 0.98) {
-          const keys = ['cat_fish', 'cat_lizard', 'cat_titan', 'cat_salon', 'cat_surfer', 'cat_skater', 'cat_toaster', 'cat_tv', 'cat_explorer', 'cat_jumper', 'cat_butterfly', 'cat_bodhi', 'cat_onigiri', 'cat_gigant', 'cat_knight'];
+          const keys = ['cat_fish', 'cat_lizard', 'cat_titan', 'cat_salon', 'cat_surfer', 'cat_skater', 'cat_toaster', 'cat_tv', 'cat_explorer', 'cat_jumper', 'cat_butterfly', 'cat_bodhi', 'cat_onigiri', 'cat_gigant', 'cat_knight', 'cat_jamiera', 'cat_castaway', 'cat_dragon_knight', 'cat_demon_prince', 'cat_mech_god', 'cat_princess', 'cat_monster', 'cat_sword', 'cat_gold_statue', 'cat_element', 'cat_phoenix', 'cat_pirate_king', 'cat_time_traveler', 'cat_armor_fort', 'cat_maid', 'cat_sky_fairy', 'cat_alchemist'];
           rolledKey = keys[Math.floor(Math.random() * keys.length)];
         } else {
-          const keys = ['cat_valkyrie', 'cat_bahamut', 'cat_odin', 'cat_anubis', 'cat_god'];
+          const keys = ['cat_valkyrie', 'cat_bahamut', 'cat_odin', 'cat_anubis', 'cat_god', 'cat_amaterasu', 'cat_shiva', 'cat_null', 'cat_chronos', 'cat_gravity'];
           rolledKey = keys[Math.floor(Math.random() * keys.length)];
         }
 
@@ -2262,69 +2454,54 @@
         if (isNew) pCat.unlocked = true;
         else pCat.plus++;
 
-        gachaResultsQueue.push({ key: rolledKey, isNew, plus: pCat.plus });
+        gachaResultsQueue.push({ key: rolledKey, isNew: isNew, plus: pCat.plus });
       }
 
       saveGame();
 
-      setTimeout(() => {
+      setTimeout(function() {
         capsule.className = "capsule burst-anim";
         playSound('cannon'); 
         
         flash.style.display = 'block'; flash.style.opacity = '1';
-        setTimeout(() => {
+        setTimeout(function() {
           flash.style.opacity = '0';
-          setTimeout(() => flash.style.display = 'none', 100);
+          setTimeout(function() { flash.style.display = 'none'; }, 100);
         }, 100);
 
-        setTimeout(() => {
+        setTimeout(function() {
           capsule.style.display = 'none';
           card.classList.add('show');
           playSound('victory'); 
-          renderGachaRevealStep(); // 1体目の表示
+          renderGachaRevealStep(); 
         }, 300);
 
       }, 1200);
     }
 
-    // ガチャ結果個別プレビュー
     function drawRevealCatPreview(key) {
-      const cvs = document.getElementById('revealCvs');
+      var cvs = document.getElementById('revealCvs');
       if (!cvs) return;
-      const c = cvs.getContext('2d');
+      var c = cvs.getContext('2d');
       c.clearRect(0, 0, cvs.width, cvs.height);
 
-      const stats = getCatStats(key);
+      var stats = getCatStats(key);
       if (!stats) return;
 
-      c.fillStyle = 'rgba(0,0,0,0.06)';
-      c.beginPath();
-      c.ellipse(100, 135, 50, 10, 0, 0, Math.PI*2);
-      c.fill();
+      c.fillStyle = 'rgba(0,0,0,0.05)';
+      c.beginPath(); c.ellipse(cvs.width/2, cvs.height - 12, 40, 10, 0, 0, Math.PI*2); c.fill();
 
       c.save();
-      c.scale(2.2, 2.2);
-
-      const dummy = {
-        x: 45 - stats.width / 2,
-        y: 61 - stats.height,
-        width: stats.width,
-        height: stats.height,
-        color: stats.color,
-        isEvolved: stats.isEvolved,
-        rawKey: key,
-        type: 'ally',
-        attackOffset: 0,
-        isMoving: false,
-        drawType: stats.drawType
+      c.scale(2.5, 2.5);
+      var dummy = {
+        x: (cvs.width/2.5)/2 - stats.width / 2, y: (cvs.height/2.5) - 12/2.5 - stats.height,
+        width: stats.width, height: stats.height, color: stats.color, isEvolved: stats.isEvolved,
+        rawKey: key, type: 'ally', attackOffset: 0, isMoving: false, drawType: stats.drawType
       };
-
       drawUnit(dummy, c);
-
       c.restore();
     }
 
-    // 1体ずつの表示処理
     function renderGachaRevealStep() {
       const res = gachaResultsQueue[currentGachaRevealIndex];
       if (!res) return;
@@ -2334,31 +2511,30 @@
       const okBtn = document.getElementById('gachaOkBtn');
 
       badge.style.display = 'inline-block';
-      badge.innerText = res.isNew ? "NEW!!" : `重ね掛け! +${res.plus}`;
+      badge.innerText = res.isNew ? "NEW!!" : "重ね掛け! +" + res.plus;
       badge.style.background = res.isNew ? "#ff3399" : "#ffd700";
 
       const stats = getCatStats(res.key);
-      content.innerHTML = `
-        <div style="margin: 15px 0; background:#fff; border:4px solid #3d1f05; border-radius:16px; padding:15px; display:inline-block; box-shadow: inset 0 4px 8px rgba(0,0,0,0.15);">
-          <canvas id="revealCvs" width="200" height="150"></canvas>
-        </div>
-        <h3 style="margin: 0; font-size:1.6rem; color:#3d1f05; font-weight: 900;">${stats.name}</h3>
-        <p style="color:#555; font-size:0.95rem; margin:10px 0; font-weight:bold;">最大体力: ${stats.hp} / 攻撃力: ${stats.atk}</p>
-        <p style="color:#ff3399; font-size:0.8rem; font-weight:bold; margin-top:2px; max-width:320px; text-align:center; display:inline-block; word-break:break-all;">特性: ${stats.ability || 'なし'}</p>
-      `;
+      content.innerHTML = 
+        '<div style="margin: 15px 0; background:#fff; border:4px solid #3d1f05; border-radius:16px; padding:15px; display:inline-block; box-shadow: inset 0 4px 8px rgba(0,0,0,0.15);">' +
+          '<canvas id="revealCvs" width="200" height="150"></canvas>' +
+        '</div>' +
+        '<h3 style="margin: 0; font-size:1.6rem; color:#3d1f05; font-weight: 900;">' + stats.name + '</h3>' +
+        '<p style="color:#555; font-size:0.95rem; margin:10px 0; font-weight:bold;">最大体力: ' + stats.hp + ' / 攻撃力: ' + stats.atk + '</p>' +
+        '<p style="color:#ff3399; font-size:0.8rem; font-weight:bold; margin-top:2px; max-width:320px; text-align:center; display:inline-block; word-break:break-all;">特性: ' + (stats.ability || 'なし') + '</p>';
       drawRevealCatPreview(res.key);
 
       if (isTenRollMode) {
         if (currentGachaRevealIndex < 9) {
-          okBtn.innerText = `次へ (${currentGachaRevealIndex + 1} / 10)`;
-          okBtn.onclick = () => {
+          okBtn.innerText = "次へ (" + (currentGachaRevealIndex + 1) + " / 10)";
+          okBtn.onclick = function() {
             currentGachaRevealIndex++;
             playSound('spawn');
             renderGachaRevealStep();
           };
         } else {
           okBtn.innerText = "結果一覧を見る";
-          okBtn.onclick = () => {
+          okBtn.onclick = function() {
             playSound('victory');
             showTenRollSummary(); 
           };
@@ -2369,7 +2545,6 @@
       }
     }
 
-    // 10連最終リザルト総覧画面の描画
     function showTenRollSummary() {
       const badge = document.getElementById('revealBadge');
       const content = document.getElementById('revealContent');
@@ -2377,28 +2552,26 @@
 
       badge.style.display = 'none'; 
       
-      let gridHtml = `
-        <h3 style="margin: 5px 0 10px 0; font-size:1.3rem; color:#3d1f05; font-weight: 900;">10連ガチャ獲得結果</h3>
-        <div style="display:grid; grid-template-columns: repeat(5, 1fr); gap: 6px; margin: 10px 0;">
-      `;
-      gachaResultsQueue.forEach((res, i) => {
-        const stats = getCatStats(res.key);
-        const bText = res.isNew ? 'NEW' : `+${res.plus}`;
-        const bColor = res.isNew ? '#ff3399' : '#ffd700';
-        gridHtml += `
-          <div style="background:#fff; border:2px solid #3d1f05; border-radius:10px; padding:4px; display:flex; flex-direction:column; align-items:center; position:relative; box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);">
-            <div style="position:absolute; top:-4px; right:-4px; background:${bColor}; color:#fff; font-size:0.55rem; font-weight:900; padding:1px 3px; border-radius:4px; border:1px solid #3d1f05;">${bText}</div>
-            <canvas id="ten_cvs_${i}" width="50" height="50"></canvas>
-            <div style="font-size:0.65rem; font-weight:900; color:#3d1f05; margin-top:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; width:100%;">${stats.name}</div>
-          </div>
-        `;
+      var gridHtml = 
+        '<h3 style="margin: 5px 0 10px 0; font-size:1.3rem; color:#3d1f05; font-weight: 900;">10連ガチャ獲得結果</h3>' +
+        '<div style="display:grid; grid-template-columns: repeat(5, 1fr); gap: 6px; margin: 10px 0;">';
+      gachaResultsQueue.forEach(function(res, i) {
+        var stats = getCatStats(res.key);
+        var bText = res.isNew ? 'NEW' : '+' + res.plus;
+        var bColor = res.isNew ? '#ff3399' : '#ffd700';
+        gridHtml += 
+          '<div style="background:#fff; border:2px solid #3d1f05; border-radius:10px; padding:4px; display:flex; flex-direction:column; align-items:center; position:relative; box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);">' +
+            '<div style="position:absolute; top:-4px; right:-4px; background:' + bColor + '; color:#fff; font-size:0.55rem; font-weight:900; padding:1px 3px; border-radius:4px; border:1px solid #3d1f05;">' + bText + '</div>' +
+            '<canvas id="ten_cvs_' + i + '" width="50" height="50"></canvas>' +
+            '<div style="font-size:0.65rem; font-weight:900; color:#3d1f05; margin-top:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; width:100%;">' + stats.name + '</div>' +
+          '</div>';
       });
-      gridHtml += `</div>`;
+      gridHtml += '</div>';
       content.innerHTML = gridHtml;
 
-      requestAnimationFrame(() => {
-        gachaResultsQueue.forEach((res, i) => {
-          drawDeckSlotPreview(`ten_cvs_${i}`, res.key);
+      requestAnimationFrame(function() {
+        gachaResultsQueue.forEach(function(res, i) {
+          drawDeckSlotPreview("ten_cvs_" + i, res.key);
         });
       });
 
@@ -2458,7 +2631,6 @@
 
     // --- 16. 戦闘システム ---
 
-    // 本家風に出撃スロットボタンの背景に半透明にゃんこを大きく描く関数
     function drawSlotBackgroundCat(cvs, key) {
       const c = cvs.getContext('2d');
       c.clearRect(0, 0, cvs.width, cvs.height);
@@ -2488,7 +2660,6 @@
       c.restore();
     }
 
-    // 5体ずつ2列で常に10枠固定で表示を処理（本家風背後ビジュアルキャンバス付き）
     function renderBattleSlots() {
       const container = document.getElementById('battleSlotContainer');
       container.innerHTML = ''; 
@@ -2500,27 +2671,28 @@
         slotEl.className = 'slot';
         
         if (stats) {
-          slotEl.id = `slot_${key}`;
-          slotEl.innerHTML = `
-            <canvas id="slot_bg_cvs_${stats.id}" width="120" height="60" style="position: absolute; top:0; left:0; width:100%; height:100%; opacity: 0.23; pointer-events: none; border-radius: 12px;"></canvas>
-            <button id="btnCat${key.replace('cat', '')}" style="position: relative; z-index: 1; background: transparent; border: none; box-shadow: none;">
-              <strong style="text-shadow: 1px 1px 1px #fff, -1px -1px 1px #fff, 1px -1px 1px #fff, -1px 1px 1px #fff; color: #3d1f05;">${stats.name}</strong><br>
-              <span style="color:#b38612; font-weight:900; text-shadow: 1px 1px 1px #fff, -1px -1px 1px #fff, 1px -1px 1px #fff, -1px 1px 1px #fff;">$${stats.cost}</span>
-            </button>
-            <div id="cdCat${key.replace('cat', '')}" class="cooldown-overlay">0s</div>
-          `;
+          slotEl.id = "slot_" + key;
+          slotEl.innerHTML = 
+            '<canvas id="slot_bg_cvs_' + stats.id + '" width="120" height="60" style="position: absolute; top:0; left:0; width:100%; height:100%; opacity: 0.23; pointer-events: none; border-radius: 12px;"></canvas>' +
+            '<button id="btnCat' + key.replace('cat', '') + '" style="position: relative; z-index: 1; background: transparent; border: none; box-shadow: none;">' +
+              '<strong style="text-shadow: 1px 1px 1px #fff, -1px -1px 1px #fff, 1px -1px 1px #fff, -1px 1px 1px #fff; color: #3d1f05;">' + stats.name + '</strong><br>' +
+              '<span style="color:#b38612; font-weight:900; text-shadow: 1px 1px 1px #fff, -1px -1px 1px #fff, 1px -1px 1px #fff, -1px 1px 1px #fff;">$' + stats.cost + '</span>' +
+            '</button>' +
+            '<div id="cdCat' + key.replace('cat', '') + '" class="cooldown-overlay">' +
+              '<div style="width: 80%; height: 8px; background: #000; border: 1.5px solid #3d1f05; border-radius: 4px; overflow: hidden; position: relative; box-shadow: inset 0 1px 3px rgba(0,0,0,0.5);">' +
+                '<div id="cdBar' + key.replace('cat', '') + '" style="height: 100%; background: #00e5ff; width: 0%; transition: width 0.05s linear;"></div>' +
+              '</div>' +
+            '</div>';
         } else {
-          slotEl.innerHTML = `
-            <button disabled style="opacity: 0.5;">
-              <strong style="color: #888;">---</strong>
-            </button>
-          `;
+          slotEl.innerHTML = 
+            '<button disabled style="opacity: 0.5;">' +
+              '<strong style="color: #888;">---</strong>' +
+            '</button>';
         }
         container.appendChild(slotEl);
 
-        // ボタンの背景ににゃんこビジュアルを非同期描画
         if (stats) {
-          const slotBgCvs = slotEl.querySelector(`#slot_bg_cvs_${stats.id}`);
+          const slotBgCvs = slotEl.querySelector("#slot_bg_cvs_" + stats.id);
           if (slotBgCvs) {
             drawSlotBackgroundCat(slotBgCvs, stats.id);
           }
@@ -2529,7 +2701,7 @@
     }
 
     function setupBattleInput() {
-      const cloneAndReplace = (id, callback) => {
+      const cloneAndReplace = function(id, callback) {
         const el = document.getElementById(id);
         if (!el) return null;
         const newEl = el.cloneNode(true);
@@ -2538,7 +2710,7 @@
         return newEl;
       };
 
-      cloneAndReplace('walletBtn', () => {
+      cloneAndReplace('walletBtn', function() {
         if (game.walletLevel >= walletConfig.length) return;
         const config = walletConfig[game.walletLevel - 1];
         if (!config || config.cost === null) return;
@@ -2549,23 +2721,22 @@
         }
       });
 
-      player.deck.forEach(key => {
+      player.deck.forEach(function(key) {
         if (!key) return;
-        const btnId = `btnCat${key.replace('cat', '')}`;
-        cloneAndReplace(btnId, () => spawnAlly(key));
+        const btnId = "btnCat" + key.replace('cat', '');
+        cloneAndReplace(btnId, function() { spawnAlly(key); });
       });
 
       cloneAndReplace('cannonBtn', fireCannon);
     }
 
-    // にゃんこ砲発射処理
     function fireCannon() {
       if (game.cannonCharge < maxCannonCharge || game.state !== 'playing') return;
 
       game.cannonCharge = 0;
-      cannonBeamTimer = 45; // battleUpdate/battleDrawの最大時間に同期
+      cannonBeamTimer = 45; 
       cannonFlash = 10;
-      game.cannonDamageDealt = {}; // 新たなビームによる被弾を判定するため、衝突履歴辞書をリセット
+      game.cannonDamageDealt = {}; 
       playSound('cannon');
     }
 
@@ -2573,15 +2744,28 @@
       if (!player.cats[key].unlocked) return;
       const t = getCatStats(key);
 
+      // 宇宙編用の出撃制限チェック
+      if (game.currentChapter === 2) {
+        const idx = game.currentStage;
+        if (idx % 4 === 1 && (t.rarity === "Super Rare" || t.rarity === "Uber Rare" || t.rarity === "Legend Rare")) {
+          return; 
+        }
+        if (idx % 4 === 2 && allies.length >= 8) {
+          return; 
+        }
+        if (idx % 4 === 3 && t.cost > 1000) {
+          return; 
+        }
+      }
+
       if (game.money >= t.cost && cooldowns[key] <= 0 && game.state === 'playing') {
         game.money -= t.cost;
 
-        // 仕事効率 & 研究力により、再生産スピード(cdMax)を圧縮計算
-        const researchBonus = 1 - ((player.researchLevel || 1) - 1) * 0.03;
-        const speedBonus = 1 - ((player.moneySpeedLevel || 1) - 1) * 0.015;
-        const finalCdMax = Math.max(30, Math.floor(t.cdMax * researchBonus * speedBonus));
+        const researchBonus = 1 - ((player.researchLevel || 1) - 1) * 0.015;
+        const finalCdMax = Math.max(30, Math.floor(t.cdMax * researchBonus));
 
         cooldowns[key] = finalCdMax;
+        maxCooldowns[key] = finalCdMax; 
         playSound('spawn');
         allies.push({
           x: allyBase.x + allyBase.width,
@@ -2601,32 +2785,58 @@
           type: 'ally',
           rawKey: key, 
           isEvolved: t.isEvolved,
-          drawType: t.drawType
+          drawType: t.drawType,
+          hasRevived: false 
         });
       }
     }
 
     function spawnEnemy(type) {
       const t = enemyTemplates[type];
+      const stageIdx = game.currentStage;
+      
+      const isFinal = (stageIdx === 47);
+      const isEvent = (stageIdx === 48);
+      
+      let mag = 1.0;
+      let attributeOverride = t.attribute;
+
+      if (game.currentChapter === 0) {
+        mag = isFinal ? 4.5 : (1.0 + stageIdx * 0.08);
+      } else if (game.currentChapter === 1) {
+        attributeOverride = "alien";
+        const crystalCount = Object.keys(player.treasures[1] || {}).length;
+        const crystalReduction = (crystalCount / 48) * 6.0;
+        mag = Math.max(1.0, 7.0 - crystalReduction); 
+      } else if (game.currentChapter === 2) {
+        attributeOverride = "star_alien";
+        const tabletCount = Object.keys(player.treasures[2] || {}).length;
+        const tabletReduction = (tabletCount / 48) * 9.0;
+        mag = Math.max(1.0, 10.0 - tabletReduction);
+      }
+
+      if (isEvent) mag *= 1.5; 
+
       enemies.push({
-        id: 'enemy_' + (enemyUniqueIdCounter++), // ユニークID
+        id: 'enemy_' + (enemyUniqueIdCounter++), 
         x: enemyBase.x,
         y: 260 - t.height, 
         width: t.width,
         height: t.height,
-        hp: t.hp,
-        maxHp: t.hp,
-        atk: t.atk,
+        hp: Math.floor(t.hp * mag),
+        maxHp: Math.floor(t.hp * mag),
+        atk: Math.floor(t.atk * mag),
         range: t.range,
         speed: t.speed,
         interval: t.interval,
-        reward: t.reward,
+        reward: Math.floor(t.reward * (1.0 + stageIdx * 0.02)), 
         attackOffset: 0,
         isMoving: true,
         isArea: t.isArea,
         type: 'enemy',
         rawType: type,
-        freezeTimer: 0 // フリーズ状態のフレームカウンタ
+        attribute: attributeOverride,
+        freezeTimer: 0 
       });
     }
 
@@ -2640,14 +2850,11 @@
       });
     }
 
-    // 戦闘画面の起動初期化
     function startBattle(stageIndex) {
       playSound('spawn');
       switchScreen('battleScreen');
       
       const stageInfo = stagesList[stageIndex];
-      
-      // スクロールラッパーを味方基地側（一番左端）にリセット
       const wrapper = document.getElementById('battleCanvasWrapper');
       if (wrapper) {
         wrapper.scrollLeft = 0;
@@ -2655,20 +2862,17 @@
 
       gameFrame = 0;
       enemyUniqueIdCounter = 0;
+      maxCooldowns = {}; 
       
-      // 未定義の際 NaN になるのを防止
       const startMoneyBonus = ((player.initialMoneyLevel || 1) - 1) * 80;
-      game = {
-        currentStage: stageIndex,
-        state: 'playing',
-        money: startMoneyBonus,
-        walletLevel: 1,
-        cannonCharge: 0,
-        cannonActive: false,
-        cannonDamageDealt: {}
-      };
+      game.currentStage = stageIndex;
+      game.state = 'playing';
+      game.money = startMoneyBonus;
+      game.walletLevel = 1;
+      game.cannonCharge = 0;
+      game.cannonActive = false;
+      game.cannonDamageDealt = {};
       
-      // お城の最大HP（ベースレベル依存）
       const maxAllyHp = 1000 + (player.baseLevel - 1) * 500;
       allyBase = {
         x: 40,
@@ -2679,7 +2883,6 @@
         maxHp: maxAllyHp
       };
       
-      // 敵のお城（ステージ依存）
       enemyBase = {
         x: canvas.width - 120,
         y: 110,
@@ -2695,7 +2898,7 @@
       cannonBeamTimer = 0;
       cannonFlash = 0;
       
-      player.deck.forEach(key => {
+      player.deck.forEach(function(key) {
         if (key) cooldowns[key] = 0;
       });
       
@@ -2708,68 +2911,85 @@
       battleLoop();
     }
 
-    // 戦闘画面UIの動的表示更新
     function updateBattleUI() {
       const config = walletConfig[game.walletLevel - 1];
       const capUpgradeBonus = ((player.walletCapacityLevel || 1) - 1) * 100;
       const maxMoneyCap = config.cap + capUpgradeBonus;
 
-      const baseSpeedMultiplier = 1 + ((player.moneySpeedLevel || 1) - 1) * 0.15;
+      const baseSpeedMultiplier = 1 + ((player.moneySpeedLevel || 1) - 1) * 0.06;
       const buffs = getTreasureBuffs();
       const currentIncome = config.income * baseSpeedMultiplier * buffs.speedMult;
 
-      document.getElementById('moneyText').innerText = `所持金: $${Math.floor(game.money)} / $${maxMoneyCap}`;
+      document.getElementById('moneyText').innerText = "所持金: $" + Math.floor(game.money) + " / $" + maxMoneyCap;
       
-      // お財布ボタンの更新
       const walletBtn = document.getElementById('walletBtn');
       if (game.walletLevel >= walletConfig.length) {
-        walletBtn.innerText = `お財布Lv.MAX`;
+        walletBtn.innerText = "お財布Lv.MAX";
         walletBtn.disabled = true;
       } else {
         const currentConfig = walletConfig[game.walletLevel - 1];
         if (currentConfig.cost === null) {
-          walletBtn.innerText = `お財布Lv.MAX`;
+          walletBtn.innerText = "お財布Lv.MAX";
           walletBtn.disabled = true;
         } else {
-          walletBtn.innerText = `お財布Lv.${game.walletLevel} UP ($${currentConfig.cost})`;
+          walletBtn.innerText = "お財布Lv." + game.walletLevel + " UP ($" + currentConfig.cost + ")";
           walletBtn.disabled = game.money < currentConfig.cost;
         }
       }
       
-      // にゃんこ砲ボタンの更新
       const cannonBtn = document.getElementById('cannonBtn');
       const chargePct = Math.min(100, Math.floor((game.cannonCharge / maxCannonCharge) * 100));
-      cannonBtn.innerText = `にゃんこ砲 (${chargePct}%)`;
+      cannonBtn.innerText = "にゃんこ砲 (" + chargePct + "%)";
       cannonBtn.disabled = chargePct < 100;
       
-      // 各召喚スロットボタンのクールダウンおよび背景の切り替え
-      player.deck.forEach(key => {
+      player.deck.forEach(function(key) {
         if (!key) return;
         const keySuffix = key.replace('cat', '');
-        const btn = document.getElementById(`btnCat${keySuffix}`);
-        const cdOverlay = document.getElementById(`cdCat${keySuffix}`);
-        const slotEl = document.getElementById(`slot_${key}`);
+        const btn = document.getElementById("btnCat" + keySuffix);
+        const cdOverlay = document.getElementById("cdCat" + keySuffix);
+        const cdBar = document.getElementById("cdBar" + keySuffix);
+        const slotEl = document.getElementById("slot_" + key);
         if (!btn || !cdOverlay) return;
         
         const stats = getCatStats(key);
         const isCd = cooldowns[key] > 0;
         const canAfford = game.money >= stats.cost;
         
-        btn.disabled = isCd || !canAfford;
+        let restricted = false;
+        if (game.currentChapter === 2) {
+          const idx = game.currentStage;
+          if (idx % 4 === 1 && (stats.rarity === "Super Rare" || stats.rarity === "Uber Rare" || stats.rarity === "Legend Rare")) {
+            restricted = true;
+          }
+          if (idx % 4 === 2 && allies.length >= 8) {
+            restricted = true;
+          }
+          if (idx % 4 === 3 && stats.cost > 1000) {
+            restricted = true;
+          }
+        }
+
+        btn.disabled = isCd || !canAfford || restricted;
         
         if (slotEl) {
           if (isCd) {
-            slotEl.style.backgroundColor = '#90a4ae'; // クールダウン中
-          } else if (!canAfford) {
-            slotEl.style.backgroundColor = '#d7ccc8'; // お金不足
+            slotEl.style.backgroundColor = '#90a4ae'; 
+          } else if (!canAfford || restricted) {
+            slotEl.style.backgroundColor = '#d7ccc8'; 
           } else {
-            slotEl.style.backgroundColor = '#ffffff'; // 出撃可能
+            slotEl.style.backgroundColor = '#ffffff'; 
           }
         }
         
         if (isCd) {
           cdOverlay.style.display = 'flex';
-          cdOverlay.innerText = `${Math.ceil(cooldowns[key] / 60)}s`;
+          const maxCd = maxCooldowns[key] || 1;
+          const remaining = cooldowns[key];
+          
+          const pct = ((maxCd - remaining) / maxCd) * 100;
+          if (cdBar) {
+            cdBar.style.width = pct + "%";
+          }
         } else {
           cdOverlay.style.display = 'none';
         }
@@ -2789,12 +3009,18 @@
 
       gameFrame++;
 
-      // 1. お財布レベルに基づく所持金管理
       const config = walletConfig[game.walletLevel - 1];
       const capUpgradeBonus = ((player.walletCapacityLevel || 1) - 1) * 100;
       const maxMoneyCap = config.cap + capUpgradeBonus;
 
-      const baseSpeedMultiplier = 1 + ((player.moneySpeedLevel || 1) - 1) * 0.15;
+      var baseSpeedMultiplier = 1 + ((player.moneySpeedLevel || 1) - 1) * 0.06;
+      
+      // 新キャラ特性: ネコマイクがお財布生産を少し後押し
+      const hasMike = allies.some(function(a) { return a.rawKey === 'cat_mike'; });
+      if (hasMike) {
+        baseSpeedMultiplier *= 1.25; 
+      }
+
       const buffs = getTreasureBuffs();
       const currentIncome = config.income * baseSpeedMultiplier * buffs.speedMult;
 
@@ -2802,12 +3028,11 @@
         game.money = Math.min(maxMoneyCap, game.money + currentIncome);
       }
 
-      player.deck.forEach(k => {
+      player.deck.forEach(function(k) {
         if (k && cooldowns[k] > 0) cooldowns[k]--;
       });
 
-      // 2. にゃんこ砲チャージ短縮処理
-      const chargeRate = 1 + ((player.cannonChargeLevel || 1) - 1) * 0.10; // チャージ+10%/Lv
+      const chargeRate = 1 + ((player.cannonChargeLevel || 1) - 1) * 0.10; 
       if (game.cannonCharge < maxCannonCharge) {
         game.cannonCharge = Math.min(maxCannonCharge, game.cannonCharge + chargeRate);
       }
@@ -2825,7 +3050,7 @@
         const damage = 200 + ((player.cannonPowerLevel || 1) - 1) * 150;
         const pushback = 100 + (player.cannonRangeLevel || 1) * 15;
 
-        enemies.forEach(e => {
+        enemies.forEach(function(e) {
           if (e.x <= currentBeamTipX && !game.cannonDamageDealt[e.id]) {
             game.cannonDamageDealt[e.id] = true;
             e.hp -= damage;
@@ -2837,23 +3062,25 @@
       }
 
       const stageInfo = stagesList[game.currentStage];
-      stageInfo.waves.forEach(wave => {
-        if (gameFrame === wave.time) {
-          spawnEnemy(wave.type);
-        }
-      });
+      if (stageInfo) {
+        stageInfo.waves.forEach(function(wave) {
+          if (gameFrame === wave.time) {
+            spawnEnemy(wave.type);
+          }
+        });
 
-      stageInfo.infinites.forEach(inf => {
-        if (gameFrame % inf.interval === 0) {
-          spawnEnemy(inf.type);
-        }
-      });
+        stageInfo.infinites.forEach(function(inf) {
+          if (gameFrame % inf.interval === 0) {
+            spawnEnemy(inf.type);
+          }
+        });
+      }
 
-      allies.forEach(unit => {
+      allies.forEach(function(unit) {
         let target = null;
         let closestEnemy = null;
         let minDist = Infinity;
-        enemies.forEach(e => {
+        enemies.forEach(function(e) {
           let dist = e.x - (unit.x + unit.width);
           if (dist >= -10 && dist <= unit.range) {
             if (dist < minDist) {
@@ -2875,56 +3102,238 @@
           if (unit.attackTimer >= unit.interval) {
             playSound('hit');
             if (unit.isArea) {
-              enemies.forEach(e => {
+              enemies.forEach(function(e) {
                 if (e.x >= unit.x + unit.width - 10 && e.x <= unit.x + unit.width + unit.range) {
-                  // 属性特攻ダメージ
                   let damageToDeal = unit.atk;
-                  const enemyAttr = enemyTemplates[e.rawType].attribute;
+                  const enemyAttr = e.attribute;
+                  
                   if (unit.rawKey === 'cat3' && enemyAttr === 'red') damageToDeal *= 3;
                   if (unit.rawKey === 'cat_ninja' && enemyAttr === 'red') damageToDeal *= 2;
-                  if (unit.rawKey === 'cat_salon' && enemyAttr === 'black') damageToDeal *= 3;
-                  if (unit.rawKey === 'cat_valkyrie' && enemyAttr === 'floating') damageToDeal *= 3;
+                  if (unit.rawKey === 'cat_salon' && (enemyAttr === 'black' || enemyAttr === 'alien')) damageToDeal *= 3;
+                  if (unit.rawKey === 'cat_valkyrie' && (enemyAttr === 'floating' || enemyAttr === 'alien')) damageToDeal *= 3;
                   if (unit.rawKey === 'cat_bahamut' && enemyAttr !== 'white') damageToDeal *= 2;
                   if (unit.rawKey === 'cat_god' && enemyAttr !== 'white') damageToDeal *= 2;
+                  
+                  if (unit.rawKey === 'cat_macho' && enemyAttr === 'alien') damageToDeal *= 1.5;
+                  if (unit.rawKey === 'cat_dark' && (enemyAttr === 'red' || enemyAttr === 'alien')) damageToDeal *= 2;
+                  if (unit.rawKey === 'cat_island' && (enemyAttr === 'red' || enemyAttr === 'alien')) damageToDeal *= 2.5;
+                  if (unit.rawKey === 'cat_flying' && enemyAttr === 'alien') damageToDeal *= 2;
+
+                  // 新キャラ攻撃倍率（範囲攻撃）
+                  if (unit.rawKey === 'cat_drone' && enemyAttr === 'floating') damageToDeal *= 4;
+                  if (unit.rawKey === 'cat_dragon_knight' && (enemyAttr === 'red' || enemyAttr === 'black')) damageToDeal *= 4;
+                  if (unit.rawKey === 'cat_amaterasu' && enemyAttr !== 'white') damageToDeal *= 4;
+
+                  if (unit.rawKey === 'cat_clover') {
+                    if (Math.random() < 0.05) { damageToDeal *= 10; playSound('cannon'); }
+                  }
+
+                  if (game.currentChapter === 2 && enemyAttr === 'star_alien') {
+                    const barrierValue = 1500;
+                    const isBreaker = (unit.rawKey === 'cat_fencing' || unit.rawKey === 'cat_rover' || unit.rawKey === 'cat_castaway' || unit.rawKey === 'cat_valkyrie' || unit.rawKey === 'cat_artist' || unit.rawKey === 'cat_sword' || unit.rawKey === 'cat_null');
+                    if (damageToDeal < barrierValue && !isBreaker) {
+                      damageToDeal = 0; 
+                      spawnDeathEffect(e.x, e.y + e.height/2, 'enemy'); 
+                    } else if (isBreaker) {
+                      playSound('cannon'); 
+                    }
+                  }
 
                   e.hp -= damageToDeal;
 
-                  // 属性特殊デバフ付与
-                  if (unit.rawKey === 'cat_pirate' && enemyAttr === 'red') {
+                  if (unit.rawKey === 'cat_pirate' && (enemyAttr === 'red' || enemyAttr === 'alien')) {
                     if (Math.random() < 0.40) { e.x += 60; if (e.x > enemyBase.x) e.x = enemyBase.x; }
                   }
-                  if (unit.rawKey === 'cat_witch' && enemyAttr === 'floating') {
+                  if (unit.rawKey === 'cat_witch' && (enemyAttr === 'floating' || enemyAttr === 'alien')) {
                     if (Math.random() < 0.30) e.freezeTimer = 90;
                   }
-                  if (unit.rawKey === 'cat_surfer' && enemyAttr === 'red') {
+                  if (unit.rawKey === 'cat_surfer' && (enemyAttr === 'red' || enemyAttr === 'alien')) {
                     if (Math.random() < 0.30) e.freezeTimer = 90;
                   }
+                  if (unit.rawKey === 'cat_psycho' && enemyAttr === 'alien') {
+                    e.freezeTimer = 90; 
+                  }
+                  if (unit.rawKey === 'cat_castaway' && enemyAttr === 'alien') {
+                    if (Math.random() < 0.40) e.freezeTimer = 120; 
+                  }
+
+                  // 新キャラ デバフ付与（範囲）
+                  if (unit.rawKey === 'cat_doc' && enemyAttr === 'zombie') {
+                    if (Math.random() < 0.30) e.freezeTimer = 60; 
+                  }
+                  if (unit.rawKey === 'cat_camera' && enemyAttr === 'floating') {
+                    e.freezeTimer = 60; 
+                  }
+                  if (unit.rawKey === 'cat_snowboard' && enemyAttr === 'red') {
+                    e.freezeTimer = 90;
+                  }
+                  if (unit.rawKey === 'cat_magnet' && enemyAttr === 'alien') {
+                    if (Math.random() < 0.30) { e.x += 60; if (e.x > enemyBase.x) e.x = enemyBase.x; }
+                  }
+                  if (unit.rawKey === 'cat_dj' && enemyAttr === 'black') {
+                    if (Math.random() < 0.40) e.freezeTimer = 60;
+                  }
+                  if (unit.rawKey === 'cat_princess' && (enemyAttr === 'floating' || enemyAttr === 'alien')) {
+                    e.freezeTimer = 90;
+                  }
+                  if (unit.rawKey === 'cat_element' && enemyAttr !== 'white') {
+                    e.freezeTimer = 60; 
+                  }
+                  if (unit.rawKey === 'cat_pirate_king' && (enemyAttr === 'floating' || enemyAttr === 'red')) {
+                    e.freezeTimer = 60;
+                    if (Math.random() < 0.50) { e.x += 70; if (e.x > enemyBase.x) e.x = enemyBase.x; }
+                  }
+                  if (unit.rawKey === 'cat_time_traveler' && enemyAttr === 'alien') {
+                    e.freezeTimer = 75;
+                    e.x += 50; if (e.x > enemyBase.x) e.x = enemyBase.x;
+                  }
+                  if (unit.rawKey === 'cat_null' && enemyAttr !== 'white') {
+                    e.freezeTimer = 120;
+                  }
+                  if (unit.rawKey === 'cat_chronos' && enemyAttr !== 'white') {
+                    e.freezeTimer = 45;
+                  }
+                  if (unit.rawKey === 'cat_gravity') {
+                    e.x += 80; if (e.x > enemyBase.x) e.x = enemyBase.x;
+                  }
+
                 }
               });
+
+              // 新キャラ 波動（バリスタ・シヴァ）
+              if (unit.rawKey === 'cat_barista' && Math.random() < 0.20) {
+                enemies.forEach(function(extraEnemy) {
+                  if (extraEnemy.x >= unit.x + unit.width && extraEnemy.x <= unit.x + unit.width + unit.range + 100) {
+                    extraEnemy.hp -= Math.floor(unit.atk * 0.8);
+                    spawnDeathEffect(extraEnemy.x, extraEnemy.y + extraEnemy.height/2, 'enemy');
+                  }
+                });
+              }
+              if (unit.rawKey === 'cat_shiva') {
+                enemies.forEach(function(extraEnemy) {
+                  if (extraEnemy.x >= unit.x + unit.width && extraEnemy.x <= unit.x + unit.width + unit.range + 200) {
+                    extraEnemy.hp -= unit.atk;
+                    spawnDeathEffect(extraEnemy.x, extraEnemy.y + extraEnemy.height/2, 'enemy');
+                  }
+                });
+              }
+
               if (enemyBase.x - (unit.x + unit.width) <= unit.range) {
                 enemyBase.hp -= unit.atk;
               }
             } else {
-              // 単体アビリティ判定
               let damageToDeal = unit.atk;
-              const enemyAttr = enemyTemplates[target.rawType] ? enemyTemplates[target.rawType].attribute : 'white';
+              const enemyAttr = target.attribute || 'white';
               if (unit.rawKey === 'cat3' && enemyAttr === 'red') damageToDeal *= 3;
               if (unit.rawKey === 'cat_ninja' && enemyAttr === 'red') damageToDeal *= 2;
-              if (unit.rawKey === 'cat_salon' && enemyAttr === 'black') damageToDeal *= 3;
-              if (unit.rawKey === 'cat_valkyrie' && enemyAttr === 'floating') damageToDeal *= 3;
+              if (unit.rawKey === 'cat_salon' && (enemyAttr === 'black' || enemyAttr === 'alien')) damageToDeal *= 3;
+              if (unit.rawKey === 'cat_valkyrie' && (enemyAttr === 'floating' || enemyAttr === 'alien')) damageToDeal *= 3;
               if (unit.rawKey === 'cat_bahamut' && enemyAttr !== 'white') damageToDeal *= 2;
               if (unit.rawKey === 'cat_god' && enemyAttr !== 'white') damageToDeal *= 2;
+              
+              if (unit.rawKey === 'cat_macho' && enemyAttr === 'alien') damageToDeal *= 1.5;
+              if (unit.rawKey === 'cat_dark' && (enemyAttr === 'red' || enemyAttr === 'alien')) damageToDeal *= 2;
+              if (unit.rawKey === 'cat_island' && (enemyAttr === 'red' || enemyAttr === 'alien')) damageToDeal *= 2.5;
+
+              // 新キャラ攻撃倍率（単体）
+              if (unit.rawKey === 'cat_drone' && enemyAttr === 'floating') damageToDeal *= 4;
+              if (unit.rawKey === 'cat_dragon_knight' && (enemyAttr === 'red' || enemyAttr === 'black')) damageToDeal *= 4;
+              if (unit.rawKey === 'cat_amaterasu' && enemyAttr !== 'white') damageToDeal *= 4;
+              if (unit.rawKey === 'cat_clover') {
+                if (Math.random() < 0.05) { damageToDeal *= 10; playSound('cannon'); }
+              }
+
+              if (game.currentChapter === 2 && enemyAttr === 'star_alien') {
+                const barrierValue = 1500;
+                const isBreaker = (unit.rawKey === 'cat_fencing' || unit.rawKey === 'cat_rover' || unit.rawKey === 'cat_castaway' || unit.rawKey === 'cat_valkyrie' || unit.rawKey === 'cat_artist' || unit.rawKey === 'cat_sword' || unit.rawKey === 'cat_null');
+                if (damageToDeal < barrierValue && !isBreaker) {
+                  damageToDeal = 0;
+                  spawnDeathEffect(target.x, target.y + target.height/2, 'enemy');
+                } else if (isBreaker) {
+                  playSound('cannon');
+                }
+              }
 
               target.hp -= damageToDeal;
 
-              if (unit.rawKey === 'cat_pirate' && enemyAttr === 'red') {
-                if (Math.random() < 0.40) { target.x += 60; if (target.x > enemyBase.x) target.x = enemyBase.x; }
+              // お城の位置固定化（移動不可判定を追加）
+              if (target !== enemyBase && target !== allyBase) {
+                if (unit.rawKey === 'cat_pirate' && (enemyAttr === 'red' || enemyAttr === 'alien')) {
+                  if (Math.random() < 0.40) { target.x += 60; if (target.x > enemyBase.x) target.x = enemyBase.x; }
+                }
+                if (unit.rawKey === 'cat_jamiera') {
+                  target.x += 80; if (target.x > enemyBase.x) target.x = enemyBase.x;
+                }
+
+                // 新キャラ デバフ付与（単体）
+                if (unit.rawKey === 'cat_doc' && enemyAttr === 'zombie') {
+                  if (Math.random() < 0.30) target.freezeTimer = 60;
+                }
+                if (unit.rawKey === 'cat_camera' && enemyAttr === 'floating') {
+                  target.freezeTimer = 60;
+                }
+                if (unit.rawKey === 'cat_snowboard' && enemyAttr === 'red') {
+                  target.freezeTimer = 90;
+                }
+                if (unit.rawKey === 'cat_magnet' && enemyAttr === 'alien') {
+                  if (Math.random() < 0.30) { target.x += 60; if (target.x > enemyBase.x) target.x = enemyBase.x; }
+                }
+                if (unit.rawKey === 'cat_dj' && enemyAttr === 'black') {
+                  if (Math.random() < 0.40) target.freezeTimer = 60;
+                }
+                if (unit.rawKey === 'cat_princess' && (enemyAttr === 'floating' || enemyAttr === 'alien')) {
+                  target.freezeTimer = 90;
+                }
+                if (unit.rawKey === 'cat_element' && enemyAttr !== 'white') {
+                  target.freezeTimer = 60;
+                }
+                if (unit.rawKey === 'cat_pirate_king' && (enemyAttr === 'floating' || enemyAttr === 'red')) {
+                  target.freezeTimer = 60;
+                  if (Math.random() < 0.50) { target.x += 70; if (target.x > enemyBase.x) target.x = enemyBase.x; }
+                }
+                if (unit.rawKey === 'cat_time_traveler' && enemyAttr === 'alien') {
+                  target.freezeTimer = 75;
+                  target.x += 50; if (target.x > enemyBase.x) target.x = enemyBase.x;
+                }
+                if (unit.rawKey === 'cat_null' && enemyAttr !== 'white') {
+                  target.freezeTimer = 120;
+                }
+                if (unit.rawKey === 'cat_chronos' && enemyAttr !== 'white') {
+                  target.freezeTimer = 45;
+                }
+                if (unit.rawKey === 'cat_gravity') {
+                  target.x += 80; if (target.x > enemyBase.x) target.x = enemyBase.x;
+                }
               }
-              if (unit.rawKey === 'cat_witch' && enemyAttr === 'floating') {
+              if (unit.rawKey === 'cat_witch' && (enemyAttr === 'floating' || enemyAttr === 'alien')) {
                 if (Math.random() < 0.30) target.freezeTimer = 90;
               }
-              if (unit.rawKey === 'cat_surfer' && enemyAttr === 'red') {
+              if (unit.rawKey === 'cat_surfer' && (enemyAttr === 'red' || enemyAttr === 'alien')) {
                 if (Math.random() < 0.30) target.freezeTimer = 90;
+              }
+              if (unit.rawKey === 'cat_psycho' && enemyAttr === 'alien') {
+                target.freezeTimer = 90;
+              }
+              if (unit.rawKey === 'cat_castaway' && enemyAttr === 'alien') {
+                if (Math.random() < 0.40) target.freezeTimer = 120;
+              }
+
+              // 単体アタッカーの波動（バリスタ・シヴァ）
+              if (unit.rawKey === 'cat_barista' && Math.random() < 0.20) {
+                enemies.forEach(function(extraEnemy) {
+                  if (extraEnemy.x >= unit.x + unit.width && extraEnemy.x <= unit.x + unit.width + unit.range + 100) {
+                    extraEnemy.hp -= Math.floor(unit.atk * 0.8);
+                    spawnDeathEffect(extraEnemy.x, extraEnemy.y + extraEnemy.height/2, 'enemy');
+                  }
+                });
+              }
+              if (unit.rawKey === 'cat_shiva') {
+                enemies.forEach(function(extraEnemy) {
+                  if (extraEnemy.x >= unit.x + unit.width && extraEnemy.x <= unit.x + unit.width + unit.range + 200) {
+                    extraEnemy.hp -= unit.atk;
+                    spawnDeathEffect(extraEnemy.x, extraEnemy.y + extraEnemy.height/2, 'enemy');
+                  }
+                });
               }
             }
             unit.attackTimer = 0;
@@ -2941,8 +3350,7 @@
         if (unit.attackOffset > 0) unit.attackOffset *= 0.8;
       });
 
-      enemies.forEach(unit => {
-        // フリーズ状態のときは行動不能
+      enemies.forEach(function(unit) {
         if (unit.freezeTimer > 0) {
           unit.freezeTimer--;
           unit.isMoving = false;
@@ -2952,7 +3360,7 @@
         let target = null;
         let closestAlly = null;
         let minDist = Infinity;
-        allies.forEach(a => {
+        allies.forEach(function(a) {
           let dist = unit.x - (a.x + a.width);
           if (dist >= -10 && dist <= unit.range) {
             if (dist < minDist) {
@@ -2974,13 +3382,43 @@
           if (unit.attackTimer >= unit.interval) {
             playSound('hit');
             if (unit.isArea) {
-              allies.forEach(a => {
+              allies.forEach(function(a) {
                 if (a.x + a.width >= unit.x - unit.range && a.x + a.width <= unit.x + 10) {
-                  // 防御力・壁性能特性
-                  let enemyAttr = enemyTemplates[unit.rawType].attribute;
+                  let enemyAttr = unit.attribute;
                   let damageToDeal = unit.atk;
+                  
                   if (a.rawKey === 'cat_ninja' && enemyAttr === 'red') damageToDeal *= 0.5;
                   if (a.rawKey === 'cat_sumo' && enemyAttr === 'black') damageToDeal *= 0.25;
+                  if (a.rawKey === 'cat_super_wall' && enemyAttr === 'alien') damageToDeal *= 0.5;
+                  if (a.rawKey === 'cat_rover' && enemyAttr === 'alien') damageToDeal *= 0.3;
+
+                  // 新キャラ耐久倍率（範囲被弾）
+                  if (a.rawKey === 'cat_dumbbell' && enemyAttr === 'black') damageToDeal *= 0.25;
+                  if (a.rawKey === 'cat_keeper' && enemyAttr === 'red') damageToDeal *= 0.25;
+                  if (a.rawKey === 'cat_demon_prince' && enemyAttr === 'zombie') damageToDeal *= 0.20;
+                  if (a.rawKey === 'cat_armor_fort' && (enemyAttr === 'black' || enemyAttr === 'alien')) damageToDeal *= 0.20;
+
+                  // 新特性：コックが確率で攻撃無効化
+                  if (a.rawKey === 'cat_chef' && (enemyAttr === 'red' || enemyAttr === 'alien')) {
+                    if (Math.random() < 0.35) damageToDeal = 0;
+                  }
+
+                  if (game.currentChapter === 2 && enemyAttr === 'star_alien') {
+                    if (Math.random() < 0.25) {
+                      const hasWarpBlock = (a.rawKey === 'cat_jamiera' || a.rawKey === 'cat_fencing' || a.rawKey === 'cat_castaway' || a.rawKey === 'cat_valkyrie' || a.rawKey === 'cat_god' || a.rawKey === 'cat_mop' || a.rawKey === 'cat_magnet' || a.rawKey === 'cat_mech_god' || a.rawKey === 'cat_sword' || a.rawKey === 'cat_gravity' || a.rawKey === 'cat_null');
+                      if (!hasWarpBlock) {
+                        a.x -= 150; 
+                        if (a.x < allyBase.x + allyBase.width) a.x = allyBase.x + allyBase.width;
+                        spawnDeathEffect(a.x, a.y + a.height/2, 'ally'); 
+                      }
+                    }
+                  }
+
+                  // 新特性：被弾時に後方へスプリングバック
+                  if (a.rawKey === 'cat_spring' && damageToDeal > 0) {
+                    a.x -= 40;
+                    if (a.x < allyBase.x + allyBase.width) a.x = allyBase.x + allyBase.width;
+                  }
 
                   a.hp -= Math.floor(damageToDeal);
                 }
@@ -2989,10 +3427,41 @@
                 allyBase.hp -= unit.atk;
               }
             } else {
-              let enemyAttr = enemyTemplates[unit.rawType].attribute;
+              let enemyAttr = unit.attribute;
               let damageToDeal = unit.atk;
               if (target.rawKey === 'cat_ninja' && enemyAttr === 'red') damageToDeal *= 0.5;
               if (target.rawKey === 'cat_sumo' && enemyAttr === 'black') damageToDeal *= 0.25;
+              if (target.rawKey === 'cat_super_wall' && enemyAttr === 'alien') damageToDeal *= 0.5;
+              if (target.rawKey === 'cat_rover' && enemyAttr === 'alien') damageToDeal *= 0.3;
+
+              // 新キャラ耐久倍率（単体被弾）
+              if (target.rawKey === 'cat_dumbbell' && enemyAttr === 'black') damageToDeal *= 0.25;
+              if (target.rawKey === 'cat_keeper' && enemyAttr === 'red') damageToDeal *= 0.25;
+              if (target.rawKey === 'cat_demon_prince' && enemyAttr === 'zombie') damageToDeal *= 0.20;
+              if (target.rawKey === 'cat_armor_fort' && (enemyAttr === 'black' || enemyAttr === 'alien')) damageToDeal *= 0.20;
+
+              // 新特性：コックが確率で攻撃無効化
+              if (target.rawKey === 'cat_chef' && (enemyAttr === 'red' || enemyAttr === 'alien')) {
+                if (Math.random() < 0.35) damageToDeal = 0;
+              }
+
+              // 宇宙編スターエイリアンワープ・城の位置固定化（移動不可判定を追加）
+              if (game.currentChapter === 2 && enemyAttr === 'star_alien') {
+                if (Math.random() < 0.25) {
+                  const hasWarpBlock = (target.rawKey === 'cat_jamiera' || target.rawKey === 'cat_fencing' || target.rawKey === 'cat_castaway' || target.rawKey === 'cat_valkyrie' || target.rawKey === 'cat_god' || target.rawKey === 'cat_mop' || target.rawKey === 'cat_magnet' || target.rawKey === 'cat_mech_god' || target.rawKey === 'cat_sword' || target.rawKey === 'cat_gravity' || target.rawKey === 'cat_null');
+                  if (!hasWarpBlock && target !== allyBase && target !== enemyBase) {
+                    target.x -= 150;
+                    if (target.x < allyBase.x + allyBase.width) target.x = allyBase.x + allyBase.width;
+                    spawnDeathEffect(target.x, target.y + target.height/2, 'ally');
+                  }
+                }
+              }
+
+              // 新特性：被弾時に後方へスプリングバック
+              if (target.rawKey === 'cat_spring' && damageToDeal > 0 && target !== allyBase && target !== enemyBase) {
+                target.x -= 40;
+                if (target.x < allyBase.x + allyBase.width) target.x = allyBase.x + allyBase.width;
+              }
 
               target.hp -= Math.floor(damageToDeal);
             }
@@ -3010,21 +3479,63 @@
         if (unit.attackOffset < 0) unit.attackOffset *= 0.8;
       });
 
-      for (let i = allies.length - 1; i >= 0; i--) {
+      for (var i = allies.length - 1; i >= 0; i--) {
         if (allies[i].hp <= 0) {
+          // 不死鳥にゃんこの1回復活アビリティ
+          if (allies[i].rawKey === 'cat_phoenix' && !allies[i].hasRevived) {
+            allies[i].hp = Math.floor(allies[i].maxHp * 0.5);
+            allies[i].hasRevived = true;
+            spawnDeathEffect(allies[i].x + allies[i].width / 2, allies[i].y + allies[i].height / 2, 'ally'); 
+            playSound('spawn');
+            continue;
+          }
+
+          // 錬金術師にゃんこ撃破時の泥人形化
+          if (allies[i].rawKey === 'cat_alchemist') {
+            allies.push({
+              x: allies[i].x,
+              y: 260 - 30,
+              width: 20,
+              height: 30,
+              hp: 800,
+              maxHp: 800,
+              atk: 0,
+              range: 10,
+              speed: 0,
+              interval: 9999,
+              attackTimer: 0,
+              attackOffset: 0,
+              isMoving: false,
+              isArea: false,
+              type: 'ally',
+              rawKey: 'clay_wall',
+              isEvolved: false,
+              drawType: 'tank',
+              hasRevived: true
+            });
+          }
+
           spawnDeathEffect(allies[i].x + allies[i].width / 2, allies[i].y + allies[i].height / 2, 'ally');
           allies.splice(i, 1);
         }
       }
-      for (let i = enemies.length - 1; i >= 0; i--) {
+      for (var i = enemies.length - 1; i >= 0; i--) {
         if (enemies[i].hp <= 0) {
           spawnDeathEffect(enemies[i].x + enemies[i].width / 2, enemies[i].y + enemies[i].height / 2, 'enemy');
-          game.money = Math.min(maxMoneyCap, game.money + enemies[i].reward);
+          
+          let rewardMoney = enemies[i].reward;
+          // 黄金像にゃんこ（エルドラド）の撃破報酬3倍アビリティ
+          const hasGoldStatue = allies.some(function(a) { return a.rawKey === 'cat_gold_statue'; });
+          if (hasGoldStatue) {
+            rewardMoney *= 3;
+          }
+
+          game.money = Math.min(maxMoneyCap, game.money + rewardMoney);
           enemies.splice(i, 1);
         }
       }
 
-      for (let i = deathEffects.length - 1; i >= 0; i--) {
+      for (var i = deathEffects.length - 1; i >= 0; i--) {
         deathEffects[i].frame++;
         if (deathEffects[i].frame >= deathEffects[i].maxFrame) {
           deathEffects.splice(i, 1);
@@ -3044,51 +3555,52 @@
       updateBattleUI();
     }
 
-    // 戦闘終了時にお宝収集・ドロップ判定
     function endBattle(isWin) {
       const stageInfo = stagesList[game.currentStage];
+      const ch = game.currentChapter || 0;
       let dropInfoText = '';
 
-      if (isWin) {
+      if (isWin && stageInfo) {
         player.xp += stageInfo.rewardXp;
         player.catFood += stageInfo.rewardCf;
         playSound('victory');
 
-        // お宝の35%ドロップ処理
         if (Math.random() < 0.35) {
           const rRoll = Math.random();
-          let quality = 1; // 銅
+          let quality = 1; 
           let qName = '銅のお宝';
           if (rRoll < 0.15) { quality = 3; qName = '金のお宝'; }
           else if (rRoll < 0.50) { quality = 2; qName = '銀のお宝'; }
           
-          if (!player.treasures) player.treasures = {};
-          const prev = player.treasures[game.currentStage] || 0;
+          if (!player.treasures) player.treasures = [{}, {}, {}];
+          if (!player.treasures[ch]) player.treasures[ch] = {};
+          
+          const prev = player.treasures[ch][game.currentStage] || 0;
           if (quality > prev) {
-            player.treasures[game.currentStage] = quality;
-            dropInfoText = `\n\n【お宝発見！】\n「${stageInfo.name}」のお宝：${qName}を獲得しました！(お宝図鑑に登録されました)`;
+            player.treasures[ch][game.currentStage] = quality;
+            dropInfoText = "\n\n【お宝発見！】\nこのステージのお宝：" + qName + "を獲得しました！";
           } else {
-            dropInfoText = `\n\n【お宝ドロップ】\nすでに所持しているお宝より価値が低いため、破棄されました。`;
+            dropInfoText = "\n\n【お宝ドロップ】\n重複のためお宝は破棄されました。";
           }
         } else {
-          dropInfoText = `\n\n【お宝ドロップ】\n今回お宝は発見できませんでした。`;
+          dropInfoText = "\n\n【お宝ドロップ】\n今回お宝は発見できませんでした。";
         }
 
         const nextStageIndex = game.currentStage + 1;
-        if (nextStageIndex > player.maxStageCleared) {
-          player.maxStageCleared = Math.min(nextStageIndex, stagesList.length);
+        if (nextStageIndex > (player.maxStageCleared[ch] || 0)) {
+          player.maxStageCleared[ch] = Math.min(nextStageIndex, stagesList.length - 1);
         }
 
         showCustomModal(
           "STAGE CLEAR!",
-          `ステージ「${stageInfo.name}」を制圧しました！\n\n【獲得報酬】\n・経験値(XP): +${stageInfo.rewardXp} XP\n・ネコ缶: +${stageInfo.rewardCf} 個${dropInfoText}`,
+          "ステージ「" + stageInfo.name + "」を制圧しました！\n\n【獲得報酬】\n・経験値(XP): +" + stageInfo.rewardXp + " XP\n・ネコ缶: +" + stageInfo.rewardCf + " 個" + dropInfoText,
           "勝利！",
           "#4caf50",
           [
             {
               text: "基地に戻る",
               class: "btn-primary",
-              onClick: () => {
+              onClick: function() {
                 saveGame();
                 switchScreen('homeScreen');
               }
@@ -3102,14 +3614,14 @@
 
         showCustomModal(
           "BATTLE DEFEAT...",
-          `健闘むなしく、敗北してしまいました...\nにゃんこ軍団の闘志を称え、XPを付与します。パワーアップして再挑戦しましょう。\n\n【獲得報酬】\n・経験値(XP): +${pityXp} XP`,
+          "敗北してしまいました...\nにゃんこ軍団の闘志を称え、XPを付与します。パワーアップして再挑戦しましょう。\n\n【獲得報酬】\n・経験値(XP): +" + pityXp + " XP",
           "敗北...",
           "#ff4d4d",
           [
             {
               text: "基地に戻る",
               class: "btn-primary",
-              onClick: () => {
+              onClick: function() {
                 saveGame();
                 switchScreen('homeScreen');
               }
@@ -3119,7 +3631,6 @@
       }
     }
 
-    // お宝図鑑の展開処理
     function openTreasureModal() {
       renderTreasureData();
       document.getElementById('treasureModalOverlay').style.display = 'flex';
@@ -3131,61 +3642,39 @@
       const buffs = getTreasureBuffs();
       const buffContainer = document.getElementById('treasureBuffContainer');
       const gridContainer = document.getElementById('treasureGridContainer');
+      const ch = game.currentChapter || 0;
       
-      buffContainer.innerHTML = `
-        <div style="color: #4caf50;">🗿 伝説のネコモアイ (Region 1): 味方HP +${Math.round((buffs.hpMult - 1) * 100)}% (${buffs.r1Pct}% 発動)</div>
-        <div style="color: #ff3300;">📖 賢者の魔導書 (Region 2): 味方攻撃力 +${Math.round((buffs.atkMult - 1) * 100)}% (${buffs.r2Pct}% 発動)</div>
-        <div style="color: #b38612;">🐱 黄金の招き猫 (Region 3): お金生産スピード +${Math.round((buffs.speedMult - 1) * 100)}% (${buffs.r3Pct}% 発動)</div>
-      `;
+      let titleHeader = "日本編";
+      if (ch === 1) titleHeader = "未来編";
+      if (ch === 2) titleHeader = "宇宙編";
+
+      buffContainer.innerHTML = 
+        '<div style="color: #4caf50;">🗿 モアイバフ (九州・四国など): 味方HP +' + Math.round((buffs.hpMult - 1) * 100) + '% (' + buffs.r1Pct + '% 発動)</div>' +
+        '<div style="color: #ff3300;">📖 魔導書バフ (中国・関西など): 味方攻撃力 +' + Math.round((buffs.atkMult - 1) * 100) + '% (' + buffs.r2Pct + '% 発動)</div>' +
+        '<div style="color: #b38612;">🐱 招き猫バフ (関東・東北など): お金生産スピード +' + Math.round((buffs.speedMult - 1) * 100) + '% (' + buffs.r3Pct + '% 発動)</div>';
       
       let html = '';
-      
-      // Region 1: 0 to 10
-      html += `
-        <div style="border-bottom: 2px solid #ccc; padding-bottom: 8px;">
-          <div style="font-weight: 900; color: #3d1f05; font-size: 0.95rem;">1. 九州・四国地方バフ [${buffs.r1Pct}%]</div>
-          <div style="display: grid; grid-template-columns: repeat(6, 1fr); gap: 4px; margin-top: 5px;">
-      `;
-      for (let i = 0; i <= 10; i++) {
-        const quality = player.treasures[i] || 0;
-        const qName = quality === 3 ? '🥇金' : (quality === 2 ? '🥈銀' : (quality === 1 ? '🥉銅' : '❌無'));
-        const qColor = quality === 3 ? '#ffd700' : (quality === 2 ? '#c0c0c0' : (quality === 1 ? '#cd7f32' : '#ddd'));
-        html += `<div style="background: ${qColor}; font-size: 0.65rem; padding: 3px; border-radius: 4px; text-align: center; border: 1px solid #3d1f05; font-weight: 900;">${stagesList[i].name}<br>${qName}</div>`;
-      }
-      html += `</div></div>`;
-      
-      // Region 2: 11 to 29
-      html += `
-        <div style="border-bottom: 2px solid #ccc; padding-bottom: 8px; margin-top: 5px;">
-          <div style="font-weight: 900; color: #3d1f05; font-size: 0.95rem;">2. 中国・関西・中部地方バフ [${buffs.r2Pct}%]</div>
-          <div style="display: grid; grid-template-columns: repeat(6, 1fr); gap: 4px; margin-top: 5px; max-height: 110px; overflow-y: auto;">
-      `;
-      for (let i = 11; i <= 29; i++) {
-        const quality = player.treasures[i] || 0;
-        const qName = quality === 3 ? '🥇金' : (quality === 2 ? '🥈銀' : (quality === 1 ? '🥉銅' : '❌無'));
-        const qColor = quality === 3 ? '#ffd700' : (quality === 2 ? '#c0c0c0' : (quality === 1 ? '#cd7f32' : '#ddd'));
-        html += `<div style="background: ${qColor}; font-size: 0.65rem; padding: 3px; border-radius: 4px; text-align: center; border: 1px solid #3d1f05; font-weight: 900;">${stagesList[i].name}<br>${qName}</div>`;
-      }
-      html += `</div></div>`;
+      const tr = player.treasures[ch] || {};
 
-      // Region 3: 30 to 47
-      html += `
-        <div style="padding-bottom: 8px; margin-top: 5px;">
-          <div style="font-weight: 900; color: #3d1f05; font-size: 0.95rem;">3. 関東・東北・北海道地方バフ [${buffs.r3Pct}%]</div>
-          <div style="display: grid; grid-template-columns: repeat(6, 1fr); gap: 4px; margin-top: 5px; max-height: 110px; overflow-y: auto;">
-      `;
-      for (let i = 30; i <= 47; i++) {
-        const quality = player.treasures[i] || 0;
-        const qName = quality === 3 ? '🥇金' : (quality === 2 ? '🥈銀' : (quality === 1 ? '🥉銅' : '❌無'));
-        const qColor = quality === 3 ? '#ffd700' : (quality === 2 ? '#c0c0c0' : (quality === 1 ? '#cd7f32' : '#ddd'));
-        html += `<div style="background: ${qColor}; font-size: 0.65rem; padding: 3px; border-radius: 4px; text-align: center; border: 1px solid #3d1f05; font-weight: 900;">${stagesList[i].name}<br>${qName}</div>`;
+      html += 
+        '<div style="padding-bottom: 8px;">' +
+          '<div style="font-weight: 900; color: #3d1f05; font-size: 0.95rem;">▶ ' + titleHeader + ' 収集一覧</div>' +
+          '<div style="display: grid; grid-template-columns: repeat(6, 1fr); gap: 4px; margin-top: 5px; max-height: 250px; overflow-y: auto;">';
+      for (var i = 0; i < 48; i++) {
+        var quality = tr[i] || 0;
+        var qName = quality === 3 ? '金' : (quality === 2 ? '銀' : (quality === 1 ? '銅' : '無'));
+        var qColor = quality === 3 ? '#ffd700' : (quality === 2 ? '#c0c0c0' : (quality === 1 ? '#cd7f32' : '#ddd'));
+        if (stagesList[i]) {
+          html += '<div style="background: ' + qColor + '; font-size: 0.65rem; padding: 3px; border-radius: 4px; text-align: center; border: 1px solid #3d1f05; font-weight: 900;">' + stagesList[i].name + '<br>' + qName + '</div>';
+        }
       }
-      html += `</div></div>`;
+      html += '</div></div>';
       
       gridContainer.innerHTML = html;
     }
 
-    function drawRoundedRect(x, y, width, height, radius, cCtx = ctx) {
+    function drawRoundedRect(x, y, width, height, radius, cCtx) {
+      if (!cCtx) cCtx = ctx;
       cCtx.beginPath();
       cCtx.moveTo(x + radius, y);
       cCtx.lineTo(x + width - radius, y);
@@ -3204,41 +3693,36 @@
     // 味方のお城（にゃんこ城）ベクター描画
     function drawAllyBase(c, x, y, w, h) {
       c.save();
-      // 1. お城の接地影
       c.fillStyle = 'rgba(0,0,0,0.15)';
       c.beginPath();
       c.ellipse(x + w/2, y + h, w/2 + 10, 8, 0, 0, Math.PI*2);
       c.fill();
 
-      // 2. メインの白い石壁の塔
       c.fillStyle = '#eceff1';
       c.strokeStyle = '#3d1f05';
       c.lineWidth = 4;
       drawRoundedRect(x + 5, y + 30, w - 10, h - 30, 8, c);
 
-      // 3. 煉瓦の模様ディテール
       c.fillStyle = '#cfd8dc';
       c.fillRect(x + 12, y + 45, 18, 10);
       c.fillRect(x + w - 30, y + 75, 18, 10);
       c.fillRect(x + 20, y + 105, 24, 10);
 
-      // 4. 猫耳形状の屋上凸凹
       c.fillStyle = '#eceff1';
       c.beginPath();
       c.moveTo(x + 5, y + 30);
-      c.lineTo(x + 15, y + 10); // 左耳の頂点
+      c.lineTo(x + 15, y + 10); 
       c.lineTo(x + 30, y + 25);
       c.lineTo(x + w - 30, y + 25);
-      c.lineTo(x + w - 15, y + 10); // 右耳の頂点
+      c.lineTo(x + w - 15, y + 10); 
       c.lineTo(x + w - 5, y + 30);
       c.closePath();
       c.fill();
       c.stroke();
 
-      // 5. お城壁面の猫顔ディテール
       c.fillStyle = '#3d1f05';
-      c.fillRect(x + 24, y + 45, 5, 5); // 左目
-      c.fillRect(x + w - 29, y + 45, 5, 5); // 右目
+      c.fillRect(x + 24, y + 45, 5, 5); 
+      c.fillRect(x + w - 29, y + 45, 5, 5); 
 
       c.beginPath();
       c.moveTo(x + w/2 - 4, y + 54);
@@ -3247,7 +3731,6 @@
       c.closePath();
       c.fill();
 
-      // ひげ
       c.strokeStyle = '#3d1f05';
       c.lineWidth = 2;
       c.beginPath();
@@ -3257,7 +3740,6 @@
       c.moveTo(x + w - 15, y + 56); c.lineTo(x + w - 4, y + 58);
       c.stroke();
 
-      // 6. 木の扉（城門）
       c.fillStyle = '#a1887f';
       c.beginPath();
       c.arc(x + w/2, y + h, 20, Math.PI, 0);
@@ -3270,14 +3752,12 @@
       c.moveTo(x + w/2, y + h - 20); c.lineTo(x + w/2, y + h);
       c.stroke();
 
-      // 扉の上の黄金の鈴
       c.fillStyle = '#ffeb3b';
       c.beginPath();
       c.arc(x + w/2, y + h - 25, 5, 0, Math.PI*2);
       c.fill();
       c.stroke();
 
-      // 7. 右側の旗竿
       c.strokeStyle = '#78909c';
       c.lineWidth = 3;
       c.beginPath();
@@ -3285,7 +3765,6 @@
       c.lineTo(x + w - 15, y - 25);
       c.stroke();
 
-      // 揺れるにゃんこ軍団の白旗（右になびく）
       c.fillStyle = '#fff';
       c.beginPath();
       c.moveTo(x + w - 15, y - 25);
@@ -3295,7 +3774,6 @@
       c.fill();
       c.stroke();
 
-      // 旗の上のピンクの肉球マーク
       c.fillStyle = '#e91e63';
       c.beginPath();
       c.arc(x + w, y - 17, 3, 0, Math.PI*2);
@@ -3307,19 +3785,23 @@
     // 敵のお城（わんこ城）ベクター描画
     function drawEnemyBase(c, x, y, w, h) {
       c.save();
-      // 1. お城の接地影
       c.fillStyle = 'rgba(0,0,0,0.18)';
       c.beginPath();
       c.ellipse(x + w/2, y + h, w/2 + 10, 8, 0, 0, Math.PI*2);
       c.fill();
 
-      // 2. ダークウッドと煉瓦調のダークな壁
-      c.fillStyle = '#3e2723';
+      if (game.currentChapter === 1) {
+        c.fillStyle = '#1a237e'; 
+      } else if (game.currentChapter === 2) {
+        c.fillStyle = '#006064'; 
+      } else {
+        c.fillStyle = '#3e2723'; 
+      }
+      
       c.strokeStyle = '#1a0c00';
       c.lineWidth = 4;
       drawRoundedRect(x + 5, y + 30, w - 10, h - 30, 8, c);
 
-      // お城のトゲトゲ屋上（防衛用歯形）
       c.fillStyle = '#2d1510';
       c.beginPath();
       c.moveTo(x + 5, y + 30);
@@ -3335,41 +3817,35 @@
       c.fill();
       c.stroke();
 
-      // 3. 左右に突き出す威嚇用スチールトゲ
       c.fillStyle = '#b0bec5';
       c.strokeStyle = '#1a0c00';
       c.lineWidth = 2;
       
-      // 左のトゲ
       c.beginPath();
       c.moveTo(x + 5, y + 60);
       c.lineTo(x - 12, y + 68);
       c.lineTo(x + 5, y + 76);
       c.closePath(); c.fill(); c.stroke();
 
-      // 右 of トゲ
       c.beginPath();
-      c.moveTo(x + w - 5, y + 60);
+      c.moveTo(x + w - 5, y + 60); 
       c.lineTo(x + w + 12, y + 68);
       c.lineTo(x + w - 5, y + 76);
       c.closePath(); c.fill(); c.stroke();
 
-      // 4. 不気味に怪しく発光する赤色窓
       c.fillStyle = '#ff1744';
       c.shadowColor = '#ff1744';
       c.shadowBlur = 8;
       c.fillRect(x + 18, y + 50, 10, 6);
       c.fillRect(x + w - 28, y + 50, 10, 6);
-      c.shadowBlur = 0; // シャドウ効果リセット
+      c.shadowBlur = 0; 
 
-      // 5. 巨大なわんコの口のような邪悪な門
       c.fillStyle = '#212121';
       c.beginPath();
       c.rect(x + w/2 - 20, y + h - 25, 40, 25);
       c.fill();
       c.stroke();
 
-      // 牙の模様
       c.fillStyle = '#ffeb3b';
       c.beginPath();
       c.moveTo(x + w/2 - 20, y + h - 25);
@@ -3384,7 +3860,6 @@
       c.closePath();
       c.fill();
 
-      // 6. 左側の暗黒旗竿
       c.strokeStyle = '#4e342e';
       c.lineWidth = 3;
       c.beginPath();
@@ -3392,7 +3867,6 @@
       c.lineTo(x + 15, y - 25);
       c.stroke();
 
-      // 邪悪なドクロ軍旗（左になびく）
       c.fillStyle = '#d50000';
       c.beginPath();
       c.moveTo(x + 15, y - 25);
@@ -3402,7 +3876,6 @@
       c.fill();
       c.stroke();
 
-      // 旗のなかの黒いクロスバツ印
       c.strokeStyle = '#000';
       c.lineWidth = 2;
       c.beginPath();
@@ -3422,15 +3895,12 @@
       const drawX = unit.x + unit.attackOffset;
       const drawY = unit.y + bounce;
 
-      const rawType = unit.rawType;
-      const enemyAttr = unit.rawType ? enemyTemplates[unit.rawType].attribute : 'white';
+      const enemyAttr = unit.attribute || 'white';
 
-      // 浮遊特性敵のふわふわ挙動＆接地影の追加
       let floatBobY = 0;
       if (unit.type === 'enemy' && enemyAttr === 'floating') {
-        floatBobY = Math.sin(gameFrame * 0.08) * 12 - 12; // 空中に上下浮遊
+        floatBobY = Math.sin(gameFrame * 0.08) * 12 - 12; 
         
-        // 接地楕円影
         cCtx.fillStyle = 'rgba(0,0,0,0.15)';
         cCtx.beginPath();
         cCtx.ellipse(drawX + unit.width/2, unit.y + unit.height, unit.width/2 + 5, 5, 0, 0, Math.PI*2);
@@ -3449,7 +3919,8 @@
         const isEvolved = (unit.isEvolved !== undefined) ? unit.isEvolved : (stats ? stats.isEvolved : false);
         const unitHeight = unit.height || (stats ? stats.height : 22);
 
-        const drawLegs = (color = catColor) => {
+        const drawLegs = function(color) {
+          if (!color) color = catColor;
           cCtx.fillStyle = color;
           cCtx.strokeStyle = '#3d1f05';
           cCtx.lineWidth = 2;
@@ -3610,70 +4081,86 @@
         }
       } 
       else {
-        // 敵キャラクターの描画（属性カラーの反映）
+        // 敵キャラクターの描画（未来・宇宙編の属性別特殊彩色を反映）
+        var rawType = unit.rawType; 
+        var strokeColor = '#3d1f05';
+        var bodyColor = '#fff8ee';
+
+        if (enemyAttr === 'alien') {
+          bodyColor = '#00e5ff'; 
+        } else if (enemyAttr === 'star_alien') {
+          bodyColor = '#a6ff00'; 
+          strokeColor = '#ff3300';
+        } else if (enemyAttr === 'red') {
+          bodyColor = '#ff3d00';
+        } else if (enemyAttr === 'black') {
+          bodyColor = '#212121';
+        }
+
+        cCtx.strokeStyle = strokeColor;
+
         if (rawType === 'doge') {
-          cCtx.fillStyle = '#fff8ee'; // 白色
+          cCtx.fillStyle = bodyColor;
           cCtx.beginPath(); cCtx.ellipse(drawX + 11, finalDrawY + 11, 11, 8, 0, 0, Math.PI * 2); cCtx.fill(); cCtx.stroke();
 
-          cCtx.fillStyle = '#ebdcc8';
+          cCtx.fillStyle = (enemyAttr === 'white') ? '#ebdcc8' : 'rgba(255,255,255,0.4)';
           cCtx.beginPath(); cCtx.ellipse(drawX + 7, finalDrawY + 11, 4, 7, Math.PI/6, 0, Math.PI * 2); cCtx.fill(); cCtx.stroke();
 
           cCtx.fillStyle = '#3d1f05';
           cCtx.fillRect(drawX + 13, finalDrawY + 7, 2, 2); cCtx.fillRect(drawX + 17, finalDrawY + 9, 2, 2);
 
-          cCtx.fillStyle = '#fff8ee'; cCtx.lineWidth = 2;
+          cCtx.fillStyle = bodyColor; cCtx.lineWidth = 2;
           const legY = Math.sin(gameFrame * 0.35) > 0 ? 2 : 0;
           cCtx.fillRect(drawX + 5, finalDrawY + 18, 3, 3 + legY); cCtx.strokeRect(drawX + 5, finalDrawY + 18, 3, 3 + legY);
           cCtx.fillRect(drawX + 12, finalDrawY + 18, 3, 3 + (2 - legY)); cCtx.strokeRect(drawX + 12, finalDrawY + 18, 3, 3 + (2 - legY));
         } 
         else if (rawType === 'snache') {
           const slither = Math.sin(gameFrame * 0.4 + unit.x * 0.1) * 3;
-          cCtx.fillStyle = '#ff5252'; // 赤属性の赤色に変更
+          cCtx.fillStyle = bodyColor;
           
           cCtx.beginPath(); cCtx.ellipse(drawX + 15, finalDrawY + 6 + slither, 15, 6, 0, 0, Math.PI*2); cCtx.fill(); cCtx.stroke();
 
-          cCtx.fillStyle = '#3d1f05'; cCtx.fillRect(drawX + 6, finalDrawY + 4 + slither, 2, 2);
+          cCtx.fillStyle = strokeColor; cCtx.fillRect(drawX + 6, finalDrawY + 4 + slither, 2, 2);
 
           if (gameFrame % 30 < 15) {
             cCtx.fillStyle = '#1a0c00'; cCtx.fillRect(drawX - 2, finalDrawY + 5 + slither, 3, 2);
           }
         } 
         else if (rawType === 'gorilla') {
-          cCtx.fillStyle = '#212121'; // 黒属性の黒炭色に変更
+          cCtx.fillStyle = bodyColor;
           drawRoundedRect(drawX, finalDrawY, 28, 35, 4, cCtx);
 
-          cCtx.fillStyle = '#111111';
+          cCtx.fillStyle = 'rgba(0,0,0,0.15)';
           cCtx.fillRect(drawX + 2, finalDrawY + 4, 24, 6); cCtx.strokeRect(drawX + 2, finalDrawY + 4, 24, 6);
 
-          cCtx.fillStyle = '#ff1744'; // 怒りに輝く赤い目（黒属性ボス）
+          cCtx.fillStyle = '#ff1744'; 
           cCtx.fillRect(drawX + 6, finalDrawY + 6, 2, 2); cCtx.fillRect(drawX + 16, finalDrawY + 6, 2, 2);
 
           cCtx.fillStyle = '#fff'; cCtx.fillRect(drawX + 8, finalDrawY + 22, 12, 3);
 
-          cCtx.fillStyle = '#212121'; cCtx.lineWidth = 2;
+          cCtx.fillStyle = bodyColor; cCtx.lineWidth = 2;
           const legY = Math.sin(gameFrame * 0.4) > 0 ? 3 : 0;
           cCtx.fillRect(drawX + 4, finalDrawY + 34, 6, 3 + legY); cCtx.strokeRect(drawX + 4, finalDrawY + 34, 6, 3 + legY);
           cCtx.fillRect(drawX + 18, finalDrawY + 34, 6, 3 + (3 - legY)); cCtx.strokeRect(drawX + 18, finalDrawY + 34, 6, 3 + (3 - legY));
         } 
         else if (rawType === 'kaba') {
-          cCtx.fillStyle = '#e91e63'; // 赤属性の赤コーラル色に変更
+          cCtx.fillStyle = bodyColor;
           drawRoundedRect(drawX, finalDrawY, 44, 30, 8, cCtx);
 
           cCtx.fillStyle = '#ff4081';
           const mouthOffset = unit.attackTimer > (unit.interval / 2) ? 6 : 0;
           cCtx.fillRect(drawX - 4, finalDrawY + 10 + mouthOffset, 25, 18 - mouthOffset); cCtx.strokeRect(drawX - 4, finalDrawY + 10 + mouthOffset, 25, 18 - mouthOffset);
 
-          cCtx.fillStyle = '#3d1f05'; cCtx.fillRect(drawX + 2, finalDrawY + 14 + mouthOffset, 2, 2);
+          cCtx.fillStyle = strokeColor; cCtx.fillRect(drawX + 2, finalDrawY + 14 + mouthOffset, 2, 2);
+          cCtx.fillStyle = strokeColor; cCtx.fillRect(drawX + 30, finalDrawY + 5, 3, 3);
 
-          cCtx.fillStyle = '#3d1f05'; cCtx.fillRect(drawX + 30, finalDrawY + 5, 3, 3);
-
-          cCtx.fillStyle = '#e91e63'; cCtx.lineWidth = 2;
+          cCtx.fillStyle = bodyColor; cCtx.lineWidth = 2;
           const legY = Math.sin(gameFrame * 0.25) > 0 ? 2 : 0;
           cCtx.fillRect(drawX + 8, finalDrawY + 28, 8, 3 + legY); cCtx.strokeRect(drawX + 8, finalDrawY + 28, 8, 3 + legY);
           cCtx.fillRect(drawX + 28, finalDrawY + 28, 8, 3 + (2 - legY)); cCtx.strokeRect(drawX + 28, finalDrawY + 28, 8, 3 + (2 - legY));
         }
         else if (rawType === 'face') {
-          cCtx.fillStyle = '#ffdddd'; // 浮いてる敵（白属性）
+          cCtx.fillStyle = (enemyAttr === 'white') ? '#ffdddd' : bodyColor;
           cCtx.beginPath(); cCtx.arc(drawX + 40, finalDrawY + 40, 40, 0, Math.PI*2); cCtx.fill(); cCtx.stroke();
 
           cCtx.fillStyle = '#fff';
@@ -3697,7 +4184,6 @@
         }
       }
 
-      // フリーズ状態（アイスブルーのシールド）のエフェクト描画
       if (unit.type === 'enemy' && unit.freezeTimer > 0) {
         cCtx.fillStyle = 'rgba(129, 212, 250, 0.45)';
         cCtx.strokeStyle = 'rgba(3, 169, 244, 0.7)';
@@ -3718,8 +4204,56 @@
       if (!ctx) return;
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-      ctx.fillStyle = '#8B5A2B'; ctx.fillRect(0, 260, canvas.width, 40); 
-      ctx.fillStyle = '#2E8B57'; ctx.fillRect(0, 255, canvas.width, 5);
+      var ch = game.currentChapter || 0;
+
+      // 1. 背景の描画 (背景色・サイバーグリッド・星空星雲)
+      if (ch === 0) {
+        // 日本編: 青空
+        ctx.fillStyle = '#87CEEB';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+      } else if (ch === 1) {
+        // 未来編: サイバーネイビー
+        ctx.fillStyle = '#0f2027';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        ctx.strokeStyle = 'rgba(0, 229, 255, 0.05)'; ctx.lineWidth = 1;
+        for (var xGrid = 0; xGrid < canvas.width; xGrid += 80) {
+          ctx.beginPath(); ctx.moveTo(xGrid, 0); ctx.lineTo(xGrid, 255); ctx.stroke();
+        }
+      } else {
+        // 宇宙編: 深宇宙ブラックと星々・星雲
+        ctx.fillStyle = '#060012';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
+        for (var starIdx = 0; starIdx < 50; starIdx++) {
+          var sX = (starIdx * 73) % canvas.width;
+          var sY = (starIdx * 37) % 255;
+          ctx.beginPath(); ctx.arc(sX, sY, 1, 0, Math.PI * 2); ctx.fill();
+        }
+
+        var spaceGrad = ctx.createRadialGradient(800, 130, 30, 800, 130, 400);
+        spaceGrad.addColorStop(0, 'rgba(74, 20, 140, 0.45)');
+        spaceGrad.addColorStop(0.5, 'rgba(13, 71, 161, 0.2)');
+        spaceGrad.addColorStop(1, 'rgba(6, 0, 18, 0)');
+        ctx.fillStyle = spaceGrad;
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+      }
+
+      // 2. 地面（Ground）の描画
+      if (ch === 0) {
+        // 日本編: 茶色の土と緑の芝生
+        ctx.fillStyle = '#8B5A2B'; ctx.fillRect(0, 260, canvas.width, 40); 
+        ctx.fillStyle = '#2E8B57'; ctx.fillRect(0, 255, canvas.width, 5);
+      } else if (ch === 1) {
+        // 未来編: ネオンパープルの地面と水色エッジ
+        ctx.fillStyle = '#1c0a35'; ctx.fillRect(0, 260, canvas.width, 40); 
+        ctx.fillStyle = '#00e5ff'; ctx.fillRect(0, 255, canvas.width, 5);
+      } else {
+        // 宇宙編: ダークグレーの金属地面と黄金エッジ
+        ctx.fillStyle = '#212121'; ctx.fillRect(0, 260, canvas.width, 40); 
+        ctx.fillStyle = '#ffd700'; ctx.fillRect(0, 255, canvas.width, 5);
+      }
 
       if (cannonBeamTimer > 0) {
         const maxTimer = 45;
@@ -3736,19 +4270,19 @@
 
         ctx.save();
 
-        ctx.strokeStyle = `rgba(147, 112, 219, ${opacity * 0.75})`; ctx.lineWidth = 18; ctx.lineCap = 'round';
+        ctx.strokeStyle = "rgba(147, 112, 219, " + (opacity * 0.75) + ")"; ctx.lineWidth = 18; ctx.lineCap = 'round';
         ctx.beginPath(); ctx.moveTo(srcX, srcY); ctx.lineTo(targetX, targetY); ctx.stroke();
 
-        ctx.strokeStyle = `rgba(255, 255, 255, ${opacity * 0.95})`; ctx.lineWidth = 6; ctx.lineCap = 'round';
+        ctx.strokeStyle = "rgba(255, 255, 255, " + (opacity * 0.95) + ")"; ctx.lineWidth = 6; ctx.lineCap = 'round';
         ctx.beginPath(); ctx.moveTo(srcX, srcY); ctx.lineTo(targetX, targetY); ctx.stroke();
 
-        ctx.fillStyle = `rgba(186, 85, 211, ${opacity * 0.6})`;
+        ctx.fillStyle = "rgba(186, 85, 211, " + (opacity * 0.6) + ")";
         ctx.beginPath(); ctx.ellipse(targetX, targetY, 32, 14, 0, 0, Math.PI * 2); ctx.fill();
 
-        ctx.fillStyle = `rgba(255, 255, 255, ${opacity * 0.95})`;
+        ctx.fillStyle = "rgba(255, 255, 255, " + (opacity * 0.95) + ")";
         ctx.beginPath(); ctx.ellipse(targetX, targetY, 15, 6, 0, 0, Math.PI * 2); ctx.fill();
 
-        ctx.fillStyle = `rgba(138, 43, 226, ${opacity})`;
+        ctx.fillStyle = "rgba(138, 43, 226, " + opacity + ")";
         for (let i = 0; i < 8; i++) {
           const px = targetX + Math.sin(gameFrame + i) * 16;
           const py = targetY - (i * 4) - (gameFrame % 5);
@@ -3760,41 +4294,37 @@
       }
 
       if (cannonFlash > 0) {
-        ctx.fillStyle = `rgba(255, 255, 255, ${cannonFlash / 10})`;
+        ctx.fillStyle = "rgba(255, 255, 255, " + (cannonFlash / 10) + ")";
         ctx.fillRect(0, 0, canvas.width, canvas.height);
         cannonFlash--;
       }
 
-      // 1. にゃんこ城のベクター描画
       drawAllyBase(ctx, allyBase.x, allyBase.y, allyBase.width, allyBase.height);
       
-      // 味方城HP数値表示
       ctx.save();
       ctx.fillStyle = 'rgba(61, 31, 5, 0.75)';
       drawRoundedRect(allyBase.x - 15, allyBase.y - 20, allyBase.width + 30, 15, 4, ctx);
       ctx.fillStyle = '#ffffff';
       ctx.font = 'bold 10px monospace';
       ctx.textAlign = 'center';
-      ctx.fillText(`${Math.floor(allyBase.hp)} / ${allyBase.maxHp}`, allyBase.x + allyBase.width / 2, allyBase.y - 9);
+      ctx.fillText(Math.floor(allyBase.hp) + " / " + allyBase.maxHp, allyBase.x + allyBase.width / 2, allyBase.y - 9);
       ctx.restore();
 
-      // 2. わんこ城のベクター描画
       drawEnemyBase(ctx, enemyBase.x, enemyBase.y, enemyBase.width, enemyBase.height);
       
-      // 敵城HP数値表示
       ctx.save();
       ctx.fillStyle = 'rgba(61, 31, 5, 0.75)';
       drawRoundedRect(enemyBase.x - 15, enemyBase.y - 20, enemyBase.width + 30, 15, 4, ctx);
       ctx.fillStyle = '#ffffff';
       ctx.font = 'bold 10px monospace';
       ctx.textAlign = 'center';
-      ctx.fillText(`${Math.floor(enemyBase.hp)} / ${enemyBase.maxHp}`, enemyBase.x + enemyBase.width / 2, enemyBase.y - 9);
+      ctx.fillText(Math.floor(enemyBase.hp) + " / " + enemyBase.maxHp, enemyBase.x + enemyBase.width / 2, enemyBase.y - 9);
       ctx.restore();
 
-      allies.forEach(unit => drawUnit(unit, ctx));
-      enemies.forEach(unit => drawUnit(unit, ctx));
+      allies.forEach(function(unit) { drawUnit(unit, ctx); });
+      enemies.forEach(function(unit) { drawUnit(unit, ctx); });
 
-      deathEffects.forEach(eff => {
+      deathEffects.forEach(function(eff) {
         ctx.save();
         const pct = eff.frame / eff.maxFrame;
         ctx.globalAlpha = 1 - pct;
@@ -3836,12 +4366,13 @@
     }
 
     // --- 17. 起動初期化処理 ---
-    window.onload = () => {
+    window.onload = function() {
       canvas = document.getElementById('gameCanvas');
       ctx = canvas.getContext('2d');
+      generateStagesList(); 
       loadGame();
     };
-	</script>
+  </script>
 </body>
 
 </html>
