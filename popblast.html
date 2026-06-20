@@ -1,0 +1,1161 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+	<title>ポップブラスト！ (Pop Blast! - Enhanced Version)</title>
+	<style>
+		/* 全体設定 */
+		* {
+			box-sizing: border-box;
+			margin: 0;
+			padding: 0;
+			user-select: none;
+			-webkit-user-select: none;
+		}
+
+		body {
+			background: radial-gradient(circle at top left, #f1f5f9 0%, #cbd5e1 100%);
+			color: #1e293b;
+			font-family: "Nunito", "Segoe UI", "Hiragino Kaku Gothic ProN", Meiryo, sans-serif;
+			display: flex;
+			justify-content: center;
+			align-items: center;
+			min-height: 100vh;
+			min-height: 100dvh;
+			overflow: hidden;
+			touch-action: none;
+		}
+
+		/* 画面切り替え管理 */
+		.screen {
+			display: none;
+			width: 92vw;
+			width: min(92vw, calc(100dvh - 190px), calc(100vh - 190px), 430px);
+			flex-direction: column;
+			align-items: center;
+			animation: fadeIn 0.3s ease-out forwards;
+		}
+
+		.screen.active {
+			display: flex;
+		}
+
+		@keyframes fadeIn {
+			from {
+				opacity: 0;
+				transform: scale(0.95);
+			}
+
+			to {
+				opacity: 1;
+				transform: scale(1);
+			}
+		}
+
+		/* ------------------------------------
+       ホーム画面
+       ------------------------------------ */
+		#home-screen {
+			gap: 30px;
+			text-align: center;
+		}
+
+		.logo-container {
+			margin-top: 20px;
+		}
+
+		.main-title {
+			font-size: clamp(2.2rem, 8vw, 3.2rem);
+			font-weight: 900;
+			line-height: 1.1;
+			letter-spacing: -1px;
+			background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+			-webkit-background-clip: text;
+			-webkit-text-fill-color: transparent;
+			filter: drop-shadow(2px 4px 0px rgba(30, 41, 59, 0.15));
+			margin-bottom: 5px;
+		}
+
+		.sub-title {
+			font-size: clamp(1rem, 4vw, 1.4rem);
+			font-weight: 800;
+			color: #3b82f6;
+			letter-spacing: 2px;
+			text-transform: uppercase;
+			filter: drop-shadow(1px 2px 0px rgba(255, 255, 255, 0.8));
+		}
+
+		.home-best-container {
+			background: #ffffff;
+			padding: 15px 40px;
+			border-radius: 20px;
+			box-shadow: 0 10px 25px -5px rgba(100, 116, 139, 0.2);
+			border: 3px solid #e2e8f0;
+			display: flex;
+			flex-direction: column;
+			align-items: center;
+			gap: 5px;
+		}
+
+		.home-best-label {
+			font-size: 0.85rem;
+			font-weight: 800;
+			color: #64748b;
+			letter-spacing: 1px;
+		}
+
+		.home-best-value {
+			font-size: 2.5rem;
+			font-weight: 900;
+			color: #1e293b;
+		}
+
+		.play-btn {
+			background: linear-gradient(135deg, #4ade80 0%, #22c55e 100%);
+			color: white;
+			font-size: 1.8rem;
+			font-weight: 900;
+			border: none;
+			padding: 16px 50px;
+			border-radius: 50px;
+			cursor: pointer;
+			box-shadow: 0 10px 20px rgba(34, 197, 94, 0.35), inset 0 -4px 0 rgba(0, 0, 0, 0.15);
+			transition: transform 0.1s;
+			animation: pulse 2s infinite;
+		}
+
+		.play-btn:active {
+			transform: scale(0.95);
+		}
+
+		@keyframes pulse {
+			0% {
+				transform: scale(1);
+			}
+
+			50% {
+				transform: scale(1.05);
+			}
+
+			100% {
+				transform: scale(1);
+			}
+		}
+
+		/* ------------------------------------
+       ゲームプレイ画面
+       ------------------------------------ */
+		header {
+			width: 100%;
+			display: flex;
+			justify-content: space-between;
+			align-items: center;
+			padding: 5px 0;
+			margin-bottom: 5px;
+		}
+
+		.score-container {
+			display: flex;
+			gap: 10px;
+		}
+
+		.score-box {
+			background: #ffffff;
+			padding: 5px 12px;
+			border-radius: 12px;
+			text-align: center;
+			min-width: 75px;
+			border: 2px solid #e2e8f0;
+			box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+		}
+
+		.score-box .label {
+			font-size: 0.65rem;
+			font-weight: 800;
+			color: #64748b;
+			display: block;
+			margin-bottom: 1px;
+		}
+
+		.score-box .score-val {
+			font-size: 1.1rem;
+			font-weight: 900;
+			color: #1e293b;
+		}
+
+		/* 一時停止ボタン */
+		.pause-btn-icon {
+			background: #ffffff;
+			border: 2px solid #e2e8f0;
+			width: 42px;
+			height: 42px;
+			border-radius: 12px;
+			cursor: pointer;
+			display: flex;
+			justify-content: center;
+			align-items: center;
+			box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+			font-size: 1rem;
+			font-weight: bold;
+			transition: transform 0.1s;
+		}
+
+		.pause-btn-icon:active {
+			transform: scale(0.9);
+		}
+
+		/* 8x8 ボード */
+		.board-container {
+			width: 100%;
+			aspect-ratio: 1 / 1;
+			background: #ffffff;
+			border: 6px solid #94a3b8;
+			border-radius: 20px;
+			padding: 6px;
+			box-shadow: 0 15px 30px -10px rgba(71, 85, 105, 0.3);
+			position: relative;
+		}
+
+		.grid {
+			display: grid;
+			grid-template-columns: repeat(8, 1fr);
+			grid-template-rows: repeat(8, 1fr);
+			gap: 5px;
+			width: 100%;
+			height: 100%;
+		}
+
+		.grid-cell {
+			background-color: #f1f5f9;
+			border-radius: 8px;
+			box-shadow: inset 1px 1px 3px rgba(148, 163, 184, 0.15);
+			transition: background-color 0.1s ease, opacity 0.1s ease;
+			position: relative;
+		}
+
+		.grid-cell.filled,
+		.block-cell.filled {
+			border-radius: 8px;
+			position: relative;
+			overflow: hidden;
+			box-shadow: inset 2px 2px 3px rgba(255, 255, 255, 0.45), inset -2px -2px 3px rgba(0, 0, 0, 0.18), 0 2px 4px rgba(0, 0, 0, 0.05);
+		}
+
+		.grid-cell.filled::after,
+		.block-cell.filled::after {
+			content: '';
+			position: absolute;
+			top: 4%;
+			left: 4%;
+			width: 92%;
+			height: 45%;
+			background: linear-gradient(to bottom, rgba(255, 255, 255, 0.4) 0%, rgba(255, 255, 255, 0) 100%);
+			border-radius: 6px 6px 2px 2px;
+			pointer-events: none;
+		}
+
+		.grid-cell.preview-valid {
+			opacity: 0.6;
+			box-shadow: inset 0 0 10px rgba(255, 255, 255, 0.8);
+		}
+
+		.grid-cell.preview-invalid {
+			background-color: rgba(239, 68, 68, 0.25) !important;
+			box-shadow: none !important;
+		}
+
+		@keyframes blast {
+			0% {
+				transform: scale(1);
+				filter: brightness(1.8);
+				opacity: 1;
+			}
+
+			100% {
+				transform: scale(0.2);
+				filter: brightness(2.5);
+				opacity: 0;
+			}
+		}
+
+		.grid-cell.clearing {
+			animation: blast 0.35s cubic-bezier(0.1, 0.8, 0.3, 1) forwards;
+			z-index: 10;
+		}
+
+		/* ------------------------------------
+       トレイエリア
+       ------------------------------------ */
+		.tray {
+			width: 100%;
+			display: flex;
+			justify-content: space-between;
+			gap: 12px;
+			margin-top: 15px;
+			height: 110px;
+		}
+
+		.tray-slot {
+			flex: 1;
+			background-color: #ffffff;
+			border: 3px dashed #94a3b8;
+			border-radius: 18px;
+			display: flex;
+			justify-content: center;
+			align-items: center;
+			cursor: grab;
+			position: relative;
+			touch-action: none;
+			box-shadow: inset 0 2px 6px rgba(15, 23, 42, 0.08);
+			transition: background-color 0.2s, border-color 0.2s, transform 0.2s;
+		}
+
+		.tray-slot:hover {
+			background-color: #f8fafc;
+			border-color: #64748b;
+			transform: translateY(-2px);
+		}
+
+		.tray-slot.empty {
+			background-color: #f1f5f9;
+			border-color: #cbd5e1;
+			box-shadow: none;
+			cursor: default;
+			pointer-events: none;
+			transform: none;
+		}
+
+		.drag-avatar {
+			position: absolute;
+			pointer-events: none;
+			z-index: 1000;
+			transform: scale(1);
+			filter: drop-shadow(0 15px 20px rgba(15, 23, 42, 0.25));
+			transition: transform 0.05s ease-out;
+		}
+
+		.score-popup-text {
+			position: absolute;
+			top: 50%;
+			left: 50%;
+			transform: translate(-50%, -50%);
+			font-size: 2.2rem;
+			font-weight: 900;
+			color: #fbbf24;
+			text-shadow: 0 0 10px rgba(251, 191, 36, 0.8), 0 3px 6px rgba(0, 0, 0, 0.15);
+			pointer-events: none;
+			animation: floatUp 0.8s cubic-bezier(0.18, 0.89, 0.32, 1.28) forwards;
+			z-index: 100;
+			white-space: nowrap;
+		}
+
+		@keyframes floatUp {
+			0% {
+				transform: translate(-50%, -30%) scale(0.5);
+				opacity: 0;
+			}
+
+			20% {
+				transform: translate(-50%, -60%) scale(1.2);
+				opacity: 1;
+			}
+
+			100% {
+				transform: translate(-50%, -110%) scale(1.0);
+				opacity: 0;
+			}
+		}
+
+		/* ------------------------------------
+       モーダルオーバーレイ（一時停止 / ゲームオーバー共通）
+       ------------------------------------ */
+		.overlay {
+			position: fixed;
+			top: 0;
+			left: 0;
+			width: 100vw;
+			height: 100vh;
+			background: rgba(15, 23, 42, 0.5);
+			backdrop-filter: blur(8px);
+			display: flex;
+			justify-content: center;
+			align-items: center;
+			opacity: 0;
+			pointer-events: none;
+			transition: opacity 0.3s ease;
+			z-index: 200;
+		}
+
+		.overlay.active {
+			opacity: 1;
+			pointer-events: auto;
+		}
+
+		.overlay-content {
+			background: #ffffff;
+			padding: 35px 40px;
+			border-radius: 24px;
+			text-align: center;
+			border: 3px solid #cbd5e1;
+			box-shadow: 0 25px 50px -12px rgba(15, 23, 42, 0.3);
+			max-width: 85%;
+			animation: modalPop 0.3s cubic-bezier(0.18, 0.89, 0.32, 1.28) forwards;
+		}
+
+		@keyframes modalPop {
+			from {
+				transform: scale(0.8);
+				opacity: 0;
+			}
+
+			to {
+				transform: scale(1);
+				opacity: 1;
+			}
+		}
+
+		.overlay h2 {
+			font-size: 2.2rem;
+			font-weight: 900;
+			margin-bottom: 12px;
+			letter-spacing: -0.5px;
+		}
+
+		/* 赤基調（ゲームオーバー） */
+		#game-over-overlay h2 {
+			color: #ef4444;
+		}
+
+		/* 青基調（一時停止） */
+		#pause-overlay h2 {
+			color: #3b82f6;
+		}
+
+		.overlay p {
+			font-size: 1.1rem;
+			color: #64748b;
+			margin-bottom: 25px;
+		}
+
+		.overlay span {
+			font-weight: 900;
+			color: #1e293b;
+			font-size: 1.5rem;
+		}
+
+		.overlay-btn-group {
+			display: flex;
+			flex-direction: column;
+			gap: 10px;
+		}
+
+		.overlay button {
+			width: 100%;
+			border: none;
+			padding: 12px 28px;
+			font-size: 1.1rem;
+			font-weight: 800;
+			border-radius: 14px;
+			cursor: pointer;
+			transition: transform 0.1s;
+		}
+
+		.overlay button:active {
+			transform: scale(0.97);
+		}
+
+		.btn-retry {
+			background: linear-gradient(135deg, #4ade80 0%, #22c55e 100%);
+			color: white;
+			box-shadow: 0 6px 15px rgba(34, 197, 94, 0.3);
+		}
+
+		.btn-home {
+			background: #e2e8f0;
+			color: #475569;
+		}
+	</style>
+</head>
+
+<body>
+
+	<!-- ====================================
+       ホーム画面
+       ==================================== -->
+	<div class="screen active" id="home-screen">
+		<div class="logo-container">
+			<h1 class="main-title">POP BLAST!</h1>
+			<div class="sub-title">Block Puzzle</div>
+		</div>
+
+		<div class="home-best-container">
+			<span class="home-best-label">🏆 BEST SCORE</span>
+			<span id="home-best-val" class="home-best-value">0</span>
+		</div>
+
+		<button class="play-btn" id="start-btn">PLAY</button>
+	</div>
+
+	<!-- ====================================
+       ゲーム画面
+       ==================================== -->
+	<div class="screen" id="game-screen">
+		<header>
+			<!-- 🏠から⏸️（一時停止）にボタン画像・役割を変更 -->
+			<button class="pause-btn-icon" id="pause-btn">⏸️</button>
+			<div class="score-container">
+				<div class="score-box">
+					<span class="label">SCORE</span>
+					<span id="score" class="score-val">0</span>
+				</div>
+				<div class="score-box">
+					<span class="label">BEST</span>
+					<span id="best-score" class="score-val">0</span>
+				</div>
+			</div>
+		</header>
+
+		<div class="board-container">
+			<div class="grid" id="grid"></div>
+		</div>
+
+		<div class="tray" id="tray">
+			<div class="tray-slot" data-index="0"></div>
+			<div class="tray-slot" data-index="1"></div>
+			<div class="tray-slot" data-index="2"></div>
+		</div>
+	</div>
+
+	<!-- ====================================
+       一時停止モーダル（新規追加）
+       ==================================== -->
+	<div class="overlay" id="pause-overlay">
+		<div class="overlay-content">
+			<h2>PAUSE</h2>
+			<p>ゲームを一時停止しています</p>
+			<div class="overlay-btn-group">
+				<button class="btn-retry" id="resume-btn">続ける</button>
+				<button class="btn-home" id="pause-home-btn">ホームに戻る</button>
+			</div>
+		</div>
+	</div>
+
+	<!-- ====================================
+       ゲームオーバーモーダル
+       ==================================== -->
+	<div class="overlay" id="game-over-overlay">
+		<div class="overlay-content">
+			<h2>GAME OVER</h2>
+			<p>今回のスコア: <span id="final-score">0</span></p>
+			<div class="overlay-btn-group">
+				<button class="btn-retry" id="retry-btn">もう一度</button>
+				<button class="btn-home" id="overlay-home-btn">ホームへ</button>
+			</div>
+		</div>
+	</div>
+
+	<script>
+		// ------------------------------------
+    // ブロックプリセット (全19種類、32パターン)
+    // ------------------------------------
+    const SHAPE_PRESETS = [
+      { matrix: [[1]], color: '#f43f5e' }, // 1x1
+
+      { matrix: [[1, 1]], color: '#fb923c' }, // 1x2 Dominoes
+      { matrix: [[1], [1]], color: '#fb923c' },
+
+      { matrix: [[1, 1, 1]], color: '#fbbf24' }, // 1x3 Lines
+      { matrix: [[1], [1], [1]], color: '#fbbf24' },
+
+      { matrix: [[1, 1, 1, 1]], color: '#4ade80' }, // 1x4 Lines
+      { matrix: [[1], [1], [1], [1]], color: '#4ade80' },
+
+      { matrix: [[1, 1, 1, 1, 1]], color: '#22d3ee' }, // 1x5 Lines
+      { matrix: [[1], [1], [1], [1], [1]], color: '#22d3ee' },
+
+      { matrix: [[1, 1], [1, 1]], color: '#3b82f6' }, // 2x2 Square
+
+      { matrix: [[1, 1, 1], [1, 1, 1], [1, 1, 1]], color: '#1d4ed8' }, // 3x3 Square
+
+      { matrix: [[1, 1], [1, 0]], color: '#fb923c' }, // Triomino Corner (Small L)
+      { matrix: [[1, 1], [0, 1]], color: '#fb923c' },
+      { matrix: [[1, 0], [1, 1]], color: '#fb923c' },
+      { matrix: [[0, 1], [1, 1]], color: '#fb923c' },
+
+      { matrix: [[1, 0], [1, 0], [1, 1]], color: '#ec4899' }, // Standard J
+      { matrix: [[1, 1, 1], [0, 0, 1]], color: '#ec4899' },
+      { matrix: [[0, 1], [0, 1], [1, 1]], color: '#ec4899' },
+      { matrix: [[1, 0, 0], [1, 1, 1]], color: '#ec4899' },
+
+      { matrix: [[0, 1], [0, 1], [1, 1]], color: '#06b6d4' }, // Standard L
+      { matrix: [[1, 1, 1], [1, 0, 0]], color: '#06b6d4' },
+      { matrix: [[1, 1], [0, 1], [0, 1]], color: '#06b6d4' },
+      { matrix: [[0, 0, 1], [1, 1, 1]], color: '#06b6d4' },
+
+      { matrix: [[1, 1, 1], [0, 1, 0]], color: '#a855f7' }, // Tetris T-Shape
+      { matrix: [[0, 1, 0], [1, 1, 1]], color: '#a855f7' },
+      { matrix: [[1, 0], [1, 1], [1, 0]], color: '#a855f7' },
+      { matrix: [[0, 1], [1, 1], [0, 1]], color: '#a855f7' },
+
+      { matrix: [[1, 1, 0], [0, 1, 1]], color: '#ef4444' }, // Tetris Z-Shape
+      { matrix: [[0, 1], [1, 1], [1, 0]], color: '#ef4444' },
+
+      { matrix: [[0, 1, 1], [1, 1, 0]], color: '#22c55e' }, // Tetris S-Shape
+      { matrix: [[1, 0], [1, 1], [0, 1]], color: '#22c55e' },
+
+      { matrix: [[1, 0, 0], [1, 0, 0], [1, 1, 1]], color: '#8b5cf6' }, // Large 3x3 Corner
+      { matrix: [[0, 0, 1], [0, 0, 1], [1, 1, 1]], color: '#8b5cf6' },
+      { matrix: [[1, 1, 1], [1, 0, 0], [1, 0, 0]], color: '#8b5cf6' },
+      { matrix: [[1, 1, 1], [0, 0, 1], [0, 0, 1]], color: '#8b5cf6' },
+
+      { matrix: [[0, 1, 0], [1, 1, 1], [0, 1, 0]], color: '#d946ef' }, // Cross
+
+      { matrix: [[1, 0, 1], [1, 1, 1]], color: '#f43f5e' }, // U-Shape
+      { matrix: [[1, 1, 1], [1, 0, 1]], color: '#f43f5e' },
+      { matrix: [[1, 1], [1, 0], [1, 1]], color: '#f43f5e' },
+      { matrix: [[1, 1], [0, 1], [1, 1]], color: '#f43f5e' },
+
+      { matrix: [[1, 1, 1], [1, 1, 1]], color: '#2563eb' }, // 2x3 Rectangle
+      { matrix: [[1, 1], [1, 1], [1, 1]], color: '#2563eb' }
+    ];
+
+    // ゲーム内システム状態
+    let gridState = Array(8).fill(null).map(() => Array(8).fill(null));
+    let score = 0;
+    let bestScore = parseInt(localStorage.getItem('blockblast_best_score')) || 0;
+    let tray = [null, null, null];
+    let isAnimating = false;
+
+    // ドラッグ＆ドロップ状態
+    let isDragging = false;
+    let draggedSlotIndex = null;
+    let dragAvatar = null;
+    let currentPreviewCoords = null; 
+
+    // DOM要素
+    const homeScreen = document.getElementById('home-screen');
+    const gameScreen = document.getElementById('game-screen');
+    const homeBestVal = document.getElementById('home-best-val');
+    const startBtn = document.getElementById('start-btn');
+    
+    const gridEl = document.getElementById('grid');
+    const traySlots = [
+      document.querySelector('.tray-slot[data-index="0"]'),
+      document.querySelector('.tray-slot[data-index="1"]'),
+      document.querySelector('.tray-slot[data-index="2"]')
+    ];
+    const scoreEl = document.getElementById('score');
+    const bestScoreEl = document.getElementById('best-score');
+
+    // モーダル関連DOM
+    const overlayEl = document.getElementById('game-over-overlay');
+    const finalScoreEl = document.getElementById('final-score');
+    const retryBtn = document.getElementById('retry-btn');
+    const overlayHomeBtn = document.getElementById('overlay-home-btn');
+
+    const pauseBtn = document.getElementById('pause-btn');
+    const pauseOverlay = document.getElementById('pause-overlay');
+    const resumeBtn = document.getElementById('resume-btn');
+    const pauseHomeBtn = document.getElementById('pause-home-btn');
+
+    // ------------------------------------
+    // モーダル・画面切り替え管理
+    // ------------------------------------
+
+    homeBestVal.textContent = bestScore;
+
+    startBtn.addEventListener('click', () => {
+      homeScreen.classList.remove('active');
+      gameScreen.classList.add('active');
+      initGame();
+    });
+
+    // 一時停止モーダルを開く
+    pauseBtn.addEventListener('click', () => {
+      if (isAnimating) return; // 演出中の誤作動防止
+      pauseOverlay.classList.add('active');
+    });
+
+    // モーダルを閉じてゲームを再開する
+    resumeBtn.addEventListener('click', () => {
+      pauseOverlay.classList.remove('active');
+    });
+
+    // モーダルから安全にホームへ移動する
+    pauseHomeBtn.addEventListener('click', () => {
+      pauseOverlay.classList.remove('active');
+      gameScreen.classList.remove('active');
+      homeScreen.classList.add('active');
+      homeBestVal.textContent = bestScore;
+    });
+
+    overlayHomeBtn.addEventListener('click', () => {
+      overlayEl.classList.remove('active');
+      gameScreen.classList.remove('active');
+      homeScreen.classList.add('active');
+      homeBestVal.textContent = bestScore;
+    });
+
+    retryBtn.addEventListener('click', () => {
+      overlayEl.classList.remove('active');
+      initGame();
+    });
+
+    function initGame() {
+      gridState = Array(8).fill(null).map(() => Array(8).fill(null));
+      score = 0;
+      isAnimating = false;
+      isDragging = false;
+      draggedSlotIndex = null;
+      currentPreviewCoords = null;
+
+      scoreEl.textContent = score;
+      bestScoreEl.textContent = bestScore;
+
+      createBoardDOM();
+      generateTray();
+      drawGrid();
+      drawTray();
+    }
+
+    function createBoardDOM() {
+      gridEl.innerHTML = '';
+      for (let r = 0; r < 8; r++) {
+        for (let c = 0; c < 8; c++) {
+          const cell = document.createElement('div');
+          cell.className = 'grid-cell';
+          cell.dataset.row = r;
+          cell.dataset.col = c;
+          gridEl.appendChild(cell);
+        }
+      }
+    }
+
+    // ------------------------------------
+    // トレイ処理と補給
+    // ------------------------------------
+
+    function generateTray() {
+      for (let i = 0; i < 3; i++) {
+        const randIndex = Math.floor(Math.random() * SHAPE_PRESETS.length);
+        tray[i] = JSON.parse(JSON.stringify(SHAPE_PRESETS[randIndex]));
+      }
+    }
+
+    function drawTray() {
+      traySlots.forEach((slot, index) => {
+        slot.innerHTML = '';
+
+        if (tray[index] === null) {
+          slot.classList.add('empty');
+          return;
+        }
+
+        slot.classList.remove('empty');
+
+        const block = tray[index];
+        const matrix = block.matrix;
+        const rows = matrix.length;
+        const cols = matrix[0].length;
+
+        const previewContainer = document.createElement('div');
+        previewContainer.className = 'block-preview-shape';
+        previewContainer.style.display = 'grid';
+        previewContainer.style.gridTemplateRows = `repeat(${rows}, 1fr)`;
+        previewContainer.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
+        previewContainer.style.gap = '2px';
+
+        const maxDim = Math.max(rows, cols);
+        const cellSize = Math.min(18, Math.floor(75 / maxDim)); 
+        previewContainer.style.width = `${cellSize * cols}px`;
+        previewContainer.style.height = `${cellSize * rows}px`;
+
+        for (let r = 0; r < rows; r++) {
+          for (let c = 0; c < cols; c++) {
+            const blockCell = document.createElement('div');
+            blockCell.className = 'block-cell';
+            if (matrix[r][c] === 1) {
+              blockCell.classList.add('filled');
+              blockCell.style.backgroundColor = block.color;
+            } else {
+              blockCell.style.visibility = 'hidden';
+            }
+            previewContainer.appendChild(blockCell);
+          }
+        }
+
+        slot.appendChild(previewContainer);
+      });
+    }
+
+    // ------------------------------------
+    // ドラッグ＆ドロップ操作
+    // ------------------------------------
+
+    traySlots.forEach((slot, index) => {
+      slot.addEventListener('pointerdown', (e) => {
+        if (isAnimating || tray[index] === null) return;
+        
+        slot.setPointerCapture(e.pointerId);
+        isDragging = true;
+        draggedSlotIndex = index;
+
+        slot.style.opacity = '0.15';
+
+        const block = tray[draggedSlotIndex];
+        dragAvatar = createDragAvatar(block);
+        document.body.appendChild(dragAvatar);
+
+        updateDragPosition(e.clientX, e.clientY);
+      });
+
+      slot.addEventListener('pointermove', (e) => {
+        if (!isDragging || draggedSlotIndex !== index) return;
+        updateDragPosition(e.clientX, e.clientY);
+      });
+
+      slot.addEventListener('pointerup', (e) => {
+        if (!isDragging || draggedSlotIndex !== index) return;
+        slot.releasePointerCapture(e.pointerId);
+        endDrag();
+      });
+
+      slot.addEventListener('pointercancel', (e) => {
+        if (!isDragging || draggedSlotIndex !== index) return;
+        slot.releasePointerCapture(e.pointerId);
+        endDrag();
+      });
+    });
+
+    function createDragAvatar(block) {
+      const boardRect = gridEl.getBoundingClientRect();
+      const cellSize = boardRect.width / 8;
+
+      const matrix = block.matrix;
+      const rows = matrix.length;
+      const cols = matrix[0].length;
+
+      const avatar = document.createElement('div');
+      avatar.className = 'drag-avatar';
+      avatar.style.display = 'grid';
+      avatar.style.gridTemplateRows = `repeat(${rows}, 1fr)`;
+      avatar.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
+      avatar.style.gap = '5px'; 
+      avatar.style.width = `${cellSize * cols}px`;
+      avatar.style.height = `${cellSize * rows}px`;
+
+      for (let r = 0; r < rows; r++) {
+        for (let c = 0; c < cols; c++) {
+          const cell = document.createElement('div');
+          cell.className = 'block-cell';
+          if (matrix[r][c] === 1) {
+            cell.classList.add('filled');
+            cell.style.backgroundColor = block.color;
+          } else {
+            cell.style.visibility = 'hidden';
+          }
+          avatar.appendChild(cell);
+        }
+      }
+      return avatar;
+    }
+
+    function updateDragPosition(clientX, clientY) {
+      if (!dragAvatar) return;
+
+      const boardRect = gridEl.getBoundingClientRect();
+      const cellSize = boardRect.width / 8;
+      const block = tray[draggedSlotIndex];
+      const rows = block.matrix.length;
+      const cols = block.matrix[0].length;
+
+      const avatarWidth = cellSize * cols;
+      const avatarHeight = cellSize * rows;
+
+      const offsetTop = clientY - avatarHeight - 35;
+      const offsetLeft = clientX - (avatarWidth / 2); 
+
+      dragAvatar.style.left = `${offsetLeft + window.scrollX}px`;
+      dragAvatar.style.top = `${offsetTop + window.scrollY}px`;
+
+      const relX = offsetLeft - boardRect.left;
+      const relY = offsetTop - boardRect.top;
+
+      const c = Math.round(relX / cellSize);
+      const r = Math.round(relY / cellSize);
+
+      if (r >= 0 && r < 8 && c >= 0 && c < 8) {
+        const canPlace = canPlaceBlock(block.matrix, r, c);
+        showPlacementPreview(block, r, c, canPlace);
+        if (canPlace) {
+          currentPreviewCoords = { r, c };
+        } else {
+          currentPreviewCoords = null;
+        }
+      } else {
+        currentPreviewCoords = null;
+        clearGridPreviews();
+      }
+    }
+
+    function endDrag() {
+      if (!isDragging) return;
+
+      if (dragAvatar) {
+        dragAvatar.remove();
+        dragAvatar = null;
+      }
+
+      const slot = traySlots[draggedSlotIndex];
+      slot.style.opacity = '1';
+
+      if (currentPreviewCoords) {
+        const { r, c } = currentPreviewCoords;
+        const block = tray[draggedSlotIndex];
+        
+        // 【最重要バグ修正箇所】
+        // 配置・ライン消去判定が完了する「前に」このトレイブロックデータを null にします。
+        // これにより、後に呼ばれる postPlacementProcess が完全に同期した正しいトレイ空状態（null）を受け取り、
+        // 3つ置き終わった瞬間に次のブロック補給が100%確実に発火します。
+        tray[draggedSlotIndex] = null;
+
+        placeBlock(r, c, block);
+        drawTray();
+      }
+
+      clearGridPreviews();
+      currentPreviewCoords = null;
+      isDragging = false;
+      draggedSlotIndex = null;
+    }
+
+    // ------------------------------------
+    // 配置システムと消去処理
+    // ------------------------------------
+
+    function canPlaceBlock(matrix, startR, startC) {
+      const rows = matrix.length;
+      const cols = matrix[0].length;
+
+      for (let r = 0; r < rows; r++) {
+        for (let c = 0; c < cols; c++) {
+          if (matrix[r][c] === 1) {
+            const targetR = startR + r;
+            const targetC = startC + c;
+
+            if (targetR < 0 || targetR >= 8 || targetC < 0 || targetC >= 8) {
+              return false;
+            }
+            if (gridState[targetR][targetC] !== null) {
+              return false;
+            }
+          }
+        }
+      }
+      return true;
+    }
+
+    function showPlacementPreview(block, startR, startC, canPlace) {
+      clearGridPreviews();
+      const matrix = block.matrix;
+      const rows = matrix.length;
+      const cols = matrix[0].length;
+
+      for (let r = 0; r < rows; r++) {
+        for (let c = 0; c < cols; c++) {
+          if (matrix[r][c] === 1) {
+            const targetR = startR + r;
+            const targetC = startC + c;
+
+            if (targetR >= 0 && targetR < 8 && targetC >= 0 && targetC < 8) {
+              const cell = document.querySelector(`.grid-cell[data-row="${targetR}"][data-col="${targetC}"]`);
+              if (cell) {
+                if (canPlace) {
+                  cell.classList.add('preview-valid');
+                  cell.style.backgroundColor = block.color;
+                } else {
+                  cell.classList.add('preview-invalid');
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+
+    function clearGridPreviews() {
+      const cells = document.querySelectorAll('.grid-cell');
+      cells.forEach(cell => {
+        cell.classList.remove('preview-valid', 'preview-invalid');
+        const r = parseInt(cell.dataset.row);
+        const c = parseInt(cell.dataset.col);
+        if (gridState[r][c] !== null) {
+          cell.style.backgroundColor = gridState[r][c];
+        } else {
+          cell.style.backgroundColor = '';
+        }
+      });
+    }
+
+    function placeBlock(startR, startC, block) {
+      const matrix = block.matrix;
+      const rows = matrix.length;
+      const cols = matrix[0].length;
+      let cellCount = 0;
+
+      for (let r = 0; r < rows; r++) {
+        for (let c = 0; c < cols; c++) {
+          if (matrix[r][c] === 1) {
+            const targetR = startR + r;
+            const targetC = startC + c;
+            gridState[targetR][targetC] = block.color;
+            cellCount++;
+          }
+        }
+      }
+
+      score += cellCount;
+      scoreEl.textContent = score;
+
+      drawGrid();
+      checkAndClearLines();
+    }
+
+    function drawGrid() {
+      const cells = document.querySelectorAll('.grid-cell');
+      cells.forEach(cell => {
+        const r = parseInt(cell.dataset.row);
+        const c = parseInt(cell.dataset.col);
+        const color = gridState[r][c];
+
+        cell.className = 'grid-cell';
+        if (color) {
+          cell.classList.add('filled');
+          cell.style.backgroundColor = color;
+        } else {
+          cell.style.backgroundColor = '';
+        }
+      });
+    }
+
+    function checkAndClearLines() {
+      const rowsToClear = [];
+      const colsToClear = [];
+
+      for (let r = 0; r < 8; r++) {
+        if (gridState[r].every(cell => cell !== null)) {
+          rowsToClear.push(r);
+        }
+      }
+
+      for (let c = 0; c < 8; c++) {
+        let colFull = true;
+        for (let r = 0; r < 8; r++) {
+          if (gridState[r][c] === null) {
+            colFull = false;
+            break;
+          }
+        }
+        if (colFull) {
+          colsToClear.push(c);
+        }
+      }
+
+      const totalLines = rowsToClear.length + colsToClear.length;
+
+      if (totalLines > 0) {
+        isAnimating = true;
+
+        const targetCells = new Set();
+        rowsToClear.forEach(r => {
+          for (let c = 0; c < 8; c++) targetCells.add(`${r},${c}`);
+        });
+        colsToClear.forEach(c => {
+          for (let r = 0; r < 8; r++) targetCells.add(`${r},${c}`);
+        });
+
+        targetCells.forEach(coord => {
+          const [r, c] = coord.split(',').map(Number);
+          const cell = document.querySelector(`.grid-cell[data-row="${r}"][data-col="${c}"]`);
+          cell.classList.add('clearing');
+        });
+
+        const comboPoints = targetCells.size * 10 * totalLines;
+        score += comboPoints;
+
+        showFloatingScore(`+${comboPoints} COMBO!`);
+
+        setTimeout(() => {
+          rowsToClear.forEach(r => {
+            for (let c = 0; c < 8; c++) gridState[r][c] = null;
+          });
+          colsToClear.forEach(c => {
+            for (let r = 0; r < 8; r++) gridState[r][c] = null;
+          });
+
+          if (score > bestScore) {
+            bestScore = score;
+            localStorage.setItem('blockblast_best_score', bestScore);
+            bestScoreEl.textContent = bestScore;
+          }
+
+          scoreEl.textContent = score;
+          drawGrid();
+          isAnimating = false;
+
+          postPlacementProcess();
+        }, 350);
+
+      } else {
+        postPlacementProcess();
+      }
+    }
+
+    function showFloatingScore(text) {
+      const popup = document.createElement('div');
+      popup.className = 'score-popup-text';
+      popup.textContent = text;
+      document.querySelector('.board-container').appendChild(popup);
+      setTimeout(() => popup.remove(), 800);
+    }
+
+    function postPlacementProcess() {
+      // 3つ目のブロックが null になっているため、ここの空き判定が即座に正しく機能します
+      const isTrayEmpty = tray.every(block => block === null);
+      if (isTrayEmpty) {
+        generateTray();
+        drawTray();
+      }
+
+      if (checkGameOver()) {
+        triggerGameOver();
+      }
+    }
+
+    function checkGameOver() {
+      const activeBlocks = tray.filter(b => b !== null);
+      if (activeBlocks.length === 0) return false;
+
+      for (const block of activeBlocks) {
+        const matrix = block.matrix;
+        for (let r = 0; r < 8; r++) {
+          for (let c = 0; c < 8; c++) {
+            if (canPlaceBlock(matrix, r, c)) {
+              return false;
+            }
+          }
+        }
+      }
+      return true;
+    }
+
+    function triggerGameOver() {
+      finalScoreEl.textContent = score;
+      overlayEl.classList.add('active');
+    }
+	</script>
+</body>
+
+</html>
