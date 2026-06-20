@@ -1,0 +1,2689 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Cinematic Buckshot Roulette 3D - Ultimate Cinematic (Error Fixed)</title>
+	<style>
+		* {
+			margin: 0;
+			padding: 0;
+			box-sizing: border-box;
+			user-select: none;
+		}
+
+		body,
+		html {
+			width: 100%;
+			height: 100%;
+			overflow: hidden;
+			background-color: #020202;
+			font-family: 'Courier New', Courier, monospace;
+		}
+
+		#crt-overlay {
+			position: absolute;
+			top: 0;
+			left: 0;
+			width: 100%;
+			height: 100%;
+			background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.03), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.03));
+			background-size: 100% 3px, 3px 100%;
+			z-index: 10;
+			pointer-events: none;
+		}
+
+		#canvas-container {
+			width: 100%;
+			height: 100%;
+			position: absolute;
+			top: 0;
+			left: 0;
+		}
+
+		#game-hud {
+			position: absolute;
+			top: 20px;
+			left: 20px;
+			color: #ff3333;
+			font-size: 14px;
+			line-height: 1.6;
+			text-shadow: 0 0 5px #ff0000;
+			z-index: 20;
+			pointer-events: none;
+		}
+
+		#console-log {
+			position: absolute;
+			top: 20px;
+			right: 20px;
+			width: 280px;
+			height: 200px;
+			background: rgba(0, 0, 0, 0.85);
+			border: 1px solid #ff3333;
+			box-shadow: 0 0 10px rgba(255, 0, 0, 0.2);
+			color: #00ff66;
+			text-shadow: 0 0 3px #00ff66;
+			font-size: 11px;
+			padding: 10px;
+			overflow-y: auto;
+			z-index: 20;
+			pointer-events: none;
+		}
+
+		#instruction-ui {
+			position: absolute;
+			bottom: 20px;
+			left: 50%;
+			transform: translateX(-50%);
+			color: #8c8c8c;
+			font-size: 13px;
+			text-shadow: 0 0 3px #000;
+			z-index: 20;
+			pointer-events: none;
+			text-align: center;
+		}
+
+		#action-overlay {
+			display: none;
+			position: absolute;
+			bottom: 120px;
+			left: 50%;
+			transform: translateX(-50%);
+			z-index: 30;
+			gap: 15px;
+		}
+
+		.action-btn {
+			background: rgba(10, 5, 5, 0.95);
+			border: 2px solid #ff3333;
+			color: #ff3333;
+			font-family: 'Courier New', Courier, monospace;
+			font-size: 14px;
+			font-weight: bold;
+			padding: 12px 24px;
+			cursor: pointer;
+			text-shadow: 0 0 5px #ff0000;
+			box-shadow: 0 0 8px rgba(255, 0, 0, 0.3);
+			transition: all 0.2s;
+		}
+
+		.action-btn:hover {
+			background: #ff3333;
+			color: #000;
+			box-shadow: 0 0 20px #ff0000;
+		}
+
+		.action-btn.cancel {
+			border-color: #888;
+			color: #888;
+			text-shadow: none;
+			box-shadow: none;
+		}
+
+		.action-btn.cancel:hover {
+			background: #888;
+			color: #000;
+		}
+
+		/* オープニング誓約書署名画面（半透明化し背景の路地を透過） */
+		#waiver-overlay {
+			position: absolute;
+			top: 0;
+			left: 0;
+			width: 100%;
+			height: 100%;
+			background: rgba(5, 5, 5, 0.85);
+			display: flex;
+			flex-direction: column;
+			justify-content: center;
+			align-items: center;
+			z-index: 40;
+			color: #d8c3a5;
+			padding: 20px;
+			transition: background 1.5s ease-out, opacity 1.5s ease-out;
+		}
+
+		#waiver-document {
+			width: 100%;
+			max-width: 500px;
+			background: #eae7af;
+			border: 2px solid #8e8d8a;
+			box-shadow: 10px 10px 30px rgba(0, 0, 0, 0.8);
+			color: #2b2b2b;
+			padding: 30px;
+			font-family: 'Courier New', Courier, monospace;
+			line-height: 1.5;
+			transition: transform 1.2s cubic-bezier(0.6, -0.28, 0.735, 0.045);
+		}
+
+		#waiver-document h3 {
+			text-align: center;
+			margin-bottom: 15px;
+			letter-spacing: 2px;
+			border-bottom: 1px solid #2b2b2b;
+			padding-bottom: 10px;
+		}
+
+		#signature-input {
+			width: 100%;
+			background: transparent;
+			border: none;
+			border-bottom: 2px dashed #2b2b2b;
+			font-family: inherit;
+			font-size: 18px;
+			font-weight: bold;
+			color: #d11a1a;
+			text-align: center;
+			outline: none;
+			margin: 20px 0;
+			padding: 5px;
+		}
+
+		#sign-btn {
+			display: block;
+			width: 100%;
+			background: #2b2b2b;
+			color: #eae7af;
+			border: none;
+			padding: 12px;
+			font-family: inherit;
+			font-weight: bold;
+			font-size: 15px;
+			cursor: pointer;
+			transition: background 0.2s;
+		}
+
+		#sign-btn:hover {
+			background: #d11a1a;
+			color: #fff;
+		}
+
+		#tooltip {
+			display: none;
+			position: absolute;
+			background: rgba(12, 6, 6, 0.95);
+			border: 1px solid #00ff66;
+			color: #00ff66;
+			padding: 10px 14px;
+			font-size: 11px;
+			pointer-events: none;
+			z-index: 50;
+			box-shadow: 0 0 10px rgba(0, 255, 102, 0.25);
+			border-radius: 2px;
+			transform: translate(15px, 15px);
+		}
+
+		#tooltip-name {
+			font-weight: bold;
+			font-size: 13px;
+			margin-bottom: 4px;
+			color: #ffffff;
+			text-shadow: 0 0 4px #fff;
+		}
+
+		#tooltip-effect {
+			color: #a0ffa0;
+			line-height: 1.4;
+		}
+
+		/* 被弾時ホワイトアウト */
+		#white-flash {
+			display: none;
+			position: absolute;
+			top: 0;
+			left: 0;
+			width: 100%;
+			height: 100%;
+			background: white;
+			z-index: 45;
+			pointer-events: none;
+			opacity: 0;
+			transition: opacity 0.1s ease-out;
+		}
+
+		/* ゲームオーバー/リスタート用オーバーレイ */
+		#start-overlay {
+			display: none;
+			position: absolute;
+			top: 0;
+			left: 0;
+			width: 100%;
+			height: 100%;
+			background: rgba(5, 5, 5, 0.95);
+			flex-direction: column;
+			justify-content: center;
+			align-items: center;
+			z-index: 40;
+			color: #ff3333;
+			gap: 20px;
+		}
+
+		#start-title {
+			text-align: center;
+			font-size: 32px;
+			text-shadow: 0 0 10px #ff0000;
+			line-height: 1.5;
+		}
+	</style>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+</head>
+
+<body>
+
+	<div id="crt-overlay"></div>
+	<div id="white-flash"></div>
+	<div id="canvas-container"></div>
+
+	<div id="game-hud">
+		<h2>[ BUCKSHOT CLONE ]</h2>
+		<div id="hud-shells">SHELLS: UNLOADED</div>
+	</div>
+
+	<div id="console-log"></div>
+
+	<div id="instruction-ui">
+		アイテムはドラッグして手前のスロットに配置。<br>
+        スロット上のアイテムをクリックして使用。<br>
+        ショットガンをクリックして銃を構える。
+    </div>
+
+		<div id="action-overlay">
+			<button id="btn-shoot-dealer" class="action-btn">DEALERを撃つ</button>
+			<button id="btn-shoot-self" class="action-btn">自分を撃つ</button>
+			<button id="btn-cancel" class="action-btn cancel">戻る</button>
+		</div>
+
+		<!-- 誓約書署名画面 -->
+		<div id="waiver-overlay">
+			<div id="waiver-document">
+				<h3>RELEASE OF LIABILITY</h3>
+				<p style="font-size: 12px; margin-bottom: 10px;">
+					本契約は、参加中に発生し得る一切の生命の危機、傷害、または精神的苦痛に関して、主催者を完全免責することを承諾するものです。
+				</p>
+				<p style="font-size: 11px; color:#555;">
+					* 12ゲージショットガン実弾および空砲の自傷的利用を含みます。
+				</p>
+				<input type="text" id="signature-input" placeholder="[ SIGNATURE HERE ]" autocomplete="off">
+				<button id="sign-btn">承諾し、開始する</button>
+			</div>
+		</div>
+
+		<!-- ゲームオーバー画面 -->
+		<div id="start-overlay">
+			<h2 id="start-title"></h2>
+			<button id="start-btn" class="action-btn">リスタート</button>
+		</div>
+
+		<div id="tooltip">
+			<div id="tooltip-name"></div>
+			<div id="tooltip-effect"></div>
+		</div>
+
+		<script>
+			// =========================================================================
+        // 1. GLOBAL STATE & CONFIGURATIONS (最上部にすべての主要変数を集約してTDZを防止)
+        // =========================================================================
+        const slotCount = 8; // アイテムスロットの最大容量 [8]
+
+        const gameState = {
+            status: 'start_screen', // 'player_turn', 'dealer_turn', 'cinematic', 'game_over', 'adrenaline_stealing', 'unpacking_items', 'dealer_unpacking'
+            playerHP: 4,
+            dealerHP: 4,
+            maxHP: 4,
+            shells: [],
+            dealerItems: [], // 3Dオブジェクトへの参照を直接保持してテーブル上で表示
+            dealerHandcuffed: false,
+            playerHandcuffed: false,
+            isSawedOff: false,   
+            isInverted: false,
+            dealerKnownNext: null 
+        };
+
+        // 全9種アイテムの詳細説明文（日本語）
+        const itemInfo = {
+            cigarette: { name: "タバコ", effect: "精神を落ち着かせ、自身のライフを1回復する。" },
+            magnifier: { name: "虫眼鏡", effect: "ショットガンの薬室を手元に引き寄せ、次の一発が実弾(赤)か空砲(青)か確認する。" },
+            beer: { name: "ビール", effect: "現在のチャンバー内にある弾丸を1発、トレイ外へ強制排出する。" },
+            handcuffs: { name: "手錠", effect: "ディーラーの腕を拘束し、次のディーラーのターンを1回スキップさせる。" },
+            handsaw: { name: "ノコギリ", effect: "銃身を切り落とし、次の一発が「実弾」だった場合のダメージを2倍にする。" },
+            medicine: { name: "期限切れの薬", effect: "50%の確率でライフが2回復。しかし50%の確率で1ダメージを負う。" },
+            phone: { name: "バーナー携帯", effect: "受話器から「〇発目の弾丸」の属性（実弾/空砲）をハッキングして聞く。" },
+            inverter: { name: "インバーター", effect: "チャンバーに装填された次の弾丸の属性を反転（実弾⇄空砲）させる。" },
+            adrenaline: { name: "アドレナリン", effect: "ディーラーの持ち物からアイテムを1つ強奪し、その場で即座に使用する。" }
+        };
+
+        const items = [];         // プレイヤーの3Dアイテム
+        const dealerItems = [];   // ディーラーの3Dアイテム
+        const activeParticles = [];
+
+        // 3D除細動器（Defibrillator）用オブジェクト構造
+        const playerDefib = { hp: 4, bolts: [], screenMesh: null, canvas: null, ctx: null, texture: null, color: '#00ff66', screenFlickerTimer: 0 };
+        const dealerDefib = { hp: 4, bolts: [], screenMesh: null, canvas: null, ctx: null, texture: null, color: '#ff3333', screenFlickerTimer: 0 };
+
+        let trayTargetY = -0.6; // 通常時はテーブル下（非表示）
+        let masterBgmVolume = 0.5; // Tinnitus（耳鳴り）時に BGM音量を下げるための制御
+        let introTime = -1; // 排水溝シネマティックカメラ用タイムラインクロック
+
+        // アイテム開梱段ボール用変数
+        let itemBox = null;
+        let isBoxOpen = false;
+        let boxItemCount = 2;
+        let isBoxForPlayer = true;
+        let boxLight = null;
+
+        // Web Audio Context & BGM/耳鳴り初期化を最上段へ完全移設
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        let bgmInterval = null;
+        let bgmStep = 0;
+
+        // DOMキャッシュ要素
+        const consoleLogEl = document.getElementById('console-log');
+        const tooltipEl = document.getElementById('tooltip');
+        const tooltipNameEl = document.getElementById('tooltip-name');
+        const tooltipEffectEl = document.getElementById('tooltip-effect');
+
+        // 【バグ解決：Three.js関連、カメラ、ライト、トレイグループ、スロットにいたるまですべて最上部に宣言してReferenceErrorを完全防止！】
+        var scene, camera, renderer;
+        var cameraTargetPos_Lerp = new THREE.Vector3(6, 22, -8);
+        var cameraTargetLookAt_Lerp = new THREE.Vector3(0, 11, -1);
+        var currentCamLookAt = new THREE.Vector3(0, 11, -1);
+        var cameraTargetLookAt = new THREE.Vector3(0, 11, -1);
+        var cameraTargetPos = new THREE.Vector3(6, 22, -8);
+        var currentCamOffset = new THREE.Vector3(0, 0, 0);
+        var targetCamOffset = new THREE.Vector3(0, 0, 0);
+
+        var shotgun; 
+        var shotgunTargetPos = new THREE.Vector3(0, 0.15, -0.5); // 最上部で完全にVector実体化
+        var shotgunTargetRot = new THREE.Vector3(0, Math.PI / 2, 0); // 最上部で完全にVector実体化
+
+        let dirtTexture;
+        let sewerGroup;
+        let skyLight;
+        let trayGroup;
+        let shellGroup;
+        let spotLight, tableLight;
+
+        const slots = [];         // プレイヤー側アイテムスロット
+        const dealerSlots = [];   // ディーラー側アイテムスロット
+
+        function log(msg) {
+            const p = document.createElement('p');
+            p.textContent = ` ${msg}`;
+            consoleLogEl.appendChild(p);
+            consoleLogEl.scrollTop = consoleLogEl.scrollHeight;
+        }
+
+        // --- アイテムホバー表示ロジック ---
+        function showTooltip(x, y, type) {
+            const info = itemInfo[type];
+            if (!info) return;
+            tooltipNameEl.textContent = info.name;
+            tooltipEffectEl.textContent = info.effect;
+            tooltipEl.style.display = 'block';
+            tooltipEl.style.left = `${x}px`;
+            tooltipEl.style.top = `${y}px`;
+        }
+
+        function hideTooltip() {
+            tooltipEl.style.display = 'none';
+        }
+
+        // =========================================================================
+        // 2. ⚡ 3D除細動器パーツおよび画面テクスチャ更新関数（初期化のReferenceErrorを防止）
+        // =========================================================================
+        function createLightningBoltGeometry() {
+            const shape = new THREE.Shape();
+            shape.moveTo(0, 0.25);
+            shape.lineTo(0.12, 0.05);
+            shape.lineTo(0.02, 0.05);
+            shape.lineTo(0.08, -0.25);
+            shape.lineTo(-0.12, -0.05);
+            shape.lineTo(-0.02, -0.05);
+            shape.closePath();
+            return new THREE.ShapeGeometry(shape);
+        }
+
+        function updateScreenTexture(defib, number) {
+            const ctx = defib.ctx;
+            ctx.clearRect(0, 0, 128, 128);
+            ctx.fillStyle = '#050505';
+            ctx.fillRect(0, 0, 128, 128);
+            
+            // サイバーパンクなノイズグリッド背影
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.05)';
+            ctx.lineWidth = 1;
+            for(let i=0; i<128; i+=16) {
+                ctx.beginPath(); ctx.moveTo(i, 0); ctx.lineTo(i, 128); ctx.stroke();
+                ctx.beginPath(); ctx.moveTo(0, i); ctx.lineTo(128, i); ctx.stroke();
+            }
+
+            ctx.fillStyle = defib.color;
+            ctx.font = "bold 90px 'Courier New'";
+            ctx.shadowColor = defib.color;
+            ctx.shadowBlur = 15;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(number.toString(), 64, 64);
+            
+            defib.texture.needsUpdate = true;
+        }
+
+        function initDefibDevice(defib, isPlayer) {
+            defib.canvas = document.createElement('canvas');
+            defib.canvas.width = 128;
+            defib.canvas.height = 128;
+            defib.ctx = defib.canvas.getContext('2d');
+            defib.texture = new THREE.CanvasTexture(defib.canvas);
+            
+            const group = new THREE.Group();
+            const base = new THREE.Mesh(
+                new THREE.BoxGeometry(1.5, 0.15, 0.8),
+                new THREE.MeshStandardMaterial({ color: 0x1d212a, roughness: 0.7, metalness: 0.5, bumpMap: dirtTexture, bumpScale: 0.02 })
+            );
+            base.castShadow = true;
+            base.receiveShadow = true;
+            group.add(base);
+            
+            const screenPlate = new THREE.Mesh(
+                new THREE.BoxGeometry(0.4, 0.28, 0.08),
+                new THREE.MeshStandardMaterial({ color: 0x0c0c0c })
+            );
+            screenPlate.position.set(-0.45, 0.12, -0.2);
+            screenPlate.rotation.x = -Math.PI / 6;
+            group.add(screenPlate);
+            
+            const screen = new THREE.Mesh(
+                new THREE.PlaneGeometry(0.36, 0.24),
+                new THREE.MeshBasicMaterial({ map: defib.texture })
+            );
+            screen.position.set(0, 0, 0.041);
+            screenPlate.add(screen);
+            defib.screenMesh = screen;
+            
+            const boltGeo = createLightningBoltGeometry();
+            defib.bolts = [];
+            
+            const startX = -0.1;
+            const spacing = 0.22;
+            for(let i=0; i<4; i++) {
+                const boltMat = new THREE.MeshStandardMaterial({
+                    color: 0x050505,
+                    emissive: isPlayer ? 0x00ff66 : 0xff3333,
+                    emissiveIntensity: 2.0,
+                    transparent: true,
+                    opacity: 1.0
+                });
+                const boltMesh = new THREE.Mesh(boltGeo, boltMat);
+                boltMesh.position.set(startX + i * spacing, 0.08, 0);
+                boltMesh.rotation.x = -Math.PI / 2;
+                boltMesh.scale.set(0.35, 0.35, 0.35);
+                group.add(boltMesh);
+                
+                defib.bolts.push({
+                    mesh: boltMesh,
+                    flickerTimer: 0,
+                    targetState: 'on',
+                    currentState: 'on'
+                });
+            }
+            
+            group.position.copy(isPlayer ? new THREE.Vector3(-2.8, 0.08, 1.2) : new THREE.Vector3(2.8, 0.08, -2.5));
+            scene.add(group);
+            updateScreenTexture(defib, 4);
+        }
+
+        function setHP(isPlayer, newHP) {
+            const defib = isPlayer ? playerDefib : dealerDefib;
+            const oldHP = defib.hp;
+            if (newHP === oldHP) return;
+            
+            // 被弾時演出：HPが減少した場合のみ発動
+            if (isPlayer && newHP < oldHP) {
+                triggerHitVFX();
+            }
+            
+            defib.hp = newHP;
+            for(let i=0; i<4; i++) {
+                const bolt = defib.bolts[i];
+                const shouldBeOn = i < newHP;
+                const currentlyOn = bolt.currentState === 'on';
+                if (shouldBeOn !== currentlyOn) {
+                    bolt.targetState = shouldBeOn ? 'on' : 'off';
+                    bolt.flickerTimer = 0.8;
+                }
+            }
+            defib.screenFlickerTimer = 0.8;
+        }
+
+        function triggerHitVFX() {
+            const flash = document.getElementById('white-flash');
+            flash.style.display = 'block';
+            flash.style.opacity = '1';
+            
+            // 首がガクッと床（下）へ折れ、崩れ落ちる
+            cameraTargetPos.set(0, 0.5, 4.3);
+            cameraTargetLookAt.set(0, -0.2, 1.5);
+            playSound('tinnitus');
+            triggerCameraShake(1.5, 600);
+            
+            setTimeout(() => {
+                flash.style.opacity = '0';
+                setTimeout(() => { flash.style.display = 'none'; }, 300);
+            }, 150);
+            
+            // 1.2秒かけて意識を取り戻し、椅子（元の高さ）へと這い上がる
+            setTimeout(() => {
+                cameraTargetPos.set(0, 3.2, 5.0);
+                cameraTargetLookAt.set(0, 0.5, -1.0);
+            }, 1200);
+        }
+
+        function updateDefibHardware(defib, dt) {
+            for(let i=0; i<4; i++) {
+                const bolt = defib.bolts[i];
+                if (bolt.flickerTimer > 0) {
+                    bolt.flickerTimer -= dt;
+                    bolt.mesh.material.emissiveIntensity = Math.random() > 0.5 ? 3.0 : 0.05;
+                    if (bolt.flickerTimer <= 0) {
+                        bolt.currentState = bolt.targetState;
+                        bolt.mesh.material.emissiveIntensity = (bolt.currentState === 'on') ? 2.0 : 0.05;
+                    }
+                } else {
+                    bolt.mesh.material.emissiveIntensity = (bolt.currentState === 'on') ? 2.0 : 0.05;
+                }
+            }
+            if (defib.screenFlickerTimer > 0) {
+                defib.screenFlickerTimer -= dt;
+                if (Math.random() > 0.5) {
+                    updateScreenTexture(defib, Math.floor(Math.random() * 5));
+                } else {
+                    updateScreenTexture(defib, defib.hp);
+                }
+                if (defib.screenFlickerTimer <= 0) {
+                    updateScreenTexture(defib, defib.hp);
+                }
+            }
+        }
+
+        // --- Web Audio API BGM 音響 ---
+        function playBGMKick(time) {
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = 'triangle';
+            osc.frequency.setValueAtTime(100, time);
+            osc.frequency.exponentialRampToValueAtTime(20, time + 0.2);
+            gain.gain.setValueAtTime(0.4 * masterBgmVolume, time);
+            gain.gain.exponentialRampToValueAtTime(0.001, time + 0.2);
+            osc.connect(gain); gain.connect(audioCtx.destination);
+            osc.start(time); osc.stop(time + 0.2);
+        }
+
+        // ノイズシミュレートによる汚れテクスチャ生成
+        function createDirtNoiseTexture() {
+            const canvas = document.createElement('canvas');
+            canvas.width = 256;
+            canvas.height = 256;
+            const ctx = canvas.getContext('2d');
+            ctx.fillStyle = '#888888';
+            ctx.fillRect(0, 0, 256, 256);
+            const imgData = ctx.getImageData(0, 0, 256, 256);
+            const data = imgData.data;
+            for (let i = 0; i < data.length; i += 4) {
+                const noise = (Math.random() - 0.5) * 45;
+                data[i] = Math.max(0, Math.min(255, data[i] + noise));
+                data[i+1] = Math.max(0, Math.min(255, data[i+1] + noise));
+                data[i+2] = Math.max(0, Math.min(255, data[i+2] + noise));
+            }
+            ctx.putImageData(imgData, 0, 0);
+            const texture = new THREE.CanvasTexture(canvas);
+            texture.wrapS = THREE.RepeatWrapping;
+            texture.wrapT = THREE.RepeatWrapping;
+            texture.repeat.set(4, 4);
+            return texture;
+        }
+
+        // 3Dアイテム作成ヘルパー
+        function create3DItem(type) {
+            const group = new THREE.Group();
+            group.userData.type = type;
+
+            const metalMat = new THREE.MeshStandardMaterial({ color: 0x888888, metalness: 0.9, roughness: 0.2 });
+            const plasticMat = new THREE.MeshStandardMaterial({ color: 0x222222, roughness: 0.6 });
+            const glassMat = new THREE.MeshBasicMaterial({ color: 0x88ccff, transparent: true, opacity: 0.4 });
+
+            if (type === 'magnifier') {
+                const frame = new THREE.Mesh(new THREE.TorusGeometry(0.18, 0.03, 8, 24), metalMat);
+                frame.rotation.x = Math.PI / 2;
+                group.add(frame);
+                const handle = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, 0.25, 8), plasticMat);
+                handle.position.set(0, 0, 0.28);
+                handle.rotation.x = Math.PI / 2;
+                group.add(handle);
+                const lens = new THREE.Mesh(new THREE.CylinderGeometry(0.18, 0.18, 0.01, 16), glassMat);
+                lens.rotation.x = Math.PI / 2;
+                group.add(lens);
+            } 
+            else if (type === 'cigarette') {
+                const box = new THREE.Mesh(new THREE.BoxGeometry(0.18, 0.28, 0.08), new THREE.MeshStandardMaterial({ color: 0xeeeeee, roughness: 0.8 }));
+                group.add(box);
+                const stripe = new THREE.Mesh(new THREE.BoxGeometry(0.182, 0.08, 0.082), new THREE.MeshStandardMaterial({ color: 0xd11a1a, roughness: 0.8 }));
+                stripe.position.set(0, 0.1, 0);
+                group.add(stripe);
+            } 
+            else if (type === 'beer') {
+                const can = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.12, 0.35, 16), new THREE.MeshStandardMaterial({ color: 0x3a5fcd, metalness: 0.8, roughness: 0.3 }));
+                can.rotation.x = Math.PI / 2;
+                group.add(can);
+                const topRim = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.12, 0.02, 16), metalMat);
+                topRim.position.set(0, 0.18, 0);
+                group.add(topRim);
+            } 
+            else if (type === 'handcuffs') {
+                const ring1 = new THREE.Mesh(new THREE.TorusGeometry(0.12, 0.02, 8, 16), metalMat);
+                ring1.position.set(-0.15, 0, 0);
+                const ring2 = ring1.clone();
+                ring2.position.set(0.15, 0, 0);
+                const link = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.02, 0.02), metalMat);
+                group.add(ring1, ring2, link);
+            } 
+            else if (type === 'handsaw') {
+                const blade = new THREE.Mesh(new THREE.BoxGeometry(0.02, 0.15, 0.45), metalMat);
+                const handle = new THREE.Mesh(new THREE.BoxGeometry(0.04, 0.18, 0.12), new THREE.MeshStandardMaterial({ color: 0x8b4513, roughness: 0.9 }));
+                handle.position.set(0, 0, 0.25);
+                group.add(blade, handle);
+            } 
+            else if (type === 'medicine') {
+                const bottle = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.1, 0.28, 12), new THREE.MeshStandardMaterial({ color: 0x8b5a2b, roughness: 0.4 }));
+                bottle.rotation.x = Math.PI / 2;
+                group.add(bottle);
+                const cap = new THREE.Mesh(new THREE.CylinderGeometry(0.105, 0.105, 0.05, 12), new THREE.MeshStandardMaterial({ color: 0xdddddd, roughness: 0.6 }));
+                cap.position.set(0, 0.15, 0);
+                group.add(cap);
+            } 
+            else if (type === 'phone') {
+                const body = new THREE.Mesh(new THREE.BoxGeometry(0.14, 0.26, 0.06), plasticMat);
+                group.add(body);
+                const screen = new THREE.Mesh(new THREE.PlaneGeometry(0.1, 0.12), new THREE.MeshBasicMaterial({ color: 0x00ff66 }));
+                screen.position.set(0, 0.04, 0.031);
+                group.add(screen);
+            } 
+            else if (type === 'inverter') {
+                const base = new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.2, 0.15), plasticMat);
+                const glow = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.03, 0.152), new THREE.MeshBasicMaterial({ color: 0xffaa00 }));
+                glow.position.set(0, 0.05, 0);
+                group.add(base, glow);
+            } 
+            else if (type === 'adrenaline') {
+                const body = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.04, 0.3, 8), glassMat);
+                body.rotation.x = Math.PI / 2;
+                const plunger = new THREE.Mesh(new THREE.CylinderGeometry(0.01, 0.01, 0.35, 8), metalMat);
+                plunger.position.set(0, 0, 0.1);
+                plunger.rotation.x = Math.PI / 2;
+                const needle = new THREE.Mesh(new THREE.CylinderGeometry(0.003, 0.003, 0.15, 8), metalMat);
+                needle.position.set(0, 0, -0.22);
+                needle.rotation.x = Math.PI / 2;
+                group.add(body, plunger, needle);
+            }
+
+            group.traverse(child => {
+                if (child.isMesh) {
+                    child.castShadow = true;
+                    child.receiveShadow = true;
+                }
+            });
+
+            return group;
+        }
+
+        // タバコの煙およびSE
+        function playSynthesizedSoundAndSmoke(itemMesh) {
+            playSound('smoke');
+            for (let i = 0; i < 15; i++) {
+                const pGeo = new THREE.SphereGeometry(0.05 + Math.random() * 0.05, 5, 5);
+                const pMat = new THREE.MeshBasicMaterial({ color: 0xdddddd, transparent: true, opacity: 0.6 });
+                const pMesh = new THREE.Mesh(pGeo, pMat);
+                pMesh.position.copy(itemMesh.position);
+                pMesh.position.y += 0.25;
+                scene.add(pMesh);
+                
+                activeParticles.push({
+                    mesh: pMesh,
+                    life: 1.0,
+                    velocity: new THREE.Vector3(
+                        (Math.random() - 0.5) * 0.02,
+                        0.015 + Math.random() * 0.02,
+                        (Math.random() - 0.5) * 0.02
+                    )
+                });
+            }
+        }
+
+        // ビールの排莢アニメーション
+        function triggerShellEjectionVisual(type) {
+            const shellGeo = new THREE.CylinderGeometry(0.07, 0.07, 0.3, 12);
+            const shellMat = new THREE.MeshStandardMaterial({
+                color: type === 'live' ? 0xd11a1a : 0x1a52d1,
+                metalness: 0.8,
+                roughness: 0.2
+            });
+            const shell = new THREE.Mesh(shellGeo, shellMat);
+            shell.position.set(0, 0.5, 0.5);
+            shell.rotation.x = Math.PI / 2;
+            scene.add(shell);
+            
+            const startPos = shell.position.clone();
+            const endPos = new THREE.Vector3(1.5 + Math.random() * 0.5, -0.5, 0.5 + (Math.random() - 0.5) * 0.5);
+            let progress = 0;
+            
+            function animStep() {
+                progress += 0.06;
+                shell.position.lerpVectors(startPos, endPos, progress);
+                shell.position.y += Math.sin(progress * Math.PI) * 0.6;
+                shell.rotation.y += 0.25;
+                shell.rotation.x += 0.15;
+                
+                if (progress < 1) {
+                    requestAnimationFrame(animStep);
+                } else {
+                    scene.remove(shell);
+                }
+            }
+            animStep();
+        }
+
+        function playBGMHihat(time) {
+            const bufferSize = audioCtx.sampleRate * 0.04;
+            const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+            const data = buffer.getChannelData(0);
+            for (let i = 0; i < bufferSize; i++) data[i] = Math.random() * 2 - 1;
+            const source = audioCtx.createBufferSource();
+            source.buffer = buffer;
+            const filter = audioCtx.createBiquadFilter();
+            filter.type = 'highpass';
+            filter.frequency.setValueAtTime(7000, time);
+            const gain = audioCtx.createGain();
+            gain.gain.setValueAtTime(0.02 * masterBgmVolume, time);
+            gain.gain.exponentialRampToValueAtTime(0.001, time + 0.04);
+            source.connect(filter); filter.connect(gain); gain.connect(audioCtx.destination);
+            source.start(time);
+        }
+
+        function startBGM() {
+            if (bgmInterval) clearInterval(bgmInterval);
+            bgmInterval = setInterval(() => {
+                const now = audioCtx.currentTime;
+                if (bgmStep % 2 === 0) {
+                    playBGMKick(now);
+                } else {
+                    playBGMHihat(now);
+                }
+                bgmStep = (bgmStep + 1) % 4;
+            }, 300);
+        }
+
+        // --- Web Audio API 一般効果音 ---
+        function playSound(type) {
+            const now = audioCtx.currentTime;
+            
+            if (type === 'click') {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(800, now);
+                osc.frequency.exponentialRampToValueAtTime(100, now + 0.05);
+                gain.gain.setValueAtTime(0.15, now);
+                gain.gain.linearRampToValueAtTime(0.01, now + 0.05);
+                osc.connect(gain); gain.connect(audioCtx.destination);
+                osc.start(); osc.stop(now + 0.05);
+            } 
+            else if (type === 'fire_live') {
+                const osc = audioCtx.createOscillator();
+                const oscGain = audioCtx.createGain();
+                osc.frequency.setValueAtTime(120, now);
+                osc.frequency.exponentialRampToValueAtTime(10, now + 0.5);
+                oscGain.gain.setValueAtTime(1.0, now);
+                oscGain.gain.exponentialRampToValueAtTime(0.01, now + 0.5);
+                osc.connect(oscGain); oscGain.connect(audioCtx.destination);
+                osc.start(); osc.stop(now + 0.5);
+                
+                const bufferSize = audioCtx.sampleRate * 0.5;
+                const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+                const data = buffer.getChannelData(0);
+                for (let i = 0; i < bufferSize; i++) data[i] = Math.random() * 2 - 1;
+                const noise = audioCtx.createBufferSource();
+                noise.buffer = buffer;
+                const noiseFilter = audioCtx.createBiquadFilter();
+                noiseFilter.type = 'lowpass';
+                noiseFilter.frequency.setValueAtTime(1000, now);
+                const noiseGain = audioCtx.createGain();
+                noiseGain.gain.setValueAtTime(0.8, now);
+                noiseGain.gain.exponentialRampToValueAtTime(0.01, now + 0.4);
+                noise.connect(noiseFilter); noiseFilter.connect(noiseGain);
+                noiseGain.connect(audioCtx.destination);
+                noise.start();
+            } 
+            else if (type === 'fire_blank') {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'square';
+                osc.frequency.setValueAtTime(1500, now);
+                osc.frequency.setValueAtTime(900, now + 0.03);
+                gain.gain.setValueAtTime(0.15, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.07);
+                osc.connect(gain); gain.connect(audioCtx.destination);
+                osc.start(); osc.stop(now + 0.07);
+            } 
+            else if (type === 'rack') {
+                const bufferSize = audioCtx.sampleRate * 0.08;
+                const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+                const data = buffer.getChannelData(0);
+                for (let i = 0; i < bufferSize; i++) data[i] = Math.random() * 2 - 1;
+                const noise = audioCtx.createBufferSource();
+                noise.buffer = buffer;
+                const gain = audioCtx.createGain();
+                gain.gain.setValueAtTime(0.15, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.08);
+                noise.connect(gain); gain.connect(audioCtx.destination);
+                noise.start();
+            } 
+            else if (type === 'heal') {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(200, now);
+                osc.frequency.exponentialRampToValueAtTime(700, now + 0.3);
+                gain.gain.setValueAtTime(0.2, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
+                osc.connect(gain); gain.connect(audioCtx.destination);
+                osc.start(); osc.stop(now + 0.3);
+            }
+            else if (type === 'zoom') {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(100, now);
+                osc.frequency.exponentialRampToValueAtTime(40, now + 0.5);
+                gain.gain.setValueAtTime(0.1, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.5);
+                osc.connect(gain); gain.connect(audioCtx.destination);
+                osc.start(); osc.stop(now + 0.5);
+            }
+            else if (type === 'smoke') {
+                const bufferSize = audioCtx.sampleRate * 0.3;
+                const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+                const data = buffer.getChannelData(0);
+                for (let i = 0; i < bufferSize; i++) data[i] = Math.random() * 2 - 1;
+                const noise = audioCtx.createBufferSource();
+                noise.buffer = buffer;
+                const filter = audioCtx.createBiquadFilter();
+                filter.type = 'highpass';
+                filter.frequency.setValueAtTime(5000, now);
+                const gain = audioCtx.createGain();
+                gain.gain.setValueAtTime(0.03, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.3);
+                noise.connect(filter); filter.connect(gain); gain.connect(audioCtx.destination);
+                noise.start();
+            }
+            else if (type === 'clank') {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(180, now);
+                osc.frequency.exponentialRampToValueAtTime(30, now + 0.25);
+                gain.gain.setValueAtTime(0.4, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.25);
+                osc.connect(gain); gain.connect(audioCtx.destination);
+                osc.start(); osc.stop(now + 0.25);
+            }
+            else if (type === 'tinnitus') {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(9000, now);
+                gain.gain.setValueAtTime(0.3, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 2.5);
+                osc.connect(gain); gain.connect(audioCtx.destination);
+                osc.start(); osc.stop(now + 2.5);
+                
+                masterBgmVolume = 0.03;
+                setTimeout(() => {
+                    masterBgmVolume = 0.5;
+                }, 1500);
+            }
+        }
+
+        // --- 3. Three.js シーン・カメラ構築 & テクスチャ汚れの動的生成 ---
+        scene = new THREE.Scene();
+        scene.fog = new THREE.FogExp2(0x050505, 0.08);
+
+        camera = new THREE.PerspectiveCamera(58, window.innerWidth / window.innerHeight, 0.1, 1000);
+        
+        // プレイヤーアイレベルに安定化するためのLerp媒介
+        cameraTargetPos_Lerp.copy(cameraTargetPos);
+        cameraTargetLookAt_Lerp.copy(cameraTargetLookAt);
+
+        camera.position.copy(cameraTargetPos);
+        camera.lookAt(currentCamLookAt);
+
+        renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.shadowMap.enabled = true;
+        renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+        document.getElementById('canvas-container').appendChild(renderer.domElement);
+
+        // 照明
+        const ambientLightMesh = new THREE.AmbientLight(0x080808);
+        scene.add(ambientLightMesh);
+
+        spotLight = new THREE.SpotLight(0xfff8e7, 8);
+        spotLight.position.set(0, 8, 1);
+        spotLight.angle = Math.PI / 4;
+        spotLight.penumbra = 0.8;
+        spotLight.castShadow = true;
+        scene.add(spotLight);
+
+        tableLight = new THREE.PointLight(0xffaa66, 0.3, 10);
+        tableLight.position.set(0, 3, 0);
+        scene.add(tableLight);
+
+        // 動的ノイズ生成によるダーク・インダストリアルバンプマッピング
+        dirtTexture = createDirtNoiseTexture();
+
+        // テーブル（汚れた錆メタル）
+        const tableMeshObj = new THREE.Mesh(
+            new THREE.BoxGeometry(10, 0.2, 7), 
+            new THREE.MeshStandardMaterial({ 
+                color: 0x2d3238, 
+                bumpMap: dirtTexture, 
+                bumpScale: 0.04, 
+                roughness: 0.85, 
+                metalness: 0.7 
+            })
+        );
+        tableMeshObj.position.y = -0.1;
+        tableMeshObj.receiveShadow = true;
+        scene.add(tableMeshObj);
+
+        const backWallMeshObj = new THREE.Mesh(
+            new THREE.PlaneGeometry(30, 20), 
+            new THREE.MeshStandardMaterial({ color: 0x0f0f0f, bumpMap: dirtTexture, bumpScale: 0.08, roughness: 0.9 })
+        );
+        backWallMeshObj.position.set(0, 5, -8);
+        backWallMeshObj.receiveShadow = true;
+        scene.add(backWallMeshObj);
+
+        // ==========================================
+        // 【街角・排水溝コンセプト用オブジェクト群】
+        // ==========================================
+        // 地上：雨で濡れた小道
+        const floorMat = new THREE.MeshStandardMaterial({ color: 0x111115, bumpMap: dirtTexture, bumpScale: 0.05, roughness: 0.85 });
+        const alleyFloorL = new THREE.Mesh(new THREE.BoxGeometry(4, 0.1, 12), floorMat); alleyFloorL.position.set(-2.3, 11.0, 0); scene.add(alleyFloorL);
+        const alleyFloorR = new THREE.Mesh(new THREE.BoxGeometry(4, 0.1, 12), floorMat); alleyFloorR.position.set(2.3, 11.0, 0); scene.add(alleyFloorR);
+
+        // 地上：路地裏のレンガの壁
+        const brickMat = new THREE.MeshStandardMaterial({ color: 0x2d1a12, bumpMap: dirtTexture, bumpScale: 0.08, roughness: 0.9 });
+        const alleyWallL = new THREE.Mesh(new THREE.BoxGeometry(0.2, 4.0, 12), brickMat); alleyWallL.position.set(-4.3, 13.0, 0); scene.add(alleyWallL);
+        const alleyWallR = new THREE.Mesh(new THREE.BoxGeometry(0.2, 4.0, 12), brickMat); alleyWallR.position.set(4.3, 13.0, 0); scene.add(alleyWallR);
+
+        // 地上：周囲を囲うビルディングのシルエット
+        const bldGeo = new THREE.BoxGeometry(4, 10, 4);
+        const bldMat = new THREE.MeshStandardMaterial({ color: 0x111113, roughness: 0.9 });
+        const bld1 = new THREE.Mesh(bldGeo, bldMat); bld1.position.set(-6, 15, -4); scene.add(bld1);
+        const bld2 = new THREE.Mesh(bldGeo, bldMat); bld2.position.set(6, 15, -4); scene.add(bld2);
+
+        // 地上：怪しい路地裏のガス街灯（ポールと光源）
+        const poleGeo = new THREE.CylinderGeometry(0.05, 0.05, 3, 8);
+        const pole = new THREE.Mesh(poleGeo, new THREE.MeshStandardMaterial({ color: 0x151515, metalness: 0.8 }));
+        pole.position.set(1.5, 12.5, -1.5);
+        scene.add(pole);
+        const streetLamp = new THREE.PointLight(0xffddaa, 3, 8);
+        streetLamp.position.set(1.5, 14, -1.5);
+        scene.add(streetLamp);
+
+        // 地上のゴミ袋やダンボール箱（臨場感演出用）
+        const boxGeo = new THREE.BoxGeometry(0.4, 0.4, 0.4);
+        const boxMat = new THREE.MeshStandardMaterial({ color: 0x332211, roughness: 0.9 });
+        const streetBox = new THREE.Mesh(boxGeo, boxMat);
+        streetBox.position.set(-1.5, 11.2, -1.0);
+        scene.add(streetBox);
+
+        const trashGeo = new THREE.SphereGeometry(0.25, 6, 6);
+        const trashMat = new THREE.MeshStandardMaterial({ color: 0x111111, roughness: 0.95 });
+        const trashBag = new THREE.Mesh(trashGeo, trashMat);
+        trashBag.position.set(-1.4, 11.1, -0.6);
+        scene.add(trashBag);
+
+        // 秘密部屋の真上に位置する排水溝
+        sewerGroup = new THREE.Group();
+        sewerGroup.position.set(0, 11, 0.8);
+        
+        const sewerFrameMat = new THREE.MeshStandardMaterial({ color: 0x050505, roughness: 0.95, metalness: 0.8 });
+        const frameL = new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.1, 4), sewerFrameMat); frameL.position.set(-2, 0, 0);
+        const frameR = frameL.clone(); frameR.position.set(2, 0, 0);
+        const frameT = new THREE.Mesh(new THREE.BoxGeometry(4.2, 0.1, 0.2), sewerFrameMat); frameT.position.set(0, 0, -2);
+        const frameB = frameT.clone(); frameB.position.set(0, 0, 2);
+        sewerGroup.add(frameL, frameR, frameT, frameB);
+
+        const sewerBarGeo = new THREE.CylinderGeometry(0.03, 0.03, 3.8, 8);
+        const sewerBarMat = new THREE.MeshStandardMaterial({ color: 0x111111, metalness: 0.9, roughness: 0.8 });
+        for(let i = -1.6; i <= 1.6; i += 0.4) {
+            const bar = new THREE.Mesh(sewerBarGeo, sewerBarMat);
+            bar.rotation.x = Math.PI / 2;
+            bar.position.set(i, 0, 0);
+            bar.castShadow = true;
+            sewerGroup.add(bar);
+        }
+        scene.add(sewerGroup);
+
+        // 排水溝の上から差し込む不気味な青暗い逆光（地上の光、シャドウ生成付き）
+        skyLight = new THREE.DirectionalLight(0x4a627a, 4);
+        skyLight.position.set(0, 13.5, 0.8);
+        skyLight.castShadow = true;
+        skyLight.shadow.mapSize.width = 1024;
+        skyLight.shadow.mapSize.height = 1024;
+        scene.add(skyLight);
+
+        // ==========================================
+        // 【顔だけが不気味に見えるディーラーの追加】
+        // ==========================================
+        function createDealerModel() {
+            const dealerGroup = new THREE.Group();
+            dealerGroup.name = "dealer";
+
+            // フード付きダークローブ（胴体）
+            const cloakGeo = new THREE.ConeGeometry(0.8, 2.0, 8);
+            const cloakMat = new THREE.MeshStandardMaterial({ color: 0x0a0a0c, roughness: 0.95 });
+            const cloak = new THREE.Mesh(cloakGeo, cloakMat);
+            cloak.position.y = 1.0;
+            cloak.castShadow = true;
+            cloak.receiveShadow = true;
+            dealerGroup.add(cloak);
+
+            // フード内部の影のような真っ黒い顔球体
+            const headGeo = new THREE.SphereGeometry(0.32, 16, 16);
+            const headMat = new THREE.MeshStandardMaterial({ color: 0x020202, roughness: 0.9 });
+            const head = new THREE.Mesh(headGeo, headMat);
+            head.position.set(0, 1.7, 0.1);
+            head.castShadow = true;
+            dealerGroup.add(head);
+
+            // フードの影から不気味に赤く発光する二つの眼
+            const eyeGeo = new THREE.SphereGeometry(0.04, 8, 8);
+            const eyeMat = new THREE.MeshBasicMaterial({ color: 0xff0000 });
+            
+            const leftEye = new THREE.Mesh(eyeGeo, eyeMat);
+            leftEye.position.set(-0.1, 1.75, 0.38);
+            
+            const rightEye = new THREE.Mesh(eyeGeo, eyeMat);
+            rightEye.position.set(0.1, 1.75, 0.38);
+            
+            dealerGroup.add(leftEye, rightEye);
+
+            // テーブルの向かいに配置 (z = -3.2)
+            dealerGroup.position.set(0, 0.0, -3.2);
+            scene.add(dealerGroup);
+        }
+        createDealerModel();
+
+        // 金属スライドトレイ
+        trayGroup = new THREE.Group();
+        const trayBase = new THREE.Mesh(
+            new THREE.BoxGeometry(2.2, 0.04, 1.0),
+            new THREE.MeshStandardMaterial({ color: 0x1a1c22, roughness: 0.8, metalness: 0.9, bumpMap: dirtTexture, bumpScale: 0.03 })
+        );
+        trayBase.receiveShadow = true;
+        trayBase.castShadow = true;
+        trayGroup.add(trayBase);
+
+        const trayRimMat = new THREE.MeshStandardMaterial({ color: 0x0a0a0d, roughness: 0.9 });
+        const trayRimL = new THREE.Mesh(new THREE.BoxGeometry(0.04, 0.12, 1.0), trayRimMat); trayRimL.position.set(-1.1, 0.06, 0); trayGroup.add(trayRimL);
+        const trayRimR = new THREE.Mesh(new THREE.BoxGeometry(0.04, 0.12, 1.0), trayRimMat); trayRimR.position.set(1.1, 0.06, 0); trayGroup.add(trayRimR);
+        const trayRimF = new THREE.Mesh(new THREE.BoxGeometry(2.24, 0.12, 0.04), trayRimMat); trayRimF.position.set(0, 0.06, 0.5); trayGroup.add(trayRimF);
+        const trayRimB = new THREE.Mesh(new THREE.BoxGeometry(2.24, 0.12, 0.04), trayRimMat); trayRimB.position.set(0, 0.06, -0.5); trayGroup.add(trayRimB);
+        trayGroup.position.set(0, -0.6, 0.8);
+        scene.add(trayGroup);
+
+        // プレイヤー側アイテムスロット
+        const slotsStartX = -((slotCount - 1) * 1.0) / 2;
+        for (let i = 0; i < slotCount; i++) {
+            const slotMesh = new THREE.Mesh(new THREE.BoxGeometry(0.8, 0.05, 1.2), new THREE.MeshStandardMaterial({ color: 0x070708, roughness: 0.95 }));
+            slotMesh.position.set(slotsStartX + i * 1.0, 0.01, 2.5);
+            slotMesh.receiveShadow = true;
+            scene.add(slotMesh);
+            slots.push({ index: i, position: slotMesh.position.clone(), occupiedBy: null });
+        }
+
+        // ディーラー側3Dアイテムスロット（机の奥側 z = -1.5 に配置）
+        for (let i = 0; i < slotCount; i++) {
+            const slotMesh = new THREE.Mesh(new THREE.BoxGeometry(0.8, 0.05, 1.2), new THREE.MeshStandardMaterial({ color: 0x0c0c0d, roughness: 0.95 }));
+            slotMesh.position.set(slotsStartX + i * 1.0, 0.01, -1.5);
+            slotMesh.receiveShadow = true;
+            scene.add(slotMesh);
+            dealerSlots.push({ index: i, position: slotMesh.position.clone(), occupiedBy: null });
+        }
+
+        // ショットガンモデル
+        shotgun = new THREE.Group();
+        const recMesh = new THREE.Mesh(new THREE.BoxGeometry(0.25, 0.35, 1.1), new THREE.MeshStandardMaterial({ color: 0x141414, metalness: 0.85, roughness: 0.25 }));
+        const barrelMesh = new THREE.Mesh(new THREE.CylinderGeometry(0.07, 0.07, 1.7, 12), new THREE.MeshStandardMaterial({ color: 0x0a0a0a, metalness: 0.9, roughness: 0.15 }));
+        barrelMesh.rotation.x = Math.PI / 2;
+        barrelMesh.position.set(0, 0.05, -1.0);
+        barrelMesh.name = "barrel";
+        
+        const chamberMesh = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.12, 0.2), new THREE.MeshStandardMaterial({ color: 0x222222 }));
+        chamberMesh.position.set(0, 0.12, 0);
+        
+        const gripMesh = new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.2, 0.55), new THREE.MeshStandardMaterial({ color: 0x472d16, roughness: 0.85 }));
+        gripMesh.position.set(0, -0.05, -0.7);
+        const stockMesh = new THREE.Mesh(new THREE.BoxGeometry(0.18, 0.25, 0.5), new THREE.MeshStandardMaterial({ color: 0x472d16, roughness: 0.85 }));
+        stockMesh.position.set(0, -0.15, 0.65);
+        stockMesh.rotation.x = -Math.PI / 8;
+        shotgun.add(recMesh, barrelMesh, chamberMesh, gripMesh, stockMesh);
+        shotgun.position.copy(shotgunTargetPos); // 初期位置
+        shotgun.rotation.y = Math.PI / 2;
+        scene.add(shotgun);
+
+        // --- 5. パーティクルシステム（煙） ---
+        function updateParticles() {
+            for (let i = activeParticles.length - 1; i >= 0; i--) {
+                const p = activeParticles[i];
+                p.life -= 0.015;
+                p.mesh.position.add(p.velocity);
+                p.mesh.scale.multiplyScalar(1.02);
+                p.mesh.material.opacity = p.life * 0.5;
+                if (p.life <= 0) {
+                    scene.remove(p.mesh);
+                    activeParticles.splice(i, 1);
+                }
+            }
+        }
+
+        // --- 6. 各種3Dアイテム定義＆HUD更新関数 ---
+        function updateHUD() {
+            const liveCount = gameState.shells.filter(s => s === 'live').length;
+            const blankCount = gameState.shells.filter(s => s === 'blank').length;
+            const shellsEl = document.getElementById('hud-shells');
+            if (shellsEl) {
+                shellsEl.innerHTML = gameState.shells.length > 0 ? `SHELLS: ${liveCount} LIVE / ${blankCount} BLANK` : 'SHELLS: EMPTY';
+            }
+        }
+
+        // --- 7. シネマティック演出シーケンス ---
+
+        // A. 弾薬装填演出（金属引き出しがせり上がり、1発ずつ吸い込まれる）
+        shellGroup = new THREE.Group();
+        scene.add(shellGroup);
+
+        function playShellLoadingCinematic(callback) {
+            gameState.status = 'cinematic';
+            for (let i = trayGroup.children.length - 1; i >= 0; i--) {
+                const child = trayGroup.children[i];
+                if (child.userData && child.userData.isShell) {
+                    trayGroup.remove(child);
+                }
+            }
+
+            cameraTargetPos.set(0, 2.5, 2.3);
+            cameraTargetLookAt.set(0, 0.05, 0.8);
+            playSound('zoom');
+
+            trayTargetY = 0.02;
+            playSound('rack');
+
+            const liveCount = gameState.shells.filter(s => s === 'live').length;
+            const blankCount = gameState.shells.filter(s => s === 'blank').length;
+            log(`弾薬ロード: 実弾 ${liveCount}発 / 空砲 ${blankCount}発`);
+
+            const total = gameState.shells.length;
+            const sX = -((total - 1) * 0.4) / 2;
+            const spawnedShells = [];
+
+            for (let i = 0; i < total; i++) {
+                const type = gameState.shells[i];
+                const shellGeo = new THREE.CylinderGeometry(0.07, 0.07, 0.3, 12);
+                const shellMat = new THREE.MeshStandardMaterial({
+                    color: type === 'live' ? 0xd11a1a : 0x1a52d1,
+                    metalness: 0.8,
+                    roughness: 0.2
+                });
+                const mesh = new THREE.Mesh(shellGeo, shellMat);
+                mesh.position.set(sX + i * 0.4, 0.05, 0);
+                mesh.rotation.x = Math.PI / 2;
+                mesh.userData = { isShell: true };
+                trayGroup.add(mesh);
+                spawnedShells.push(mesh);
+            }
+
+            setTimeout(() => {
+                let index = 0;
+                function loadNext() {
+                    if (index >= spawnedShells.length) {
+                        setTimeout(() => {
+                            trayTargetY = -0.6;
+                            playSound('rack');
+                            cameraTargetPos.set(0, 3.2, 5.0);
+                            cameraTargetLookAt.set(0, 0.5, -1.0);
+                            playSound('zoom');
+                            setTimeout(() => {
+                                playSound('rack');
+                                callback();
+                            }, 600);
+                        }, 500);
+                        return;
+                    }
+
+                    const shell = spawnedShells[index];
+                    const globalPos = new THREE.Vector3();
+                    shell.getWorldPosition(globalPos);
+                    const globalRot = new THREE.Quaternion();
+                    shell.getWorldQuaternion(globalRot);
+
+                    trayGroup.remove(shell);
+                    scene.add(shell);
+                    shell.position.copy(globalPos);
+                    shell.quaternion.copy(globalRot);
+
+                    const startPos = shell.position.clone();
+                    const endPos = new THREE.Vector3(0, 0.15, -0.5);
+                    let progress = 0;
+
+                    function animStep() {
+                        progress += 0.08;
+                        shell.position.lerpVectors(startPos, endPos, progress);
+                        shell.position.y += Math.sin(progress * Math.PI) * 0.8; 
+                        shell.rotation.y += 0.15;
+                        shell.rotation.x += 0.1;
+
+                        if (progress < 1) {
+                            requestAnimationFrame(animStep);
+                        } else {
+                            scene.remove(shell);
+                            playSound('click');
+                            index++;
+                            setTimeout(loadNext, 150);
+                        }
+                    }
+                    animStep();
+                }
+                loadNext();
+            }, 1500);
+        }
+
+        // B. アイテム使用：クローズアップ（バグ解消のため明示的フラグ isPlayerUsing を導入）
+        function playItemUseCinematic(itemMesh, type, isPlayerUsing, onComplete) {
+            gameState.status = 'cinematic';
+            hideTooltip();
+
+            if (type === 'magnifier') {
+                shotgunTargetPos.set(0, 1.8, 4.3);
+                shotgunTargetRot.set(0.6, Math.PI / 2 + 0.3, 0.2);
+                cameraTargetPos.set(0, 3.5, 6.0);
+                cameraTargetLookAt.set(0, 1.5, 3.5);
+                playSound('zoom');
+
+                setTimeout(() => {
+                    const mag3D = create3DItem('magnifier');
+                    
+                    if (isPlayerUsing) {
+                        mag3D.position.set(0, 2.0, 3.8); mag3D.rotation.x = -Math.PI / 4;
+                        scene.add(mag3D);
+
+                        let next = gameState.shells[0];
+                        if (gameState.isInverted) {
+                            next = (next === 'live') ? 'blank' : 'live';
+                        }
+                        
+                        // 【虫眼鏡ビジュアルの判別性強化】レンズ内に超発光大球体を生成
+                        const glowGeo = new THREE.SphereGeometry(0.18, 16, 16);
+                        const glowMat = new THREE.MeshBasicMaterial({ 
+                            color: next === 'live' ? 0xff0000 : 0x00aaff,
+                            transparent: true,
+                            opacity: 0.9
+                        });
+                        const glow = new THREE.Mesh(glowGeo, glowMat);
+                        glow.position.set(0, 2.0, 3.8); 
+                        scene.add(glow);
+
+                        log(`虫眼鏡を使用。次の弾は [ ${next === 'live' ? '実弾 (赤/LIVE)' : '空砲 (青/BLANK)'} ] です。`);
+                        playSound('click');
+                        
+                        setTimeout(() => {
+                            scene.remove(mag3D); scene.remove(glow);
+                            cameraTargetPos.set(0, 3.2, 5.0); cameraTargetLookAt.set(0, 0.5, -1.0);
+                            shotgunTargetPos.set(0, 0.15, -0.5); shotgunTargetRot.set(0, Math.PI / 2, 0);
+                            playSound('zoom');
+                            setTimeout(onComplete, 600);
+                        }, 2500);
+                    } else {
+                        // ディーラー使用時
+                        mag3D.position.set(0, 1.7, -2.6); 
+                        scene.add(mag3D);
+                        
+                        let next = gameState.shells[0];
+                        if (gameState.isInverted) {
+                            next = (next === 'live') ? 'blank' : 'live';
+                        }
+                        
+                        log(`ディーラーは虫眼鏡を使用し、薬室をじっと覗き込んだ。`);
+                        playSound('click');
+                        gameState.dealerKnownNext = next;
+                        
+                        setTimeout(() => {
+                            scene.remove(mag3D);
+                            cameraTargetPos.set(0, 3.2, 5.0); cameraTargetLookAt.set(0, 0.5, -1.0);
+                            shotgunTargetPos.set(0, 0.15, -0.5); shotgunTargetRot.set(0, Math.PI / 2, 0);
+                            playSound('zoom');
+                            setTimeout(onComplete, 600);
+                        }, 2000);
+                    }
+                }, 800);
+            } 
+            else if (type === 'cigarette') {
+                if (isPlayerUsing) {
+                    // 【プレイヤー視点アイテム非表示化】一人称視点のためモデルは非表示、代わりに煙パーティクルを上昇
+                    log("タバコを使用。ライフが1回復した。");
+                    gameState.playerHP = Math.min(gameState.maxHP, gameState.playerHP + 1);
+                    setHP(true, gameState.playerHP); 
+                    playSound('smoke');
+                    playSound('heal');
+                    
+                    // 煙を生成
+                    for (let i = 0; i < 12; i++) {
+                        const pGeo = new THREE.SphereGeometry(0.08 + Math.random() * 0.08, 5, 5);
+                        const pMat = new THREE.MeshBasicMaterial({ color: 0xaaaaaa, transparent: true, opacity: 0.3 });
+                        const pMesh = new THREE.Mesh(pGeo, pMat);
+                        pMesh.position.set((Math.random() - 0.5) * 0.5, 1.5, 3.5);
+                        scene.add(pMesh);
+                        activeParticles.push({
+                            mesh: pMesh,
+                            life: 1.0,
+                            velocity: new THREE.Vector3((Math.random() - 0.5) * 0.01, 0.02 + Math.random() * 0.01, -0.01)
+                        });
+                    }
+                    setTimeout(onComplete, 1200);
+                } else {
+                    // ディーラー使用時
+                    cameraTargetPos.set(0, 3.0, -1.0); cameraTargetLookAt.set(0, 1.5, -3.5);
+                    playSound('zoom');
+
+                    setTimeout(() => {
+                        const cig = create3DItem('cigarette');
+                        cig.position.set(0, 1.6, -2.6); 
+                        scene.add(cig);
+                        
+                        log("ディーラーはタバコを使用。ディーラーのライフが1回復した。");
+                        gameState.dealerHP = Math.min(gameState.maxHP, gameState.dealerHP + 1);
+                        setHP(false, gameState.dealerHP); 
+                        playSynthesizedSoundAndSmoke(cig);
+
+                        setTimeout(() => {
+                            scene.remove(cig);
+                            cameraTargetPos.set(0, 3.2, 5.0); cameraTargetLookAt.set(0, 0.5, -1.0);
+                            playSound('zoom');
+                            setTimeout(onComplete, 600);
+                        }, 1500);
+                    }, 600);
+                }
+            }
+            else if (type === 'beer') {
+                if (isPlayerUsing) {
+                    // 【プレイヤー視点アイテム非表示化】
+                    const popped = gameState.shells.shift();
+                    log(`ビールを使用。弾丸を排出した... [ ${popped.toUpperCase()} ] でした。`);
+                    playSound('rack');
+                    triggerShellEjectionVisual(popped);
+                    setTimeout(onComplete, 1200);
+                } else {
+                    // ディーラー使用時
+                    cameraTargetPos.set(0, 3.0, -1.0); cameraTargetLookAt.set(0, 1.5, -3.5);
+                    playSound('zoom');
+
+                    setTimeout(() => {
+                        const can = create3DItem('beer');
+                        can.position.set(0, 1.5, -2.5); 
+                        can.rotation.x = Math.PI / 3;
+                        scene.add(can);
+                        playSound('rack');
+
+                        const popped = gameState.shells.shift();
+                        log(`ディーラーはビールを使用し、チャンバー内の弾丸を強制排出した。`);
+                        triggerShellEjectionVisual(popped);
+
+                        setTimeout(() => {
+                            scene.remove(can);
+                            cameraTargetPos.set(0, 3.2, 5.0); cameraTargetLookAt.set(0, 0.5, -1.0);
+                            playSound('zoom');
+                            setTimeout(onComplete, 600);
+                        }, 1500);
+                    }, 600);
+                }
+            }
+            else if (type === 'handcuffs') {
+                cameraTargetPos.set(0, 3.0, -1.0); cameraTargetLookAt.set(0, 1.5, -3.5);
+                playSound('zoom');
+
+                setTimeout(() => {
+                    const cuffs = create3DItem('handcuffs');
+                    cuffs.position.set(0, 1.5, -2.5); scene.add(cuffs);
+
+                    let progress = 0;
+                    
+                    function anim() {
+                        progress += 0.08;
+                        const targetZ = isPlayerUsing ? -3.0 : 3.0;
+                        cuffs.position.lerp(new THREE.Vector3(0, 1.2, targetZ), 0.1);
+                        if (progress < 1) {
+                            requestAnimationFrame(anim);
+                        } else {
+                            playSound('clank');
+                            triggerCameraShake(0.3, 200);
+                            
+                            if (isPlayerUsing) {
+                                log("手錠を使用。ディーラーの次のターンをスキップ。");
+                                gameState.dealerHandcuffed = true;
+                            } else {
+                                log("ディーラーは手錠を使用。あなたの次のターンをスキップ。");
+                                gameState.playerHandcuffed = true;
+                            }
+
+                            setTimeout(() => {
+                                if (cuffs.parent) cuffs.parent.remove(cuffs);
+                                cameraTargetPos.set(0, 3.2, 5.0); cameraTargetLookAt.set(0, 0.5, -1.0);
+                                playSound('zoom');
+                                setTimeout(onComplete, 600);
+                            }, 1000);
+                        }
+                    }
+                    anim();
+                }, 600);
+            }
+            else if (type === 'handsaw') {
+                cameraTargetPos.set(0, 2.5, 1.0); cameraTargetLookAt.set(0, 0.5, -1.0);
+                playSound('zoom');
+
+                setTimeout(() => {
+                    const saw = create3DItem('handsaw');
+                    saw.position.set(0, 1.0, isPlayerUsing ? 0.5 : -1.5); 
+                    scene.add(saw);
+                    playSound('clank');
+                    
+                    setTimeout(() => {
+                        const bMesh = shotgun.getObjectByName("barrel");
+                        if (bMesh) bMesh.scale.set(1.0, 0.5, 1.0);
+                        
+                        gameState.isSawedOff = true;
+                        if (isPlayerUsing) {
+                            log("ノコギリを使用。ショットガンの銃身を切り落とした！実弾威力が2倍。");
+                        } else {
+                            log("ディーラーはノコギリを使用し、銃口を切断した。次の一撃の威力が2倍。");
+                        }
+                        playSound('rack');
+                        
+                        setTimeout(() => {
+                            scene.remove(saw);
+                            cameraTargetPos.set(0, 3.2, 5.0); cameraTargetLookAt.set(0, 0.5, -1.0);
+                            playSound('zoom');
+                            setTimeout(onComplete, 600);
+                        }, 800);
+                    }, 500);
+                }, 600);
+            }
+            else if (type === 'medicine') {
+                if (isPlayerUsing) {
+                    // 【プレイヤー視点アイテム非表示化】一人称
+                    const isLucky = Math.random() > 0.5;
+                    if (isLucky) {
+                        gameState.playerHP = Math.min(gameState.maxHP, gameState.playerHP + 2);
+                        log("期限切れの薬を服用。幸運にもライフが2回復した！");
+                        playSound('heal');
+                    } else {
+                        gameState.playerHP = Math.max(0, gameState.playerHP - 1);
+                        log("期限切れの薬を服用。不運にも副作用で1ダメージを負った！");
+                        playSound('fire_blank');
+                    }
+                    setHP(true, gameState.playerHP);
+                    setTimeout(onComplete, 1200);
+                } else {
+                    // ディーラー使用時
+                    cameraTargetPos.set(0, 3.0, -1.0); cameraTargetLookAt.set(0, 1.5, -3.5);
+                    playSound('zoom');
+
+                    setTimeout(() => {
+                        const med = create3DItem('medicine');
+                        med.position.set(0, 1.5, -2.5); scene.add(med);
+                        playSound('smoke');
+                        
+                        const isLucky = Math.random() > 0.5;
+                        if (isLucky) {
+                            gameState.dealerHP = Math.min(gameState.maxHP, gameState.dealerHP + 2);
+                            log("ディーラーは薬を服用。ライフが2回復した。");
+                            playSound('heal');
+                        } else {
+                            gameState.dealerHP = Math.max(0, gameState.dealerHP - 1);
+                            log("ディーラーは薬を服用。副作用により1ダメージを負った。");
+                            playSound('fire_blank');
+                        }
+                        setHP(false, gameState.dealerHP);
+
+                        setTimeout(() => {
+                            scene.remove(med);
+                            cameraTargetPos.set(0, 3.2, 5.0); cameraTargetLookAt.set(0, 0.5, -1.0);
+                            playSound('zoom');
+                            setTimeout(onComplete, 600);
+                        }, 1500);
+                    }, 600);
+                }
+            }
+            else if (type === 'phone') {
+                cameraTargetPos.set(0, 3.5, 5.0); cameraTargetLookAt.set(0, 0.5, 2.5);
+                playSound('zoom');
+
+                setTimeout(() => {
+                    const ph = create3DItem('phone');
+                    ph.position.set(0, 1.2, isPlayerUsing ? 3.5 : -2.5); 
+                    scene.add(ph);
+                    playSound('click');
+                    
+                    const totalShells = gameState.shells.length;
+                    const randIndex = Math.floor(Math.random() * totalShells);
+                    const queryShell = gameState.shells[randIndex];
+                    
+                    if (isPlayerUsing) {
+                        log(`受話器のノイズから声が聞こえる...「${randIndex + 1}発目の弾丸は [ ${queryShell.toUpperCase()} ] だ」`);
+                    } else {
+                        log(`ディーラーはバーナー携帯を使用し、怪しいダイヤル通話に耳を傾けた。`);
+                        gameState.dealerKnownNext = queryShell;
+                    }
+                    playSound('rack');
+
+                    setTimeout(() => {
+                        scene.remove(ph);
+                        cameraTargetPos.set(0, 3.2, 5.0); cameraTargetLookAt.set(0, 0.5, -1.0);
+                        playSound('zoom');
+                        setTimeout(onComplete, 600);
+                    }, 2000);
+                }, 600);
+            }
+            else if (type === 'inverter') {
+                if (isPlayerUsing) {
+                    // 【プレイヤー視点アイテム非表示化】
+                    gameState.isInverted = true;
+                    log("インバーターを使用。ショットガンの電気回路を書き換えた。次の弾丸属性を反転！");
+                    playSound('click');
+                    playSound('rack');
+                    setTimeout(onComplete, 1200);
+                } else {
+                    cameraTargetPos.set(0, 3.0, -1.0); cameraTargetLookAt.set(0, 1.5, -3.5);
+                    playSound('zoom');
+
+                    setTimeout(() => {
+                        const inv = create3DItem('inverter');
+                        inv.position.set(0, 1.3, -2.6); scene.add(inv);
+                        playSound('click');
+                        
+                        gameState.isInverted = true;
+                        log("ディーラーはインバーターを使用。ショットガンの属性を反転させた。");
+                        if (gameState.dealerKnownNext) {
+                            gameState.dealerKnownNext = (gameState.dealerKnownNext === 'live') ? 'blank' : 'live';
+                        }
+                        playSound('rack');
+
+                        setTimeout(() => {
+                            scene.remove(inv);
+                            cameraTargetPos.set(0, 3.2, 5.0); cameraTargetLookAt.set(0, 0.5, -1.0);
+                            playSound('zoom');
+                            setTimeout(onComplete, 600);
+                        }, 1200);
+                    }, 600);
+                }
+            }
+            else if (type === 'adrenaline') {
+                log("アドレナリンを使用中。盗みたいディーラーのアイテムを直接クリックしてください。");
+                cameraTargetPos.set(0, 4.2, 4.5);
+                cameraTargetLookAt.set(0, 0.5, -0.5);
+                playSound('zoom');
+                
+                gameState.status = 'adrenaline_stealing';
+            }
+        }
+
+        // --- 8. ゲームシステム、AI of 統合 ---
+        function startNewRound() {
+            log("--- 新しい弾丸が供給されます ---");
+            const count = Math.floor(Math.random() * 5) + 3;
+            const live = Math.max(1, Math.floor(count / 2) + (Math.random() > 0.5 ? 1 : 0));
+            const blank = count - live;
+            
+            const temp = [];
+            for (let i = 0; i < live; i++) temp.push('live');
+            for (let i = 0; i < blank; i++) temp.push('blank');
+            gameState.shells = temp.sort(() => Math.random() - 0.5);
+
+            gameState.dealerKnownNext = null;
+
+            updateHUD();
+
+            playShellLoadingCinematic(() => {
+                // プレイヤー用のアイテムボックスをまず召喚（ディーラー用はプレイヤー配置完了後に順次召喚）
+                spawnItemBox(2, true);
+            });
+        }
+
+        // ==========================================
+        // 【アイテムボックス段ボール機能（プレイヤー・ディーラー両対応版）】
+        // ==========================================
+        function spawnItemBox(suppliedCount, isPlayer) {
+            isBoxOpen = false;
+            boxItemCount = suppliedCount;
+            isBoxForPlayer = isPlayer;
+            gameState.status = isPlayer ? 'unpacking_items' : 'dealer_unpacking';
+
+            // 古い箱があれば一応削除
+            if (itemBox) {
+                scene.remove(itemBox);
+            }
+
+            // 段ボールのグループ作成
+            itemBox = new THREE.Group();
+            
+            // プレイヤーとディーラーで出現させる場所を前後に分ける (手前 z=1.2, 奥 z=-1.5)
+            const zPos = isPlayer ? 1.2 : -1.5;
+            itemBox.position.set(0, -1.0, zPos); 
+            
+            const boxMat = new THREE.MeshStandardMaterial({ color: 0x9c7c5d, roughness: 0.9, metalness: 0.1 });
+            
+            // 箱の土台
+            const base = new THREE.Mesh(new THREE.BoxGeometry(1.4, 0.4, 1.0), boxMat);
+            base.position.y = 0.2;
+            base.castShadow = true;
+            base.receiveShadow = true;
+            itemBox.add(base);
+
+            // 開閉するフタ (カメラの邪魔をしないよう外側にパカッと開くように設計)
+            const lidGroup = new THREE.Group();
+            const lidOffsetZ = isPlayer ? -0.5 : 0.5;
+            lidGroup.position.set(0, 0.4, lidOffsetZ);
+            
+            const lid = new THREE.Mesh(new THREE.BoxGeometry(1.42, 0.05, 1.02), boxMat);
+            lid.position.set(0, 0.025, isPlayer ? 0.5 : -0.5);
+            lid.castShadow = true;
+            lidGroup.add(lid);
+            lidGroup.name = "lid";
+            itemBox.add(lidGroup);
+
+            scene.add(itemBox);
+
+            // 【視認性向上】箱の中身を照らす専用のスポットライトを生成（開封時に点灯）
+            boxLight = new THREE.PointLight(0xfff3dd, 0.0, 4);
+            boxLight.position.set(0, 1.5, zPos);
+            scene.add(boxLight);
+
+            // テーブルにせり上がらせるアニメーション
+            let progress = 0;
+            function slideUp() {
+                progress += 0.05;
+                itemBox.position.y = THREE.MathUtils.lerp(-1.0, 0.05, progress);
+                if (progress < 1) {
+                    requestAnimationFrame(slideUp);
+                } else {
+                    playSound('clank');
+                    if (isPlayer) {
+                        log("手元にアイテムボックスが届きました。クリックして開封してください。");
+                    } else {
+                        log("ディーラーの前にアイテムボックスが届きました。");
+                        // ディーラーの場合は0.8秒後に自動的にフタを開ける
+                        setTimeout(openItemBox, 800);
+                    }
+                }
+            }
+            slideUp();
+        }
+
+        function openItemBox() {
+            isBoxOpen = true;
+            playSound('rack');
+            
+            // 【視認性向上】アイテム照らす用ライトを点灯
+            boxLight.intensity = 2.0;
+            
+            const lid = itemBox.getObjectByName("lid");
+            let progress = 0;
+            function rotateLid() {
+                progress += 0.06;
+                // 使用者に応じて逆方向にフタを開く
+                const targetRot = isBoxForPlayer ? -Math.PI * 0.75 : Math.PI * 0.75;
+                lid.rotation.x = THREE.MathUtils.lerp(0, targetRot, progress);
+                if (progress < 1) {
+                    requestAnimationFrame(rotateLid);
+                } else {
+                    // 開ききったら中のアイテムを生成
+                    spawnItemsInsideBox(boxItemCount);
+                }
+            }
+            rotateLid();
+        }
+
+        function spawnItemsInsideBox(count) {
+            const types = ['cigarette', 'magnifier', 'beer', 'handcuffs', 'handsaw', 'medicine', 'phone', 'inverter', 'adrenaline'];
+            const boxXStart = -((count - 1) * 0.4) / 2;
+            const zPos = isBoxForPlayer ? 1.2 : -1.5;
+
+            if (isBoxForPlayer) {
+                // 【視認性向上】プレイヤー用アイテムは高さを y=0.55 まで浮かせ、フチに遮られずはっきりと見えるように
+                for (let i = 0; i < count; i++) {
+                    const type = types[Math.floor(Math.random() * types.length)];
+                    const mesh = create3DItem(type);
+                    
+                    mesh.position.set(boxXStart + i * 0.4, 0.55, zPos);
+                    mesh.userData.targetPosition = mesh.position.clone();
+                    mesh.userData.targetRotation = 0;
+                    
+                    scene.add(mesh);
+                    items.push(mesh);
+                }
+                log("箱が開きました。アイテムをドラッグして、手前の空いているお好きなスロットに配置してください。");
+            } else {
+                // ディーラーの箱の中身（自動アニメーション用）
+                const spawnedDealerItems = [];
+                const dealerTypes = ['cigarette', 'magnifier', 'beer', 'handcuffs', 'handsaw', 'medicine', 'phone', 'inverter'];
+                
+                for (let i = 0; i < count; i++) {
+                    const type = dealerTypes[Math.floor(Math.random() * dealerTypes.length)];
+                    const mesh = create3DItem(type);
+                    mesh.userData.isDealerItem = true;
+                    mesh.position.set(boxXStart + i * 0.4, 0.55, zPos);
+                    mesh.rotation.y = Math.PI; // プレイヤー側に向ける
+                    scene.add(mesh);
+                    spawnedDealerItems.push(mesh);
+                }
+
+                log("ディーラーのアイテムボックスが開きました。スロットに配置中...");
+                
+                // ディーラーが箱から順に空きスロットへアイテムを自動飛行させて配置
+                setTimeout(() => {
+                    let slotIdx = 0;
+                    let itemIdx = 0;
+
+                    function loadNextDealerItem() {
+                        if (itemIdx >= spawnedDealerItems.length) {
+                            // すべて配置完了したら箱を退場
+                            setTimeout(finishUnpacking, 500);
+                            return;
+                        }
+
+                        // ディーラー側の空いているスロットを探す
+                        while (slotIdx < dealerSlots.length && dealerSlots[slotIdx].occupiedBy) {
+                            slotIdx++;
+                        }
+
+                        if (slotIdx < dealerSlots.length) {
+                            const dItem = spawnedDealerItems[itemIdx];
+                            const slot = dealerSlots[slotIdx];
+                            
+                            slot.occupiedBy = dItem;
+                            dealerItems.push(dItem);
+
+                            // 放物線状にスライド移動するアニメーション
+                            const startPos = dItem.position.clone();
+                            const endPos = slot.position.clone();
+                            endPos.y = 0.15;
+                            let slideProg = 0;
+
+                            function slideItem() {
+                                slideProg += 0.08;
+                                dItem.position.lerpVectors(startPos, endPos, slideProg);
+                                dItem.position.y += Math.sin(slideProg * Math.PI) * 0.4; // 軽く山なりにする
+                                
+                                if (slideProg < 1) {
+                                    requestAnimationFrame(slideItem);
+                                } else {
+                                    dItem.position.copy(endPos);
+                                    dItem.userData.targetPosition = endPos.clone();
+                                    playSound('click');
+                                    itemIdx++;
+                                    setTimeout(loadNextDealerItem, 150);
+                                }
+                            }
+                            slideItem();
+                        } else {
+                            // 空きスロットがない場合（通常発生しませんが安全策として即時消去）
+                            scene.remove(spawnedDealerItems[itemIdx]);
+                            itemIdx++;
+                            loadNextDealerItem();
+                        }
+                    }
+                    loadNextDealerItem();
+                }, 800);
+            }
+        }
+
+        function finishUnpacking() {
+            gameState.status = 'cinematic';
+            
+            // 箱を照らしていた専用ライトを消去
+            if (boxLight) {
+                scene.remove(boxLight);
+            }
+
+            const lid = itemBox.getObjectByName("lid");
+            let progress = 0;
+            const isPlayer = isBoxForPlayer;
+
+            function closeAndSlide() {
+                progress += 0.05;
+                // フタを閉じる
+                const targetRot = isPlayer ? -Math.PI * 0.75 : Math.PI * 0.75;
+                lid.rotation.x = THREE.MathUtils.lerp(targetRot, 0, progress);
+                
+                // フタが半分閉じたら机の下へ
+                if (progress > 0.5) {
+                    itemBox.position.y = THREE.MathUtils.lerp(0.05, -1.0, (progress - 0.5) * 2);
+                }
+                
+                if (progress < 1) {
+                    requestAnimationFrame(closeAndSlide);
+                } else {
+                    scene.remove(itemBox);
+                    itemBox = null;
+                    isBoxOpen = false;
+                    
+                    if (isPlayer) {
+                        // プレイヤーの配置が終わったら、次にディーラー用の箱を召喚
+                        setTimeout(() => {
+                            spawnItemBox(2, false);
+                        }, 500);
+                    } else {
+                        // ディーラーの自動配置も完全に終わったら正式にプレイヤーのターン開始！
+                        gameState.status = 'player_turn';
+                        // カメラをデフォルトの水平ゲーム視点に戻す
+                        cameraTargetPos.set(0, 3.2, 5.0);
+                        cameraTargetLookAt.set(0, 0.5, -1.0);
+                        log("あなたのターンです。");
+                    }
+                }
+            }
+            closeAndSlide();
+        }
+
+        // --- 9. インタラクション & ドラッグ、ホバー検知 ---
+        const raycaster = new THREE.Raycaster();
+        const mouse = new THREE.Vector2();
+        const dragPlane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
+        let selectedObject = null;
+        let dragOffset = new THREE.Vector3();
+        let mouseDownPos = { x: 0, y: 0 };
+
+        window.addEventListener('mousedown', (event) => {
+            if (gameState.status === 'adrenaline_stealing') {
+                mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+                mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+                raycaster.setFromCamera(mouse, camera);
+                
+                const hits = raycaster.intersectObjects(dealerItems, true);
+                if (hits.length > 0) {
+                    let obj = hits[0].object;
+                    while (obj.parent && obj.parent !== scene) {
+                        obj = obj.parent;
+                    }
+                    
+                    const stolenType = obj.userData.type;
+                    removeDealerItemFromScene(obj);
+                    playSound('heal');
+                    
+                    log(`アドレナリンを注入！ディーラーのアイテム [ ${stolenType.toUpperCase()} ] を強奪し即時使用！`);
+                    
+                    playItemUseCinematic(null, stolenType, true, () => {
+                        updateHUD();
+                        if (gameState.shells.length === 0) {
+                            setTimeout(startNewRound, 1000);
+                            return;
+                        }
+                        gameState.status = 'player_turn';
+                    });
+                }
+                return;
+            }
+
+            // プレイヤーの通常のターン、またはプレイヤー箱開梱中のみドラッグ操作を許可
+            if (gameState.status !== 'player_turn' && gameState.status !== 'unpacking_items') {
+                return;
+            }
+
+            mouseDownPos.x = event.clientX;
+            mouseDownPos.y = event.clientY;
+
+            mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+            mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+
+            raycaster.setFromCamera(mouse, camera);
+            
+            // ショットガンクリック（通常ターン時のみ）
+            if (gameState.status === 'player_turn') {
+                const hitShotgun = raycaster.intersectObject(shotgun, true);
+                if (hitShotgun.length > 0) {
+                    pickUpShotgun();
+                    return;
+                }
+            }
+
+            // アイテム開梱中で、箱が閉まっている場合は箱のクリック開封判定を行う
+            if (gameState.status === 'unpacking_items' && !isBoxOpen) {
+                const intersectsBox = raycaster.intersectObject(itemBox, true);
+                if (intersectsBox.length > 0) {
+                    openItemBox();
+                    return;
+                }
+            }
+
+            // アイテムのドラッグ判定（通常ターンまたは箱が開いた開梱中）
+            if (gameState.status === 'player_turn' || (gameState.status === 'unpacking_items' && isBoxOpen)) {
+                const intersects = raycaster.intersectObjects(items, true);
+                if (intersects.length > 0) {
+                    let obj = intersects[0].object;
+                    while (obj.parent && obj.parent !== scene) {
+                        obj = obj.parent;
+                    }
+                    selectedObject = obj;
+
+                    const prevSlot = slots.find(s => s.occupiedBy === selectedObject);
+                    if (prevSlot) prevSlot.occupiedBy = null;
+
+                    const intersectPoint = new THREE.Vector3();
+                    raycaster.ray.intersectPlane(dragPlane, intersectPoint);
+                    dragOffset.copy(intersectPoint).sub(selectedObject.position);
+                    dragOffset.y = 0;
+                }
+            }
+        });
+
+        window.addEventListener('mousemove', (event) => {
+            mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+            mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+
+            // アニメーション再生中以外の場合のみ、マウス追従による首振りを許可
+            if (introTime < 0) {
+                targetCamOffset.x = mouse.x * 1.4; 
+                targetCamOffset.y = mouse.y * 0.8;
+            }
+
+            if (selectedObject && (gameState.status === 'player_turn' || gameState.status === 'unpacking_items')) {
+                raycaster.setFromCamera(mouse, camera);
+                const intersectPoint = new THREE.Vector3();
+                raycaster.ray.intersectPlane(dragPlane, intersectPoint);
+                selectedObject.position.copy(intersectPoint.sub(dragOffset));
+                selectedObject.position.y = 0.4;
+                hideTooltip();
+                return;
+            }
+
+            // ツールチップ表示
+            if ((gameState.status === 'player_turn' || gameState.status === 'adrenaline_stealing' || (gameState.status === 'unpacking_items' && isBoxOpen)) && !selectedObject) {
+                raycaster.setFromCamera(mouse, camera);
+                const hoverIntersects = raycaster.intersectObjects(items.concat(dealerItems), true);
+                if (hoverIntersects.length > 0) {
+                    let hoverObj = hoverIntersects[0].object;
+                    while (hoverObj.parent && hoverObj.parent !== scene) {
+                        hoverObj = hoverObj.parent;
+                    }
+                    showTooltip(event.clientX, event.clientY, hoverObj.userData.type);
+                } else {
+                    hideTooltip();
+                }
+            } else {
+                hideTooltip();
+            }
+        });
+
+        window.addEventListener('mouseup', (event) => {
+            if (gameState.status !== 'player_turn' && gameState.status !== 'unpacking_items') return;
+
+            const isClick = Math.hypot(event.clientX - mouseDownPos.x, event.clientY - mouseDownPos.y) < 5;
+
+            if (selectedObject) {
+                const closestSlot = findClosestSlot(selectedObject);
+                const distToSlot = closestSlot ? selectedObject.position.distanceTo(closestSlot.position) : Infinity;
+
+                // アイテムクリックによる使用判定（通常ターン時のみ使用可、箱展開中は使用不可）
+                if (gameState.status === 'player_turn' && isClick && closestSlot && distToSlot < 1.0) {
+                    const originallySlotted = slots.find(s => s.position.distanceTo(selectedObject.position) < 0.2);
+                    if (originallySlotted) {
+                        const itemToUse = selectedObject;
+                        const type = itemToUse.userData.type;
+
+                        removeItemFromScene(itemToUse);
+                        selectedObject = null;
+                        
+                        // プレイヤーの使用であることを明確にするため第3引数に true を渡す
+                        playItemUseCinematic(null, type, true, () => {
+                            updateHUD();
+                            
+                            if (gameState.shells.length === 0) {
+                                setTimeout(startNewRound, 1000);
+                                return;
+                            }
+                            
+                            gameState.status = 'player_turn';
+                        });
+                        return;
+                    }
+                }
+
+                // スロット吸い込みスナップ処理（通常ターン時、および開梱時共通）
+                if (closestSlot && !closestSlot.occupiedBy && distToSlot < 1.2) {
+                    closestSlot.occupiedBy = selectedObject;
+                    selectedObject.userData.targetPosition = closestSlot.position.clone();
+                    selectedObject.userData.targetPosition.y = 0.15;
+                    selectedObject.userData.targetRotation = 0;
+                    playSound('click');
+                } else {
+                    // もし配置されずに落とされたら、元の位置（箱の中、または移動前のスロット）に戻す
+                    selectedObject.userData.targetPosition = selectedObject.userData.targetPosition || selectedObject.position.clone();
+                }
+                selectedObject = null;
+
+                // 【バグ完全解決】開梱中の場合、全ての箱内アイテムがプレイヤーのどこかのスロットに配置されたかチェック
+                if (gameState.status === 'unpacking_items' && isBoxOpen) {
+                    const unplacedItems = items.filter(item => !slots.some(s => s.occupiedBy === item));
+                    if (unplacedItems.length === 0) {
+                        finishUnpacking();
+                    }
+                }
+            }
+        });
+
+        // --- 10. エイム・発砲制御 ---
+        function pickUpShotgun() {
+            gameState.status = 'cinematic';
+            hideTooltip();
+            shotgunTargetPos.set(0.4, 1.5, 3.2);
+            shotgunTargetRot.set(0, 0, 0);
+            playSound('rack');
+
+            setTimeout(() => {
+                document.getElementById('action-overlay').style.display = 'flex';
+            }, 300);
+        }
+
+        function putDownShotgun(callback) {
+            document.getElementById('action-overlay').style.display = 'none';
+            shotgunTargetPos.set(0, 0.15, -0.5);
+            shotgunTargetRot.set(0, Math.PI / 2, 0);
+            setTimeout(callback, 500);
+        }
+
+        document.getElementById('btn-cancel').addEventListener('click', () => {
+            playSound('click');
+            putDownShotgun(() => {
+                gameState.status = 'player_turn';
+            });
+        });
+
+        document.getElementById('btn-shoot-dealer').addEventListener('click', () => {
+            document.getElementById('action-overlay').style.display = 'none';
+            shootTarget('dealer');
+        });
+
+        document.getElementById('btn-shoot-self').addEventListener('click', () => {
+            document.getElementById('action-overlay').style.display = 'none';
+            shootTarget('self');
+        });
+
+        function shootTarget(target) {
+            gameState.status = 'cinematic';
+            
+            if (target === 'dealer') {
+                shotgunTargetPos.set(0.4, 1.5, 3.2);
+                shotgunTargetRot.set(0, 0, 0);
+                
+                cameraTargetPos.set(0, 3.2, 5.0);
+                cameraTargetLookAt.set(0, 1.5, -4.5);
+            } else {
+                shotgunTargetPos.set(0, 2.4, 4.3);
+                shotgunTargetRot.set(0.6, Math.PI, 0);
+                
+                cameraTargetPos.set(0, 3.2, 5.0);
+                cameraTargetLookAt.set(0, 2.2, 4.2);
+            }
+
+            setTimeout(() => {
+                const shell = gameState.shells.shift();
+                let actualShell = shell;
+                if (gameState.isInverted) {
+                    actualShell = (shell === 'live') ? 'blank' : 'live';
+                    gameState.isInverted = false;
+                }
+                
+                if (actualShell === 'live') {
+                    playSound('fire_live');
+                    triggerCameraShake(0.7, 300);
+                    spotLight.intensity = 55;
+                    setTimeout(() => spotLight.intensity = 10, 100);
+
+                    const dmg = gameState.isSawedOff ? 2 : 1;
+                    gameState.isSawedOff = false;
+                    const bMesh = shotgun.getObjectByName("barrel");
+                    if (bMesh) bMesh.scale.set(1.0, 1.0, 1.0);
+
+                    if (target === 'dealer') {
+                        gameState.dealerHP = Math.max(0, gameState.dealerHP - dmg);
+                        setHP(false, gameState.dealerHP); 
+                        log(`実弾！ディーラーに ${dmg} ダメージ。`);
+                    } else {
+                        gameState.playerHP = Math.max(0, gameState.playerHP - dmg);
+                        setHP(true, gameState.playerHP); 
+                        log(`実弾！自分に ${dmg} ダメージ。`);
+                    }
+                } else {
+                    playSound('fire_blank');
+                    triggerCameraShake(0.1, 100);
+                    log("空砲。乾いたカチリという音。");
+                    gameState.isSawedOff = false;
+                    const bMesh = shotgun.getObjectByName("barrel");
+                    if (bMesh) bMesh.scale.set(1.0, 1.0, 1.0);
+                }
+
+                updateHUD();
+
+                setTimeout(() => {
+                    if (gameState.playerHP <= 0) { endGame(false); return; }
+                    if (gameState.dealerHP <= 0) { endGame(true); return; }
+
+                    if (gameState.shells.length === 0) {
+                        putDownShotgun(() => {
+                            cameraTargetPos.set(0, 3.2, 5.0);
+                            cameraTargetLookAt.set(0, 0.5, -1.0);
+                            setTimeout(startNewRound, 600);
+                        });
+                        return;
+                    }
+
+                    putDownShotgun(() => {
+                        cameraTargetPos.set(0, 3.2, 5.0);
+                        cameraTargetLookAt.set(0, 0.5, -1.0);
+
+                        setTimeout(() => {
+                            if (target === 'self' && actualShell === 'blank') {
+                                log("空砲のため、あなたのターンが継続。");
+                                gameState.status = 'player_turn';
+                            } else {
+                                if (gameState.dealerHandcuffed) {
+                                    log("手錠により、ディーラーのターンはスキップ。あなたのターンが継続。");
+                                    gameState.dealerHandcuffed = false;
+                                    gameState.status = 'player_turn';
+                                } else {
+                                    gameState.status = 'dealer_turn';
+                                    setTimeout(dealerTurnLogic, 1000);
+                                }
+                            }
+                        }, 500);
+                    });
+                }, 1200);
+
+            }, 900);
+        }
+
+        // --- 11. ディーラーAI ---
+        function dealerTurnLogic() {
+            if (gameState.status !== 'dealer_turn') return;
+            log("ディーラーが思考中...");
+            triggerCameraShake(0.04, 500);
+
+            setTimeout(() => {
+                const liveCount = gameState.shells.filter(s => s === 'live').length;
+                const blankCount = gameState.shells.filter(s => s === 'blank').length;
+                const dealerTypes = dealerItems.map(item => item.userData.type);
+                
+                if (gameState.dealerHP < gameState.maxHP && dealerTypes.includes('cigarette')) {
+                    executeDealerItem('cigarette');
+                    return;
+                }
+
+                if (dealerTypes.includes('magnifier')) {
+                    executeDealerItem('magnifier');
+                    return;
+                }
+
+                let nextIsLive = liveCount > blankCount;
+                if (gameState.dealerKnownNext) {
+                    nextIsLive = gameState.dealerKnownNext === 'live';
+                }
+
+                if (nextIsLive && dealerTypes.includes('handsaw') && !gameState.isSawedOff) {
+                    executeDealerItem('handsaw');
+                    return;
+                }
+
+                if (nextIsLive && dealerTypes.includes('handcuffs')) {
+                    executeDealerItem('handcuffs');
+                    return;
+                }
+
+                if (!nextIsLive && dealerTypes.includes('beer')) {
+                    executeDealerItem('beer');
+                    return;
+                }
+
+                let target = 'player';
+                if (blankCount > liveCount && !gameState.dealerKnownNext) {
+                    target = 'self';
+                } else if (gameState.dealerKnownNext === 'blank') {
+                    target = 'self';
+                }
+
+                gameState.dealerKnownNext = null; 
+
+                log(`ディーラーはショットガンを取り、${target === 'player' ? 'あなた' : '自身'}に銃口を向けた。`);
+
+                if (target === 'player') {
+                    shotgunTargetPos.set(0, 2.0, -2.0);
+                    shotgunTargetRot.set(0.15, Math.PI, 0);
+                    
+                    cameraTargetPos.set(0, 3.2, 5.0);
+                    cameraTargetLookAt.set(0, 1.8, -2.5);
+                } else {
+                    shotgunTargetPos.set(0, 1.6, -3.8);
+                    shotgunTargetRot.set(Math.PI / 4, 0, 0);
+                    
+                    cameraTargetPos.set(0, 3.2, 5.0);
+                    cameraTargetLookAt.set(0, 1.5, -4.5);
+                }
+                playSound('zoom');
+
+                setTimeout(() => {
+                    const shell = gameState.shells.shift();
+                    let actualShell = shell;
+                    if (gameState.isInverted) {
+                        actualShell = (shell === 'live') ? 'blank' : 'live';
+                        gameState.isInverted = false;
+                    }
+
+                    if (actualShell === 'live') {
+                        playSound('fire_live');
+                        triggerCameraShake(0.6, 300);
+                        spotLight.intensity = 55;
+                        setTimeout(() => spotLight.intensity = 10, 100);
+
+                        const dmg = gameState.isSawedOff ? 2 : 1;
+                        gameState.isSawedOff = false;
+                        const bMesh = shotgun.getObjectByName("barrel");
+                        if (bMesh) bMesh.scale.set(1.0, 1.0, 1.0);
+
+                        if (target === 'player') {
+                            gameState.playerHP = Math.max(0, gameState.playerHP - dmg);
+                            setHP(true, gameState.playerHP); 
+                            log("実弾！1ダメージ受けた。");
+                        } else {
+                            gameState.dealerHP = Math.max(0, gameState.dealerHP - dmg);
+                            setHP(false, gameState.dealerHP); 
+                            log("実弾！ディーラーは自滅。");
+                        }
+                    } else {
+                        playSound('fire_blank');
+                        triggerCameraShake(0.1, 100);
+                        log("空砲。銃口から軽い金属音。");
+                        gameState.isSawedOff = false;
+                        const bMesh = shotgun.getObjectByName("barrel");
+                        if (bMesh) bMesh.scale.set(1.0, 1.0, 1.0);
+                    }
+
+                    updateHUD();
+
+                    setTimeout(() => {
+                        if (gameState.playerHP <= 0) { endGame(false); return; }
+                        if (gameState.dealerHP <= 0) { endGame(true); return; }
+
+                        if (gameState.shells.length === 0) {
+                            putDownShotgun(() => {
+                                cameraTargetPos.set(0, 3.2, 5.0);
+                                cameraTargetLookAt.set(0, 0.5, -1.0);
+                                setTimeout(startNewRound, 600);
+                            });
+                            return;
+                        }
+
+                        putDownShotgun(() => {
+                            cameraTargetPos.set(0, 3.2, 5.0);
+                            cameraTargetLookAt.set(0, 0.5, -1.0);
+
+                            setTimeout(() => {
+                                if (target === 'self' && actualShell === 'blank') {
+                                    log("空砲のため、ディーラーのターンが継続。");
+                                    setTimeout(dealerTurnLogic, 1000);
+                                } else {
+                                    gameState.status = 'player_turn';
+                                    log("あなたのターンです。");
+                                }
+                            }, 500);
+                        });
+                    }, 1200);
+
+                }, 1000);
+
+            }, 1500);
+        }
+
+        function executeDealerItem(type) {
+            const itemMesh = dealerItems.find(item => item.userData.type === type);
+            if (!itemMesh) return;
+            
+            removeDealerItemFromScene(itemMesh);
+
+            // 【バグ完全解決】ディーラーの使用であることを明確にするため第3引数に false を渡す
+            playItemUseCinematic(itemMesh, type, false, () => {
+                updateHUD();
+                gameState.status = 'dealer_turn'; 
+                setTimeout(dealerTurnLogic, 800);
+            });
+        }
+
+        function removeDealerItemFromScene(itemMesh) {
+            scene.remove(itemMesh);
+            const idx = dealerItems.indexOf(itemMesh);
+            if (idx > -1) dealerItems.splice(idx, 1);
+            const slot = dealerSlots.find(s => s.occupiedBy === itemMesh);
+            if (slot) slot.occupiedBy = null;
+        }
+
+        function endGame(won) {
+            gameState.status = 'game_over';
+            document.getElementById('start-overlay').style.display = 'flex';
+            document.getElementById('start-title').innerHTML = won ? "YOU SURVIVED<br><span style='font-size:16px;color:#00ff66;'>生還しました</span>" : "WASTED<br><span style='font-size:16px;color:#ff0000;'>命を落としました</span>";
+            document.getElementById('start-btn').textContent = "リスタート";
+        }
+
+        // --- 12. メイン描画ループ (カメラ補間・シェイク) ---
+        let shakeTime = 0;
+        let shakeIntensity = 0;
+        function triggerCameraShake(intensity, duration) {
+            shakeIntensity = intensity;
+            shakeTime = duration;
+        }
+
+        function updateCamera(time) {
+            // 【路地裏降下シネマティックカメラのタイムライン処理（一人称シミュレーション）】
+            if (introTime >= 0) {
+                introTime += 16; 
+                
+                // アニメーション再生中は視点ブレ（マウスオフセット）を強制的に完全にリセットして固定化
+                targetCamOffset.set(0, 0, 0);
+                currentCamOffset.set(0, 0, 0);
+
+                if (introTime < 2500) {
+                    // フェーズ1：汚い街の高層ビル群から、路地裏の濡れた地面へと一人称視点で急降下
+                    const p = introTime / 2500;
+                    const t = p * p * (3 - 2 * p); // イージング
+                    
+                    cameraTargetPos.set(
+                        THREE.MathUtils.lerp(6.0, 2.0, t),
+                        THREE.MathUtils.lerp(22.0, 11.5, t),
+                        THREE.MathUtils.lerp(-8.0, -3.0, t)
+                    );
+                    cameraTargetLookAt.set(0, 11.1, -1.0);
+                } 
+                else if (introTime < 5000) {
+                    // フェーズ2：ストリートに着地。ゴミをすり抜けながら狭い路地裏を前進し、角をぬるりと曲がって排水溝を見つける
+                    const p = (introTime - 2500) / 2500;
+                    const t = p * p * (3 - 2 * p);
+                    
+                    cameraTargetPos.set(
+                        THREE.MathUtils.lerp(2.0, 0.0, t),
+                        11.3,
+                        THREE.MathUtils.lerp(-3.0, 0.8, t)
+                    );
+                    cameraTargetLookAt.set(
+                        0.0,
+                        THREE.MathUtils.lerp(11.1, 10.5, t),
+                        THREE.MathUtils.lerp(-1.0, 0.8, t)
+                    );
+                } 
+                else if (introTime < 7000) {
+                    // フェーズ3：排水溝の直上に回り込み、視点を垂直下に向けて格子の隙間を通り抜ける
+                    const p = (introTime - 5000) / 2000;
+                    const t = p * p * (3 - 2 * p);
+                    
+                    cameraTargetPos.set(0.0, THREE.MathUtils.lerp(11.3, 10.3, t), 0.8);
+                    cameraTargetLookAt.set(0.0, 1.0, 0.8);
+                } 
+                else if (introTime < 9500) {
+                    // フェーズ4：地下配管を、カメラをぐるぐると2回転スピンさせながら超高速落下
+                    const p = (introTime - 7000) / 2500;
+                    const t = p * p * (3 - 2 * p);
+                    
+                    const currentY = THREE.MathUtils.lerp(10.3, 4.0, t);
+                    cameraTargetPos.set(0.0, currentY, 0.8);
+                    
+                    const spinAngle = p * Math.PI * 4; // 2回転
+                    const spinRadius = 0.5 * (1 - p); 
+                    cameraTargetLookAt.set(
+                        Math.sin(spinAngle) * spinRadius,
+                        0.5,
+                        0.8 + Math.cos(spinAngle) * spinRadius
+                    );
+                } 
+                else if (introTime < 12000) {
+                    // フェーズ5：天井から脱出。減速しながら座席へスライドインし、ディーラーに正対
+                    const p = (introTime - 9500) / 2500;
+                    const t = p * p * (3 - 2 * p);
+                    
+                    cameraTargetPos.set(
+                        0.0,
+                        THREE.MathUtils.lerp(4.0, 3.2, t),
+                        THREE.MathUtils.lerp(0.8, 5.0, t)
+                    );
+                    cameraTargetLookAt.set(
+                        0.0,
+                        THREE.MathUtils.lerp(0.5, 0.5, t),
+                        THREE.MathUtils.lerp(0.8, -1.0, t)
+                    );
+                } 
+                else if (introTime >= 12000 && gameState.status === 'start_screen') {
+                    introTime = -1; 
+                    log("--- 誓約完了。ゲームを開始します ---");
+                    startNewRound();
+                }
+            }
+
+            // 【視認性向上】開梱フェーズに入った際、カメラアングルを箱の中を斜め上から覗き込む視点に変更
+            if (gameState.status === 'unpacking_items') {
+                // プレイヤーの箱(z=1.2)を上から覗き込む
+                cameraTargetPos.set(0, 3.8, 3.8);
+                cameraTargetLookAt.set(0, 0.2, 1.2);
+            } else if (gameState.status === 'dealer_unpacking') {
+                // ディーラーの箱(z=-1.5)を斜め上から見つめる
+                cameraTargetPos.set(0, 3.8, 0.5);
+                cameraTargetLookAt.set(0, 0.2, -1.5);
+            }
+
+            cameraTargetPos_Lerp.lerp(cameraTargetPos, 0.08);
+            cameraTargetLookAt_Lerp.lerp(cameraTargetLookAt, 0.08);
+
+            // 通常ゲーム時（シネマティック中でない時）のみマウス視線追従の補間を適用
+            if (introTime < 0) {
+                currentCamOffset.lerp(targetCamOffset, 0.08);
+            }
+
+            camera.position.copy(cameraTargetPos_Lerp);
+            
+            if (introTime < 0) {
+                camera.position.x += currentCamOffset.x;
+                camera.position.y += currentCamOffset.y * 0.4;
+            }
+
+            const lookAtTarget = cameraTargetLookAt_Lerp.clone();
+            
+            if (introTime < 0) {
+                lookAtTarget.x += currentCamOffset.x * 1.3;
+                lookAtTarget.y += currentCamOffset.y * 0.8;
+
+                const breathY = Math.sin(time * 0.001) * 0.02;
+                const breathX = Math.cos(time * 0.0008) * 0.01;
+                lookAtTarget.x += breathX;
+                lookAtTarget.y += breathY;
+            }
+
+            camera.lookAt(lookAtTarget);
+
+            if (shakeTime > 0) {
+                camera.position.x += (Math.random() - 0.5) * shakeIntensity;
+                camera.position.y += (Math.random() - 0.5) * shakeIntensity;
+                shakeTime -= 16;
+            }
+        }
+
+        function updateFlicker() {
+            if (Math.random() > 0.985) {
+                spotLight.intensity = Math.random() * 2;
+            } else if (Math.random() > 0.90) {
+                spotLight.intensity = 8;
+            }
+        }
+
+        function animate(time) {
+            requestAnimationFrame(animate);
+
+            updateCamera(time);
+            updateFlicker();
+            updateParticles();
+
+            // ⚡除細動器ハードウェアアニメーション
+            const dt = 0.016;
+            updateDefibHardware(playerDefib, dt);
+            updateDefibHardware(dealerDefib, dt);
+
+            // 引き出しトレイのスライド機械補間
+            trayGroup.position.y = THREE.MathUtils.lerp(trayGroup.position.y, trayTargetY, 0.08);
+
+            // ショットガンの補間更新
+            shotgun.position.lerp(shotgunTargetPos, 0.12);
+            shotgun.rotation.x = THREE.MathUtils.lerp(shotgun.rotation.x, shotgunTargetRot.x, 0.12);
+            shotgun.rotation.y = THREE.MathUtils.lerp(shotgun.rotation.y, shotgunTargetRot.y, 0.12);
+            shotgun.rotation.z = THREE.MathUtils.lerp(shotgun.rotation.z, shotgunTargetRot.z, 0.12);
+
+            // プレイヤーアイテムの位置補間
+            items.forEach(item => {
+                if (item !== selectedObject && item.userData.targetPosition) {
+                    item.position.lerp(item.userData.targetPosition, 0.2);
+                    if (item.userData.targetRotation !== undefined) {
+                        item.rotation.y = THREE.MathUtils.lerp(item.rotation.y, item.userData.targetRotation, 0.2);
+                    }
+                }
+            });
+
+            // ディーラーアイテムの位置補間
+            dealerItems.forEach(item => {
+                if (item.userData.targetPosition) {
+                    item.position.lerp(item.userData.targetPosition, 0.2);
+                }
+                
+                // アドレナリンフェーズ中のみ、ディーラーの手札にホバーしたら少しフワッと持ち上げて強調表示
+                if (gameState.status === 'adrenaline_stealing') {
+                    raycaster.setFromCamera(mouse, camera);
+                    const intersects = raycaster.intersectObject(item, true);
+                    if (intersects.length > 0) {
+                        item.userData.targetPosition.y = 0.35; 
+                    } else {
+                        item.userData.targetPosition.y = 0.15; 
+                    }
+                }
+            });
+
+            renderer.render(scene, camera);
+        }
+
+        function findClosestSlot(obj) {
+            let closest = null;
+            let minD = Infinity;
+            slots.forEach(s => {
+                const d = obj.position.distanceTo(s.position);
+                if (d < minD) { minD = d; closest = s; }
+            });
+            return closest;
+        }
+
+        function removeItemFromScene(itemMesh) {
+            scene.remove(itemMesh);
+            const idx = items.indexOf(itemMesh);
+            if (idx > -1) items.splice(idx, 1);
+            const slot = slots.find(s => s.occupiedBy === itemMesh);
+            if (slot) slot.occupiedBy = null;
+        }
+
+        // --- スタートボタン & デバイス初期化 ---
+        initDefibDevice(playerDefib, true);
+        initDefibDevice(dealerDefib, false);
+
+        document.getElementById('sign-btn').addEventListener('click', () => {
+            const input = document.getElementById('signature-input').value.trim();
+            if (input === "") {
+                alert("誓約書に署名（名前を入力）してください。");
+                return;
+            }
+            
+            // オーディオリセットとBGM開始
+            playSound('click');
+            startBGM();
+
+            // 書類を画面下にスライドアウト
+            const doc = document.getElementById('waiver-document');
+            doc.style.transform = 'translateY(120vh)';
+
+            // 背景フェード ➔ タイムライン開始
+            const overlay = document.getElementById('waiver-overlay');
+            overlay.style.background = 'rgba(0,0,0,0)';
+            overlay.style.opacity = '0';
+            
+            // 街角から排水溝への降下タイムラインを始動！
+            introTime = 0; 
+            playSound('zoom');
+
+            setTimeout(() => {
+                overlay.style.display = 'none';
+                consoleLogEl.innerHTML = '';
+                
+                gameState.playerHP = 4;
+                gameState.dealerHP = 4;
+                gameState.dealerHandcuffed = false;
+                
+                // ⚡除細動器ライフゲージを初期フル点灯に戻す
+                for(let i=0; i<4; i++) {
+                    playerDefib.bolts[i].currentState = 'on';
+                    playerDefib.bolts[i].targetState = 'on';
+                    playerDefib.bolts[i].flickerTimer = 0;
+                    dealerDefib.bolts[i].currentState = 'on';
+                    dealerDefib.bolts[i].targetState = 'on';
+                    dealerDefib.bolts[i].flickerTimer = 0;
+                }
+                updateScreenTexture(playerDefib, 4);
+                updateScreenTexture(dealerDefib, 4);
+                
+                items.forEach(i => scene.remove(i));
+                items.length = 0;
+                dealerItems.forEach(i => scene.remove(i));
+                dealerItems.length = 0;
+                
+                slots.forEach(s => s.occupiedBy = null);
+                dealerSlots.forEach(s => s.occupiedBy = null);
+            }, 2000);
+        });
+
+        const startBtn = document.getElementById('start-btn');
+        if (startBtn) {
+            startBtn.addEventListener('click', () => {
+                location.reload();
+            });
+        }
+
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        requestAnimationFrame(animate);
+
+		</script>
+</body>
+
+</html>
