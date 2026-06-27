@@ -1,0 +1,1316 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+	<title>Snek Left 3D - Ultimate Grand Edition</title>
+	<style>
+		body {
+			margin: 0;
+			padding: 0;
+			overflow: hidden;
+			background-color: #0099FF;
+			font-family: 'Helvetica Neue', Arial, sans-serif;
+			user-select: none;
+		}
+
+		#game-container {
+			width: 100vw;
+			height: 100vh;
+			display: block;
+		}
+
+		/* HUD */
+		#hud {
+			position: absolute;
+			top: 20px;
+			left: 50%;
+			transform: translateX(-50%);
+			color: #ffffff;
+			font-size: 24px;
+			font-weight: bold;
+			text-shadow: 2px 2px 0px rgba(0, 0, 0, 0.3);
+			pointer-events: none;
+			text-align: center;
+			z-index: 10;
+		}
+
+		#level-name {
+			font-size: 13px;
+			font-weight: normal;
+			opacity: 0.95;
+			margin-top: 4px;
+			letter-spacing: 0.5px;
+		}
+
+		#instructions {
+			position: absolute;
+			bottom: 40px;
+			left: 50%;
+			transform: translateX(-50%);
+			color: #ffffff;
+			font-size: 14px;
+			text-shadow: 1px 1px 0px rgba(0, 0, 0, 0.4);
+			pointer-events: none;
+			text-align: center;
+			background-color: rgba(0, 0, 0, 0.35);
+			padding: 10px 20px;
+			border-radius: 20px;
+			line-height: 1.5;
+			z-index: 10;
+		}
+
+		/* 3Dボタンデザイン */
+		.fancade-btn {
+			border: none;
+			border-radius: 50%;
+			display: flex;
+			justify-content: center;
+			align-items: center;
+			cursor: pointer;
+			font-size: 38px;
+			color: white;
+			transition: transform 0.1s, box-shadow 0.1s;
+			outline: none;
+		}
+
+		.btn-home {
+			background-color: #5D9CEC;
+			box-shadow: 0 9px 0 #4A89DC;
+			width: 90px;
+			height: 90px;
+		}
+
+		.btn-home:active {
+			transform: translateY(5px);
+			box-shadow: 0 4px 0 #4A89DC;
+		}
+
+		.btn-retry {
+			background-color: #FFCE54;
+			box-shadow: 0 9px 0 #F6BB42;
+			width: 90px;
+			height: 90px;
+		}
+
+		.btn-retry:active {
+			transform: translateY(5px);
+			box-shadow: 0 4px 0 #F6BB42;
+		}
+
+		.btn-next {
+			background-color: #A0D468;
+			box-shadow: 0 11px 0 #8CC152;
+			width: 115px;
+			height: 115px;
+			font-size: 52px;
+			border-radius: 50%;
+		}
+
+		.btn-next:active {
+			transform: translateY(6px);
+			box-shadow: 0 5px 0 #8CC152;
+		}
+
+		#restart-btn {
+			position: absolute;
+			top: 20px;
+			right: 20px;
+			width: 44px;
+			height: 44px;
+			font-size: 18px;
+			border-radius: 50%;
+			z-index: 20;
+		}
+
+		#pause-btn {
+			position: absolute;
+			top: 20px;
+			left: 20px;
+			width: 44px;
+			height: 44px;
+			font-size: 18px;
+			border-radius: 50%;
+			z-index: 20;
+		}
+
+		/* ぼかし背景オーバーレイ */
+		.overlay {
+			position: absolute;
+			top: 0;
+			left: 0;
+			width: 100%;
+			height: 100%;
+			background-color: rgba(0, 0, 0, 0.45);
+			backdrop-filter: blur(8px);
+			-webkit-backdrop-filter: blur(8px);
+			display: flex;
+			flex-direction: column;
+			justify-content: center;
+			align-items: center;
+			color: #fff;
+			display: none;
+			z-index: 100;
+		}
+
+		/* 斜めのポラロイド写真カード */
+		.photo-card {
+			background-color: #ffffff;
+			border-radius: 18px;
+			padding: 16px;
+			box-shadow: 0 15px 45px rgba(0, 0, 0, 0.5);
+			transform: rotate(-3deg);
+			width: 380px;
+			display: flex;
+			flex-direction: column;
+			align-items: center;
+			border: 12px solid #ffffff;
+			margin-bottom: 35px;
+			animation: popCard 0.45s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+		}
+
+		@keyframes popCard {
+			0% {
+				transform: scale(0.5) rotate(15deg);
+				opacity: 0;
+			}
+
+			100% {
+				transform: scale(1) rotate(-3deg);
+				opacity: 1;
+			}
+		}
+
+		.photo-card img {
+			width: 100%;
+			border-radius: 10px;
+			aspect-ratio: 4/3;
+			object-fit: cover;
+			box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.15);
+			background-color: #eee;
+		}
+
+		.photo-card h2 {
+			color: #333333;
+			font-size: 24px;
+			margin: 18px 0 2px 0;
+			font-weight: 900;
+			letter-spacing: 1px;
+		}
+
+		.button-row {
+			display: flex;
+			gap: 20px;
+			justify-content: center;
+			align-items: center;
+		}
+
+		/* 25ステージ対応スクロールグリッド */
+		#stage-grid {
+			display: grid;
+			grid-template-columns: repeat(5, 1fr);
+			gap: 12px;
+			max-width: 380px;
+			max-height: 320px;
+			overflow-y: auto;
+			margin-bottom: 30px;
+			padding: 10px;
+			background-color: rgba(255, 255, 255, 0.1);
+			border-radius: 12px;
+		}
+	</style>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+</head>
+
+<body>
+
+	<div id="game-container"></div>
+
+	<!-- 通常HUD -->
+	<div id="hud">
+		<div id="level-num">LEVEL 1</div>
+		<div id="level-name">Straight Forward</div>
+	</div>
+
+	<div id="instructions">
+		タップ / スペースキー長押し：【左旋回】<br>
+        離す：【右旋回】（スタートと同時に自動的に右に回り始めます）
+    </div>
+
+		<!-- クイック再起動 ＆ ポーズ -->
+		<button id="restart-btn" class="fancade-btn btn-retry" style="font-size: 18px; width: 44px; height: 44px; box-shadow: 0 4px 0 #F6BB42;">↻</button>
+		<button id="pause-btn" class="fancade-btn btn-home" style="font-size: 18px; width: 44px; height: 44px; box-shadow: 0 4px 0 #4A89DC;">⏸</button>
+
+		<!-- ステージクリア演出 -->
+		<div id="clear-overlay" class="overlay">
+			<div class="photo-card">
+				<img id="win-photo" src="" alt="Clear Snapshot">
+				<h2>STAGE CLEARED!</h2>
+			</div>
+			<div class="button-row">
+				<button class="fancade-btn btn-home home-action-btn">🏠</button>
+				<button class="fancade-btn btn-retry retry-action-btn">↻</button>
+				<button id="next-btn" class="fancade-btn btn-next">▶</button>
+			</div>
+		</div>
+
+		<!-- ゲームオーバー演出 -->
+		<div id="fail-overlay" class="overlay">
+			<div class="photo-card" style="transform: rotate(3deg);">
+				<img id="fail-photo" src="" alt="Fail Snapshot">
+				<h2 style="color: #D24B4C;">GAME OVER!</h2>
+			</div>
+			<div class="button-row">
+				<button class="fancade-btn btn-home home-action-btn">🏠</button>
+				<button class="fancade-btn btn-retry retry-action-btn">↻</button>
+			</div>
+		</div>
+
+		<!-- 一時停止演出 -->
+		<div id="pause-overlay" class="overlay">
+			<div class="photo-card" style="transform: rotate(-1deg);">
+				<img id="pause-photo" src="" alt="Pause Snapshot">
+				<h2>GAME PAUSED</h2>
+			</div>
+			<div class="button-row">
+				<button class="fancade-btn btn-home home-action-btn">🏠</button>
+				<button class="fancade-btn btn-retry retry-action-btn">↻</button>
+				<button id="resume-btn" class="fancade-btn btn-next">▶</button>
+			</div>
+		</div>
+
+		<!-- ステージ選択画面オーバーレイ -->
+		<div id="select-overlay" class="overlay">
+			<h1 style="font-size: 28px; font-weight: 900; margin-bottom: 24px; letter-spacing: 1px;">SELECT STAGE</h1>
+			<div id="stage-grid"></div>
+			<button id="close-select-btn" class="fancade-btn btn-retry" style="border-radius: 8px; width: auto; height: auto; padding: 10px 24px; font-size: 15px; box-shadow: 0 5px 0 #F6BB42;">CLOSE</button>
+		</div>
+
+		<script>
+			// --- ゲーム状態 ---
+        const STATE_PLAYING = 1;
+        const STATE_CRASHED = 2;
+        const STATE_FALLING = 3;
+        const STATE_CLEARED = 4;
+        let gameState = STATE_PLAYING;
+        let gamePaused = false;
+        let spawnInvincibleTimer = 0;
+
+        // --- 本家イメージカラー完全固定 ---
+        const colors = {
+            background: 0x0099FF,  // 空
+            grass: 0x42C151,       // 芝生
+            dirt: 0xF7A189,        // 土側面
+            fencePost: 0xD24B4C,   // 支柱（赤）
+            fenceRail: 0xFA8C8C,   // 横棒（ピンク）
+            archStone: 0x9AA5B0,   // アーチ石・高壁（グレー）
+            archSnow: 0xFFFFFF,    // 雪
+            spectator: 0xFB7A9F,   // 観客（ピンク）
+            snekYellow: 0xFCD711,  // 蛇
+            snekEyeWhite: 0xffffff,
+            snekEyePupil: 0x000000
+        };
+
+        // --- 本家準拠の「全25ステージ」手書き完全再構築データ ---
+        const STAGES = [
+            // 1: Straight Forward (まっすぐ進む)
+            { name: "Straight Forward", startX: 12.5, startZ: 4.5, startAngle: Math.PI, map: [
+                "0000000000000000","0000000000000000","0000000000000000","0000111111111100","0022111111111100","0022111111111100","0000111111111100","0000000000000000","0000000000000000","0000000000000000"
+            ]},
+            // 2: Turn Around (Uターン)
+            { name: "Turn Around", startX: 10.5, startZ: 3.5, startAngle: Math.PI, map: [
+                "0000000000000000","0000000000000000","0001111111111000","0001111111111000","0001100000011000","0001100220011000","0001111221111000","0001111111111000","0000000000000000","0000000000000000"
+            ]},
+            // 3: Go West (まっすぐ進んで左へ曲がる)
+            { name: "Go West", startX: 11.5, startZ: 3.5, startAngle: Math.PI, map: [
+                "0000000000000000","0000000000000000","0000111111111000","0000111111111000","0000110000000000","0000110000000000","0000220000000000","0000220000000000","0000000000000000","0000000000000000"
+            ]},
+            // 4: Easy Right (右側を回って下に進む)
+            { name: "Easy Right", startX: 4.5, startZ: 3.5, startAngle: 0, map: [
+                "0000000000000000","0000000000000000","0000111111111000","0000111111111000","0000000000011000","0000000000011000","0000000000022000","0000000000022000","0000000000000000","0000000000000000"
+            ]},
+            // 5: Looong (大きく反時計回りに大回り)
+            { name: "Looong", startX: 11.5, startZ: 6.5, startAngle: -Math.PI/2, map: [
+                "0000000000000000","0000111111111100","0000111111111100","0000110000001100","0000110000001100","0000220000001100","0000221111111100","0000111111111100","0000000000000000","0000000000000000"
+            ]},
+            // 6: Obstruction (途中の低い障害物を避ける)
+            { name: "Obstruction", startX: 11.5, startZ: 4.5, startAngle: Math.PI, map: [
+                "0000000000000000","0000000000000000","0001111111111000","0001111331111000","0022111111111000","0022111111111000","0001111331111000","0001111111111000","0000000000000000","0000000000000000"
+            ]},
+            // 7: The Cube (巨大な正方形の壁)
+            { name: "The Cube", startX: 11.5, startZ: 2.5, startAngle: Math.PI, map: [
+                "0000000000000000","0001111111111000","0001111111111000","0001144444111000","0001144444111000","0001111111111000","0001111111111000","0001111221111000","0000000220000000","0000000000000000"
+            ]},
+            // 8: Open Goal (左半分全体がゴール)
+            { name: "Open Goal", startX: 11.5, startZ: 4.5, startAngle: Math.PI, map: [
+                "0000000000000000","0000222211111000","0000222211111000","0000222211111000","0000222211111000","0000222211111000","0000222211111000","0000222211111000","0000000000000000","0000000000000000"
+            ]},
+            // 9: Portal Back (アーチ門を折り返す)
+            { name: "Portal Back", startX: 7.5, startZ: 2.5, startAngle: Math.PI/2, map: [
+                "0000000000000000","0000001111000000","0000001111000000","0000001111000000","0000001111000000","0000001111000000","0000002222000000","0000002222000000","0000000000000000","0000000000000000"
+            ]},
+            // 10: Thin Line (極細の一本道)
+            { name: "Thin Line", startX: 12.5, startZ: 4.5, startAngle: Math.PI, map: [
+                "0000000000000000","0000000000000000","0000000000000000","0000111111111100","0022111111111100","0022111111111100","0000111111111100","0000000000000000","0000000000000000","0000000000000000"
+            ]},
+            // 11: U Win (U字を回る)
+            { name: "U Win", startX: 4.5, startZ: 6.5, startAngle: -Math.PI/2, map: [
+                "0000000000000000","0001111111111000","0001111111111000","0001100000011000","0001100000011000","0001100000022000","0001100000022000","0000000000000000","0000000000000000","0000000000000000"
+            ]},
+            // 12: Petrified (多くの障害物)
+            { name: "Petrified", startX: 11.5, startZ: 4.5, startAngle: Math.PI, map: [
+                "0000000000000000","0001111111111000","0001131113111000","0001111111111000","0022111311111000","0022111111131000","0001111111111000","0001111111111000","0000000000000000","0000000000000000"
+            ]},
+            // 13: Race Track (一周周回コース)
+            { name: "Race Track", startX: 4.5, startZ: 6.5, startAngle: -Math.PI/2, map: [
+                "0000000000000000","0001111111111000","0001111111111000","0001100000011000","0001100000011000","0001100022011000","0001111122111000","0001111111111000","0000000000000000","0000000000000000"
+            ]},
+            // 14: Step Down (仕切りを下りるジグザグ)
+            { name: "Step Down", startX: 3.5, startZ: 2.5, startAngle: 0, map: [
+                "0000000000000000","0001111110000000","0001111110000000","0000000110000000","0000000111111000","0000000111111000","0000000000022000","0000000000022000","0000000000000000","0000000000000000"
+            ]},
+            // 15: Stairway (ジグザグ高壁)
+            { name: "Stairway", startX: 11.5, startZ: 6.5, startAngle: -Math.PI/2, map: [
+                "0000000000022000","0001111111122000","0001144444111000","0001144444111000","0001111144111000","0001111144111000","0001111111111000","0001111111111000","0000000000000000","0000000000000000"
+            ]},
+            // 16: Base Jump (離れた足場に大ジャンプ)
+            { name: "Base Jump", startX: 11.5, startZ: 4.5, startAngle: Math.PI, map: [
+                "0000000000000000","0000000000000000","0001111000111100","0001111000111100","0002222000111100","0002222000111100","0001111000111100","0000000000000000","0000000000000000","0000000000000000"
+            ]},
+            // 17: Edge Case (端のきわどい岩)
+            { name: "Edge Case", startX: 11.5, startZ: 4.5, startAngle: Math.PI, map: [
+                "0000000000000000","0000000000000000","0001111111111000","0001111311111000","0022111111111000","0022111111111000","0001111111111000","0000000000000000","0000000000000000","0000000000000000"
+            ]},
+            // 18: Venice (水路を避ける大回り)
+            { name: "Venice", startX: 11.5, startZ: 6.5, startAngle: -Math.PI/2, map: [
+                "0000000000000000","0001111111111000","0001111111111000","0001100000011000","0001100000011000","0002200000011000","0002200000011000","0000000000000000","0000000000000000","0000000000000000"
+            ]},
+            // 19: Too Close (超至近距離ゴール)
+            { name: "Too Close", startX: 8.5, startZ: 4.5, startAngle: Math.PI, map: [
+                "0000000000000000","0000000000000000","0000001111000000","0000001111000000","0000022111000000","0000022111000000","0000001111000000","0000000000000000","0000000000000000","0000000000000000"
+            ]},
+            // 20: Upside Down (下部を回る逆向きU)
+            { name: "Upside Down", startX: 4.5, startZ: 2.5, startAngle: Math.PI/2, map: [
+                "0000000000000000","0001111111111000","0001111111111000","0001100000011000","0001100000011000","0002200000011000","0002200000011000","0000000000000000","0000000000000000","0000000000000000"
+            ]},
+            // 21: Knot (狭い結び目での衝突回避)
+            { name: "Knot", startX: 11.5, startZ: 6.5, startAngle: -Math.PI/2, map: [
+                "0000000000000000","0001111111111000","0001100000011000","0001100111111000","0001100111111000","0002200110011000","0002200110011000","0000000000000000","0000000000000000","0000000000000000"
+            ]},
+            // 22: Tunnel Vision (高壁の狭いトンネル)
+            { name: "Tunnel Vision", startX: 11.5, startZ: 4.5, startAngle: Math.PI, map: [
+                "0000000000000000","0000000000000000","0004444444444000","0004444444444000","0022111111111000","0022111111111000","0004444444444000","0004444444444000","0000000000000000","0000000000000000"
+            ]},
+            // 23: Hard Left (タイトな左急旋回)
+            { name: "Hard Left", startX: 11.5, startZ: 6.5, startAngle: -Math.PI/2, map: [
+                "0000000000000000","0001111111111000","0001111111111000","0001100000000000","0001100000000000","0002200000000000","0002200000000000","0000000000000000","0000000000000000","0000000000000000"
+            ]},
+            // 24: Overpass (GG! の高壁)
+            { name: "Overpass", startX: 4.5, startZ: 6.5, startAngle: -Math.PI/2, map: [
+                "0000000000000000","0001111111111000","0001111111111000","0001144444011000","0001144444011000","0002200000011000","0002200000011000","0000000000000000","0000000000000000","0000000000000000"
+            ]},
+            // 25: Thank You (感謝のラストラン)
+            { name: "Thank You", startX: 11.5, startZ: 4.5, startAngle: Math.PI, map: [
+                "0000000000000000","0000000000000000","0001111111111000","0001111111111000","0022110000000000","0022110000000000","0001111111111000","0001111111111000","0000000000000000","0000000000000000"
+            ]}
+        ];
+
+        // RLEから二次元配列に変換するユーティリティ
+        function parseMapData(stringArray) {
+            return stringArray.map(line => line.split('').map(char => parseInt(char)));
+        }
+
+        let currentLevelIndex = 0;
+        let activeStage = STAGES[currentLevelIndex];
+        let mapData = parseMapData(activeStage.map);
+
+        // --- Three.js 基本セットアップ ---
+        const container = document.getElementById('game-container');
+        const scene = new THREE.Scene();
+        scene.background = new THREE.Color(colors.background);
+
+        const aspect = window.innerWidth / window.innerHeight;
+        const d = 5.5; 
+        const camera = new THREE.OrthographicCamera(-d * aspect, d * aspect, d, -d, 1, 1000);
+        camera.position.set(12, 10, 12);
+
+        const renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.shadowMap.enabled = true;
+        renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+        container.appendChild(renderer.domElement);
+
+        // --- ライティング ---
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.75);
+        scene.add(ambientLight);
+
+        const dirLight = new THREE.DirectionalLight(0xffffff, 0.85);
+        dirLight.position.set(15, 25, 10);
+        dirLight.castShadow = true;
+        dirLight.shadow.mapSize.width = 1024;
+        dirLight.shadow.mapSize.height = 1024;
+        dirLight.shadow.camera.left = -10;
+        dirLight.shadow.camera.right = 10;
+        dirLight.shadow.camera.top = 10;
+        dirLight.shadow.camera.bottom = -10;
+        dirLight.shadow.camera.near = 0.5;
+        dirLight.shadow.camera.far = 45;
+        scene.add(dirLight);
+
+        // --- 固定マテリアル ---
+        const materials = {
+            grass: new THREE.MeshLambertMaterial({ color: colors.grass }),
+            dirt: new THREE.MeshLambertMaterial({ color: colors.dirt }),
+            fencePost: new THREE.MeshLambertMaterial({ color: colors.fencePost }),
+            fenceRail: new THREE.MeshLambertMaterial({ color: colors.fenceRail }),
+            archStone: new THREE.MeshLambertMaterial({ color: colors.archStone }),
+            archSnow: new THREE.MeshLambertMaterial({ color: colors.archSnow }),
+            spectator: new THREE.MeshLambertMaterial({ color: colors.spectator }),
+            snekHead: new THREE.MeshStandardMaterial({ color: colors.snekYellow, roughness: 0.3 }),
+            snekBody: new THREE.MeshStandardMaterial({ color: colors.snekYellow, roughness: 0.4 }),
+            eyeWhite: new THREE.MeshBasicMaterial({ color: colors.snekEyeWhite }),
+            eyePupil: new THREE.MeshBasicMaterial({ color: colors.snekEyePupil }),
+            whiteGoal: new THREE.MeshLambertMaterial({ color: 0xffffff }),
+            blackGoal: new THREE.MeshLambertMaterial({ color: 0x111111 })
+        };
+
+        let mapGroup = new THREE.Group();
+        scene.add(mapGroup);
+
+        let spectatorMeshes = [];
+        let level1AssistGroup = new THREE.Group();
+        scene.add(level1AssistGroup);
+
+        // --- 3Dマップの構築 ---
+        function buildMap() {
+            while(mapGroup.children.length > 0){
+                mapGroup.remove(mapGroup.children[0]);
+            }
+            spectatorMeshes = [];
+
+            activeStage = STAGES[currentLevelIndex];
+            mapData = parseMapData(activeStage.map);
+
+            // HUD表示更新
+            document.getElementById('level-num').innerText = `LEVEL ${currentLevelIndex + 1}`;
+            document.getElementById('level-name').innerText = activeStage.name;
+
+            const boxGeo = new THREE.BoxGeometry(1, 1, 1);
+            const obsGeo = new THREE.BoxGeometry(0.8, 0.8, 0.8);
+            const wallGeo = new THREE.BoxGeometry(0.96, 2.5, 0.96);
+
+            for (let z = 0; z < mapData.length; z++) {
+                for (let x = 0; x < mapData[z].length; x++) {
+                    const cell = mapData[z][x];
+                    
+                    if (cell === 1 || cell === 3 || cell === 4) {
+                        const grassMesh = new THREE.Mesh(boxGeo, materials.grass);
+                        grassMesh.position.set(x + 0.5, -0.5, z + 0.5);
+                        grassMesh.receiveShadow = true;
+                        grassMesh.castShadow = true;
+                        mapGroup.add(grassMesh);
+
+                        const dirtMesh = new THREE.Mesh(boxGeo, materials.dirt);
+                        dirtMesh.position.set(x + 0.5, -1.5, z + 0.5);
+                        dirtMesh.receiveShadow = true;
+                        dirtMesh.castShadow = true;
+                        mapGroup.add(dirtMesh);
+
+                        // 隣接判定を強化し、ゴール前などの理不尽な手すり生成を完全に回避
+                        generateRailingsForTile(x, z);
+
+                        if (cell === 3) {
+                            const obsMesh = new THREE.Mesh(obsGeo, materials.archStone);
+                            obsMesh.position.set(x + 0.5, 0.4, z + 0.5);
+                            obsMesh.castShadow = true;
+                            obsMesh.receiveShadow = true;
+                            mapGroup.add(obsMesh);
+                        } else if (cell === 4) {
+                            const wallMesh = new THREE.Mesh(wallGeo, materials.archStone);
+                            wallMesh.position.set(x + 0.5, 1.25, z + 0.5);
+                            wallMesh.castShadow = true;
+                            wallMesh.receiveShadow = true;
+                            mapGroup.add(wallMesh);
+
+                            const snowMesh = new THREE.Mesh(new THREE.BoxGeometry(1.0, 0.1, 1.0), materials.archSnow);
+                            snowMesh.position.set(x + 0.5, 2.55, z + 0.5);
+                            snowMesh.castShadow = true;
+                            mapGroup.add(snowMesh);
+                        }
+                    } else if (cell === 2) {
+                        const dirtMesh = new THREE.Mesh(boxGeo, materials.dirt);
+                        dirtMesh.position.set(x + 0.5, -1.5, z + 0.5);
+                        dirtMesh.receiveShadow = true;
+                        dirtMesh.castShadow = true;
+                        mapGroup.add(dirtMesh);
+
+                        const goalGroup = new THREE.Group();
+                        goalGroup.position.set(x + 0.5, -0.5, z + 0.5);
+                        
+                        const subSize = 0.5;
+                        const subGeo = new THREE.BoxGeometry(subSize, 1, subSize);
+                        const subTiles = [
+                            {x: -0.25, z: -0.25, mat: (x + z) % 2 === 0 ? materials.whiteGoal : materials.blackGoal},
+                            {x: 0.25, z: -0.25, mat: (x + z) % 2 === 1 ? materials.whiteGoal : materials.blackGoal},
+                            {x: -0.25, z: 0.25, mat: (x + z) % 2 === 1 ? materials.whiteGoal : materials.blackGoal},
+                            {x: 0.25, z: 0.25, mat: (x + z) % 2 === 0 ? materials.whiteGoal : materials.blackGoal}
+                        ];
+
+                        subTiles.forEach(tile => {
+                            const mesh = new THREE.Mesh(subGeo, tile.mat);
+                            mesh.position.set(tile.x, 0, tile.z);
+                            mesh.receiveShadow = true;
+                            mesh.castShadow = true;
+                            goalGroup.add(mesh);
+                        });
+                        mapGroup.add(goalGroup);
+                    }
+                }
+            }
+
+            if (activeStage.name === "Portal Back") {
+                buildArch();
+            }
+
+            spawnSpectators(1.5, 4.5, 40);  
+            spawnSpectators(14.5, 4.5, 40); 
+
+            clearLevel1Assist();
+
+            camera.lookAt(7.5, -0.5, 4.5); 
+        }
+
+        function clearLevel1Assist() {
+            while (level1AssistGroup.children.length > 0) {
+                const obj = level1AssistGroup.children[0];
+                if (obj.isGroup) {
+                    obj.children.forEach(child => {
+                        if (child.geometry) child.geometry.dispose();
+                        if (child.material) child.material.dispose();
+                    });
+                }
+                level1AssistGroup.remove(obj);
+            }
+        }
+
+		function updateLevel1Assist() {
+			clearLevel1Assist();
+
+			let tempX = snek.x;
+			let tempZ = snek.z;
+			let tempAngle = snek.angle;
+
+			const deltaAngle = isPressed ? snek.turnSpeed : -snek.turnSpeed;
+			const stepFrames = 4;
+			const numPoints = 6;
+
+			const initialOffsetFrames = 10; 
+			for (let f = 0; f < initialOffsetFrames; f++) {
+				tempAngle += deltaAngle;
+				tempX += Math.cos(tempAngle) * snek.speed;
+				tempZ += -Math.sin(tempAngle) * snek.speed;
+			}
+
+			const legGeo = new THREE.BoxGeometry(0.18, 0.02, 0.04);
+			const indicatorMat = new THREE.MeshBasicMaterial({ color: 0xFFFFFF, transparent: true, opacity: 0.85 });
+
+			for (let i = 1; i <= numPoints; i++) {
+				for (let f = 0; f < stepFrames; f++) {
+					tempAngle += deltaAngle;
+					tempX += Math.cos(tempAngle) * snek.speed;
+					tempZ += -Math.sin(tempAngle) * snek.speed;
+				}
+
+				const group = new THREE.Group();
+				group.position.set(tempX, 0.015, tempZ);
+				group.rotation.y = tempAngle + Math.PI;
+
+				const topLeg = new THREE.Mesh(legGeo, indicatorMat);
+				topLeg.position.set(0, 0, -0.05);
+				topLeg.rotation.y = Math.PI / 4;
+
+				const botLeg = new THREE.Mesh(legGeo, indicatorMat);
+				botLeg.position.set(0, 0, 0.05);
+				botLeg.rotation.y = -Math.PI / 4;
+
+				group.add(topLeg, botLeg);
+				level1AssistGroup.add(group);
+			}
+		}
+
+        function generateRailingsForTile(x, z) {
+            const postGeo = new THREE.BoxGeometry(0.08, 0.4, 0.08);
+            
+            // 空中(0)の場合のみ柵を置くように変更（隣がゴール(2)などの時は通行を妨げないため手すりを生成しない）
+            const isBlockedEdge = (nx, nz) => {
+                if (nz < 0 || nz >= mapData.length || nx < 0 || nx >= mapData[0].length) return true;
+                return mapData[nz][nx] === 0;
+            };
+
+            const leftEmpty = isBlockedEdge(x - 1, z);
+            const rightEmpty = isBlockedEdge(x + 1, z);
+            const topEmpty = isBlockedEdge(x, z - 1);
+            const bottomEmpty = isBlockedEdge(x, z + 1);
+
+            const tileX = x + 0.5;
+            const tileZ = z + 0.5;
+
+            if (topEmpty) {
+                const rail = new THREE.Mesh(new THREE.BoxGeometry(1.0, 0.08, 0.04), materials.fenceRail);
+                rail.position.set(tileX, 0.18, z + 0.02);
+                rail.castShadow = true;
+                mapGroup.add(rail);
+
+                const post1 = new THREE.Mesh(postGeo, materials.fencePost);
+                post1.position.set(x + 0.04, 0.1, z + 0.02);
+                post1.castShadow = true;
+                const post2 = new THREE.Mesh(postGeo, materials.fencePost);
+                post2.position.set(x + 0.96, 0.1, z + 0.02);
+                post2.castShadow = true;
+                mapGroup.add(post1, post2);
+            }
+            if (bottomEmpty) {
+                const rail = new THREE.Mesh(new THREE.BoxGeometry(1.0, 0.08, 0.04), materials.fenceRail);
+                rail.position.set(tileX, 0.18, z + 0.98);
+                rail.castShadow = true;
+                mapGroup.add(rail);
+
+                const post1 = new THREE.Mesh(postGeo, materials.fencePost);
+                post1.position.set(x + 0.04, 0.1, z + 0.98);
+                post1.castShadow = true;
+                const post2 = new THREE.Mesh(postGeo, materials.fencePost);
+                post2.position.set(x + 0.96, 0.1, z + 0.98);
+                post2.castShadow = true;
+                mapGroup.add(post1, post2);
+            }
+            if (leftEmpty) {
+                const rail = new THREE.Mesh(new THREE.BoxGeometry(0.04, 0.08, 1.0), materials.fenceRail);
+                rail.position.set(x + 0.02, 0.18, tileZ);
+                rail.castShadow = true;
+                mapGroup.add(rail);
+
+                const post1 = new THREE.Mesh(postGeo, materials.fencePost);
+                post1.position.set(x + 0.02, 0.1, z + 0.04);
+                post1.castShadow = true;
+                const post2 = new THREE.Mesh(postGeo, materials.fencePost);
+                post2.position.set(x + 0.02, 0.1, z + 0.96);
+                post2.castShadow = true;
+                mapGroup.add(post1, post2);
+            }
+            if (rightEmpty) {
+                const rail = new THREE.Mesh(new THREE.BoxGeometry(0.04, 0.08, 1.0), materials.fenceRail);
+                rail.position.set(x + 0.98, 0.18, tileZ);
+                rail.castShadow = true;
+                mapGroup.add(rail);
+
+                const post1 = new THREE.Mesh(postGeo, materials.fencePost);
+                post1.position.set(x + 0.98, 0.1, z + 0.04);
+                post1.castShadow = true;
+                const post2 = new THREE.Mesh(postGeo, materials.fencePost);
+                post2.position.set(x + 0.98, 0.1, z + 0.96);
+                post2.castShadow = true;
+                mapGroup.add(post1, post2);
+            }
+        }
+
+        function buildArch() {
+            const archGroup = new THREE.Group();
+            archGroup.position.set(7.5, 0, 3.5); 
+
+            const leftPillar = new THREE.Mesh(new THREE.BoxGeometry(1.0, 1.8, 0.6), materials.archStone);
+            leftPillar.position.set(0, 0.4, -1.3);
+            leftPillar.castShadow = true;
+            leftPillar.receiveShadow = true;
+            archGroup.add(leftPillar);
+
+            const rightPillar = new THREE.Mesh(new THREE.BoxGeometry(1.0, 1.8, 0.6), materials.archStone);
+            rightPillar.position.set(0, 0.4, 1.3);
+            rightPillar.castShadow = true;
+            rightPillar.receiveShadow = true;
+            archGroup.add(rightPillar);
+
+            const beam = new THREE.Mesh(new THREE.BoxGeometry(1.0, 0.6, 3.2), materials.archStone);
+            beam.position.set(0, 1.6, 0);
+            beam.castShadow = true;
+            beam.receiveShadow = true;
+            archGroup.add(beam);
+
+            const snow = new THREE.Mesh(new THREE.BoxGeometry(1.04, 0.1, 3.24), materials.archSnow);
+            snow.position.set(0, 1.95, 0);
+            snow.castShadow = true;
+            archGroup.add(snow);
+
+            mapGroup.add(archGroup);
+        }
+
+        function spawnSpectators(centerX, centerZ, count) {
+            const specGeo = new THREE.BoxGeometry(0.12, 0.5, 0.12);
+            for (let i = 0; i < count; i++) {
+                const specMesh = new THREE.Mesh(specGeo, materials.spectator);
+                const rx = centerX + (Math.random() - 0.5) * 3.0;
+                const rz = centerZ + (Math.random() - 0.5) * 3.0;
+                const ry = -1.95 + (Math.random() - 0.5) * 0.1;
+
+                specMesh.position.set(rx, ry, rz);
+                specMesh.castShadow = true;
+                
+                specMesh.userData = {
+                    offsetY: ry,
+                    speed: 2 + Math.random() * 3,
+                    phase: Math.random() * Math.PI * 2
+                };
+
+                mapGroup.add(specMesh);
+                spectatorMeshes.push(specMesh);
+            }
+        }
+
+        // --- Snek 物理（旋回半径・速度比率を徹底最適化） ---
+        let snek = {
+            x: 0,
+            z: 0,
+            y: 0.5,
+            angle: 0,
+            speed: 0.040,       // 移動速度
+            turnSpeed: 0.075,    // 旋回力を大幅強化（1マス幅通路でも絶対に曲がりきれる比率に改善）
+            headGroup: null,
+            bodySegments: [], 
+            pathHistory: []
+        };
+
+        let lastSegmentPos = { x: 0, z: 0 };
+        let isPressed = false;
+        let crashTimer = 0;
+        let particles = [];
+
+        function resetSnek() {
+            if (snek.headGroup) scene.remove(snek.headGroup);
+            snek.bodySegments.forEach(seg => scene.remove(seg));
+            snek.bodySegments = [];
+            snek.pathHistory = [];
+
+            snek.x = activeStage.startX;
+            snek.z = activeStage.startZ;
+            snek.y = 0.5;
+            snek.angle = activeStage.startAngle;
+
+            lastSegmentPos = { x: snek.x, z: snek.z };
+
+            snek.headGroup = new THREE.Group();
+            snek.headGroup.position.set(snek.x, snek.y, snek.z);
+
+            const headGeo = new THREE.BoxGeometry(0.5, 0.5, 0.5);
+            const headMesh = new THREE.Mesh(headGeo, materials.snekHead);
+            headMesh.castShadow = true;
+            snek.headGroup.add(headMesh);
+
+            const eyeWhiteGeo = new THREE.BoxGeometry(0.18, 0.18, 0.05);
+            const eyePupilGeo = new THREE.BoxGeometry(0.08, 0.08, 0.06);
+
+            const leftEyeWhite = new THREE.Mesh(eyeWhiteGeo, materials.eyeWhite);
+            leftEyeWhite.position.set(0.1, 0.1, -0.26);
+            const leftEyePupil = new THREE.Mesh(eyePupilGeo, materials.eyePupil);
+            leftEyePupil.position.set(0.1, 0.1, -0.27);
+            snek.headGroup.add(leftEyeWhite, leftEyePupil);
+
+            const rightEyeWhite = new THREE.Mesh(eyeWhiteGeo, materials.eyeWhite);
+            rightEyeWhite.position.set(0.1, 0.1, 0.26);
+            const rightEyePupil = new THREE.Mesh(eyePupilGeo, materials.eyePupil);
+            rightEyePupil.position.set(0.1, 0.1, 0.27);
+            snek.headGroup.add(rightEyeWhite, rightEyePupil);
+
+            scene.add(snek.headGroup);
+            
+            gameState = STATE_PLAYING;
+            gamePaused = false;
+            isPressed = false; 
+
+            // リスタート直後の誤入力による即死を防ぐための無敵バッファ（約0.5秒）
+            spawnInvincibleTimer = 30; 
+        }
+
+        function spawnBodySegment(pos) {
+            const segGeo = new THREE.BoxGeometry(0.44, 0.44, 0.44);
+            const segMesh = new THREE.Mesh(segGeo, materials.snekBody);
+            segMesh.position.set(pos.x, snek.y, pos.z);
+            segMesh.castShadow = true;
+            scene.add(segMesh);
+            snek.bodySegments.push(segMesh);
+        }
+
+        function createCrashParticles(x, y, z) {
+            const count = 18;
+            const pGeo = new THREE.BoxGeometry(0.1, 0.1, 0.1);
+            for (let i = 0; i < count; i++) {
+                const mat = materials.snekHead.clone();
+                const mesh = new THREE.Mesh(pGeo, mat);
+                mesh.position.set(x, y, z);
+                mesh.castShadow = true;
+                scene.add(mesh);
+
+                const velocity = new THREE.Vector3(
+                    (Math.random() - 0.5) * 0.16,
+                    Math.random() * 0.16 + 0.05,
+                    (Math.random() - 0.5) * 0.16
+                );
+
+                particles.push({
+                    mesh: mesh,
+                    velocity: velocity,
+                    life: 1.0,
+                    decay: Math.random() * 0.03 + 0.02
+                });
+            }
+        }
+
+        function updateParticles() {
+            for (let i = particles.length - 1; i >= 0; i--) {
+                const p = particles[i];
+                p.mesh.position.add(p.velocity);
+                p.velocity.y -= 0.007;
+
+                p.mesh.rotation.x += 0.15;
+                p.mesh.rotation.y += 0.15;
+
+                p.life -= p.decay;
+                p.mesh.scale.set(p.life, p.life, p.life);
+
+                if (p.life <= 0) {
+                    scene.remove(p.mesh);
+                    p.mesh.geometry.dispose();
+                    p.mesh.material.dispose();
+                    particles.splice(i, 1);
+                }
+            }
+        }
+
+        // --- アニメーション ＆ ループ ---
+        const clock = new THREE.Clock();
+
+        function animate() {
+            requestAnimationFrame(animate);
+
+            const time = clock.getElapsedTime();
+
+            spectatorMeshes.forEach(spec => {
+                spec.position.y = spec.userData.offsetY + Math.sin(time * spec.userData.speed + spec.userData.phase) * 0.04;
+            });
+
+            updateParticles();
+
+            if (gameState === STATE_PLAYING && !gamePaused) {
+                if (isPressed) {
+                    snek.angle += snek.turnSpeed; 
+                } else {
+                    snek.angle -= snek.turnSpeed; 
+                }
+
+                const dx = Math.cos(snek.angle) * snek.speed;
+                const dz = -Math.sin(snek.angle) * snek.speed;
+
+                snek.x += dx;
+                snek.z += dz;
+
+                snek.headGroup.position.set(snek.x, snek.y, snek.z);
+                snek.headGroup.rotation.y = snek.angle;
+
+                const distFromLast = Math.hypot(snek.x - lastSegmentPos.x, snek.z - lastSegmentPos.z);
+                if (distFromLast >= 0.19) {
+                    spawnBodySegment({ x: snek.x, z: snek.z });
+                    lastSegmentPos = { x: snek.x, z: snek.z };
+                }
+
+                if (currentLevelIndex === 0) {
+                    updateLevel1Assist();
+                } else {
+                    clearLevel1Assist();
+                }
+
+                checkCollisions();
+
+            } else if (gameState === STATE_FALLING) {
+                clearLevel1Assist();
+
+                snek.y -= 0.12;
+                snek.headGroup.position.y = snek.y;
+                snek.bodySegments.forEach(seg => {
+                    seg.position.y -= 0.12;
+                });
+
+                crashTimer++;
+                if (crashTimer === 15) { 
+                    triggerGameOver();
+                }
+            } else if (gameState === STATE_CRASHED) {
+                clearLevel1Assist();
+
+                crashTimer++;
+                if (crashTimer === 15) { 
+                    triggerGameOver();
+                }
+            }
+
+            renderer.render(scene, camera);
+        }
+
+        function checkOnPlatformWithGrace(x, z) {
+            const gx = Math.floor(x);
+            const gz = Math.floor(z);
+
+            if (gz < 0 || gz >= mapData.length || gx < 0 || gx >= mapData[0].length) {
+                return false;
+            }
+
+            if (mapData[gz][gx] !== 0) {
+                return true;
+            }
+
+            const graceMargin = 0.22; 
+            const adjacentOffsets = [
+                {dx: -1, dz: 0}, {dx: 1, dz: 0}, {dx: 0, dz: -1}, {dx: 0, dz: 1},
+                {dx: -1, dz: -1}, {dx: 1, dz: -1}, {dx: -1, dz: 1}, {dx: 1, dz: 1}
+            ];
+
+            for (const offset of adjacentOffsets) {
+                const nx = gx + offset.dx;
+                const nz = gz + offset.dz;
+
+                if (nz >= 0 && nz < mapData.length && nx >= 0 && nx < mapData[0].length) {
+                    if (mapData[nz][nx] !== 0) {
+                        const safeCenterX = nx + 0.5;
+                        const safeCenterZ = nz + 0.5;
+                        const distToSafeCenter = Math.hypot(x - safeCenterX, z - safeCenterZ);
+
+                        if (distToSafeCenter < (0.5 + graceMargin)) {
+                            return true;
+                        }
+                    }
+                }
+            }
+
+            return false;
+        }
+
+        // 手すり（柵）との当たり判定
+        function checkRailingCollision() {
+            const gx = Math.floor(snek.x);
+            const gz = Math.floor(snek.z);
+
+            if (gz < 0 || gz >= mapData.length || gx < 0 || gx >= mapData[0].length) return false;
+
+            const tileLeft = gx;
+            const tileRight = gx + 1.0;
+            const tileTop = gz;
+            const tileBottom = gz + 1.0;
+
+            const snekRadius = 0.13; // 衝突半径を少し縮小し、極細路の通り抜けやすさを最適化
+
+            const isBlockedEdge = (nx, nz) => {
+                if (nz < 0 || nz >= mapData.length || nx < 0 || nx >= mapData[0].length) return true;
+                return mapData[nz][nx] === 0;
+            };
+
+            const leftEmpty = isBlockedEdge(gx - 1, gz);
+            if (leftEmpty && (snek.x - snekRadius) < tileLeft) {
+                return true;
+            }
+
+            const rightEmpty = isBlockedEdge(gx + 1, gz);
+            if (rightEmpty && (snek.x + snekRadius) > tileRight) {
+                return true;
+            }
+
+            const topEmpty = isBlockedEdge(gx, gz - 1);
+            if (topEmpty && (snek.z - snekRadius) < tileTop) {
+                return true;
+            }
+
+            const bottomEmpty = isBlockedEdge(gx, gz + 1);
+            if (bottomEmpty && (snek.z + snekRadius) > tileBottom) {
+                return true;
+            }
+
+            return false;
+        }
+
+        // 岩や高壁といった障害物への接近判定
+        function checkObstacleCollision() {
+            const gx = Math.floor(snek.x);
+            const gz = Math.floor(snek.z);
+
+            if (gz < 0 || gz >= mapData.length || gx < 0 || gx >= mapData[0].length) return false;
+
+            const currentCell = mapData[gz][gx];
+            if (currentCell === 3 || currentCell === 4) {
+                return true;
+            }
+
+            const snekRadius = 0.13;
+
+            if (gx > 0 && (mapData[gz][gx-1] === 3 || mapData[gz][gx-1] === 4)) {
+                if ((snek.x - snekRadius) < gx) return true;
+            }
+            if (gx < mapData[0].length - 1 && (mapData[gz][gx+1] === 3 || mapData[gz][gx+1] === 4)) {
+                if ((snek.x + snekRadius) > (gx + 1.0)) return true;
+            }
+            if (gz > 0 && (mapData[gz-1][gx] === 3 || mapData[gz-1][gx] === 4)) {
+                if ((snek.z - snekRadius) < gz) return true;
+            }
+            if (gz < mapData.length - 1 && (mapData[gz+1][gx] === 3 || mapData[gz+1][gx] === 4)) {
+                if ((snek.z + snekRadius) > (gz + 1.0)) return true;
+            }
+
+            return false;
+        }
+
+        // 衝突判定システム
+        function checkCollisions() {
+            if (spawnInvincibleTimer > 0) {
+                spawnInvincibleTimer--;
+                return;
+            }
+
+            if (checkRailingCollision()) {
+                triggerCrash();
+                return;
+            }
+
+            if (checkObstacleCollision()) {
+                triggerCrash();
+                return;
+            }
+
+            if (!checkOnPlatformWithGrace(snek.x, snek.z)) {
+                gameState = STATE_FALLING;
+                crashTimer = 0;
+                return;
+            }
+
+            const ignoreCount = 8; 
+            const maxCheckIndex = snek.bodySegments.length - ignoreCount;
+
+            for (let i = 0; i < maxCheckIndex; i++) {
+                const seg = snek.bodySegments[i];
+                const dist = Math.hypot(snek.x - seg.position.x, snek.z - seg.position.z);
+                if (dist < 0.35) {
+                    triggerCrash();
+                    return;
+                }
+            }
+
+            const gridX = Math.floor(snek.x);
+            const gridZ = Math.floor(snek.z);
+            const cell = mapData[gridZ][gridX];
+            if (cell === 2) {
+                triggerClear();
+            }
+        }
+
+        function triggerFall() {
+            gameState = STATE_FALLING;
+        }
+
+        function triggerCrash() {
+            if (gameState === STATE_CRASHED) return;
+            gameState = STATE_CRASHED;
+            crashTimer = 0;
+            createCrashParticles(snek.x, snek.y, snek.z);
+        }
+
+        function triggerClear() {
+            gameState = STATE_CLEARED;
+
+            renderer.render(scene, camera);
+            const dataURL = renderer.domElement.toDataURL("image/png");
+
+            const photoEl = document.getElementById("win-photo");
+            photoEl.src = dataURL;
+
+            hideHUD();
+
+            const randTilt = (Math.random() > 0.5 ? 1 : -1) * (2 + Math.random() * 2);
+            document.querySelector("#clear-overlay .photo-card").style.transform = `scale(1) rotate(${randTilt}deg)`;
+
+            document.getElementById("clear-overlay").style.display = "flex";
+        }
+
+        function triggerGameOver() {
+            renderer.render(scene, camera);
+            const dataURL = renderer.domElement.toDataURL("image/png");
+
+            const photoEl = document.getElementById("fail-photo");
+            photoEl.src = dataURL;
+
+            hideHUD();
+
+            const randTilt = (Math.random() > 0.5 ? 1 : -1) * (2 + Math.random() * 2);
+            document.querySelector("#fail-overlay .photo-card").style.transform = `scale(1) rotate(${randTilt}deg)`;
+
+            document.getElementById("fail-overlay").style.display = "flex";
+        }
+
+        function hideHUD() {
+            document.getElementById("hud").style.opacity = "0";
+            document.getElementById("restart-btn").style.opacity = "0";
+            document.getElementById("pause-btn").style.opacity = "0";
+            document.getElementById("instructions").style.opacity = "0";
+        }
+
+        function loadLevel(index) {
+            currentLevelIndex = index;
+            activeStage = STAGES[currentLevelIndex];
+            mapData = parseMapData(activeStage.map);
+
+            document.getElementById("hud").style.opacity = "1";
+            document.getElementById("restart-btn").style.opacity = "1";
+            document.getElementById("pause-btn").style.opacity = "1";
+            document.getElementById("instructions").style.opacity = "1";
+
+            document.getElementById("clear-overlay").style.display = "none";
+            document.getElementById("fail-overlay").style.display = "none";
+            document.getElementById("pause-overlay").style.display = "none";
+            document.getElementById("select-overlay").style.display = "none";
+
+            buildMap();
+            resetSnek();
+        }
+
+        function buildStageSelectOverlay() {
+            const grid = document.getElementById("stage-grid");
+            grid.innerHTML = "";
+            
+            STAGES.forEach((stage, index) => {
+                const btn = document.createElement("button");
+                btn.className = "fancade-btn btn-home";
+                btn.style.width = "64px"; 
+                btn.style.height = "64px";
+                btn.style.borderRadius = "12px";
+                btn.style.fontSize = "22px";
+                btn.style.fontWeight = "bold";
+                btn.style.boxShadow = "0 5px 0 #4A89DC";
+                btn.innerText = index + 1;
+                
+                btn.addEventListener("click", () => {
+                    loadLevel(index);
+                });
+                grid.appendChild(btn);
+            });
+        }
+
+        // --- 操作イベント ---
+        function handlePressStart() {
+            isPressed = true;
+        }
+
+        function handlePressEnd() {
+            isPressed = false;
+        }
+
+        window.addEventListener('keydown', (e) => {
+            if (e.code === 'Space') {
+                e.preventDefault();
+                handlePressStart();
+            }
+        });
+        window.addEventListener('keyup', (e) => {
+            if (e.code === 'Space') {
+                handlePressEnd();
+            }
+        });
+
+        window.addEventListener('mousedown', handlePressStart);
+        window.addEventListener('mouseup', handlePressEnd);
+        window.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            handlePressStart();
+        });
+        window.addEventListener('touchend', handlePressEnd);
+
+        document.getElementById('restart-btn').addEventListener('click', (e) => {
+            e.stopPropagation();
+            resetSnek();
+        });
+
+        document.getElementById('pause-btn').addEventListener('click', (e) => {
+            e.stopPropagation();
+            if (gameState === STATE_PLAYING && !gamePaused) {
+                gamePaused = true;
+                
+                renderer.render(scene, camera);
+                const dataURL = renderer.domElement.toDataURL("image/png");
+                document.getElementById("pause-photo").src = dataURL;
+
+                hideHUD();
+                
+                document.getElementById("pause-overlay").style.display = "flex";
+            }
+        });
+
+        document.getElementById('resume-btn').addEventListener('click', (e) => {
+            e.stopPropagation();
+            gamePaused = false;
+            
+            document.getElementById("hud").style.opacity = "1";
+            document.getElementById("restart-btn").style.opacity = "1";
+            document.getElementById("pause-btn").style.opacity = "1";
+            document.getElementById("instructions").style.opacity = "1";
+            
+            document.getElementById("pause-overlay").style.display = "none";
+        });
+
+        document.querySelectorAll('.home-action-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                document.getElementById("clear-overlay").style.display = "none";
+                document.getElementById("fail-overlay").style.display = "none";
+                document.getElementById("pause-overlay").style.display = "none";
+                document.getElementById("select-overlay").style.display = "flex";
+                buildStageSelectOverlay();
+            });
+        });
+
+        document.querySelectorAll('.retry-action-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                loadLevel(currentLevelIndex);
+            });
+        });
+
+        document.getElementById('next-btn').addEventListener('click', (e) => {
+            e.stopPropagation();
+            const nextIndex = (currentLevelIndex + 1) % STAGES.length;
+            loadLevel(nextIndex);
+        });
+
+        document.getElementById('close-select-btn').addEventListener('click', (e) => {
+            e.stopPropagation();
+            document.getElementById("select-overlay").style.display = "none";
+            
+            if (gameState === STATE_CLEARED) {
+                document.getElementById("clear-overlay").style.display = "flex";
+            } else if (gamePaused) {
+                document.getElementById("pause-overlay").style.display = "flex";
+            } else {
+                document.getElementById("fail-overlay").style.display = "flex";
+            }
+        });
+
+        window.addEventListener('resize', () => {
+            const aspect = window.innerWidth / window.innerHeight;
+            camera.left = -d * aspect;
+            camera.right = d * aspect;
+            camera.top = d;
+            camera.bottom = -d;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        // --- 開始 ---
+        loadLevel(0);
+        animate();
+
+		</script>
+</body>
+
+</html>
