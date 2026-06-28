@@ -1,0 +1,2029 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Lightning Tree Defense - Light Forest HD Edition</title>
+	<!-- ドット絵専用Webフォント「VT323」をインポート -->
+	<link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
+	<style>
+		html,
+		body {
+			margin: 0;
+			padding: 0;
+			width: 100%;
+			height: 100%;
+			overflow: hidden;
+			background-color: #000;
+			color: #c9d1d9;
+			font-family: 'VT323', 'Yu Gothic UI', 'Meiryo', sans-serif;
+			display: flex;
+			justify-content: center;
+			align-items: center;
+			user-select: none;
+		}
+
+		#canvas-container {
+			width: 100vw;
+			height: 100vh;
+			display: flex;
+			justify-content: center;
+			align-items: center;
+			background-color: #000;
+		}
+
+		canvas {
+			display: block;
+			image-rendering: -moz-crisp-edges;
+			image-rendering: -webkit-crisp-edges;
+			image-rendering: pixelated;
+			image-rendering: crisp-edges;
+			width: 100vw;
+			height: 100vh;
+			object-fit: fill;
+		}
+	</style>
+</head>
+
+<body>
+
+	<div id="canvas-container">
+		<canvas id="gameCanvas" width="960" height="540"></canvas>
+	</div>
+
+	<script>
+		const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const container = document.getElementById('canvas-container');
+
+        // --- 基本定数・設定 ---
+        const WIDTH = canvas.width;
+        const HEIGHT = canvas.height;
+        const GROUND_Y = 460;        
+        const TREE_X = WIDTH / 2;
+
+        // --- ゲーム進行ステータス ---
+        const G_TITLE = 'title';
+        const G_STAGE_SELECT = 'stage_select';
+        const G_PLAY = 'play';
+        let gameState = G_TITLE;
+
+        // --- プレイヤー & 進行ステータス ---
+        let playerLevel = 1;
+        let playerXp = 0;
+        let maxXp = 100;
+        let coins = 100;
+        let totalKills = 0;
+        let totalStrikes = 0;
+        let isGameOver = false;
+        let isAllClear = false;
+
+        // --- ステージ選択 & 設定 ---
+        let currentStage = 1;
+        let selectedStage = 1;       
+        let hoveredStageButton = null; 
+        let stageSpawnLeft = 15;
+        let stageDefeatedCount = 0;
+        let stageClearTimer = 0;
+
+        const stageConfigs = {
+            1: { name: "Plains of Verdurous Origin",   totalEnemies: 15, bgColors: ['#dbf4ff', '#bde7ff', '#a4d9ff'], grassColor: '#22c55e' },
+            2: { name: "Ancient Rumbling Valley",      totalEnemies: 20, bgColors: ['#0d1116', '#171e26', '#252f3c'], grassColor: '#3c4a5c' },
+            3: { name: "Aurora Frozen Woods",         totalEnemies: 25, bgColors: ['#040712', '#0a1020', '#111930'], grassColor: '#e2e8f0' },
+            4: { name: "Abyssal Lava Castle",         totalEnemies: 30, bgColors: ['#100404', '#200808', '#340f0f'], grassColor: '#8a2318' },
+            5: { name: "Dimensional Garden of Demise", totalEnemies: 35, bgColors: ['#080412', '#120a26', '#20113c'], grassColor: '#6d28d9' }
+        };
+
+        // --- カメラシステム ---
+        let cameraX = 0;
+        let cameraY = 0;
+        let targetCameraX = 0;
+        let targetCameraY = 0;
+        let cameraOffsetY = 0; 
+        const scrollSpeed = 8; 
+
+        // キー入力管理
+        const keys = {};
+
+        // --- セコイアの木 & 成長システム ---
+        let treeHeight = 120;        
+        let targetTreeHeight = 120;  
+        let treeHp = 100;
+        let maxTreeHp = 100;
+        let baseGrowthSpeed = 0.05;  
+        let growthSpeedRate = 1.0;   
+        let autoStrikeTimer = 0;
+        let branches = [];
+
+        // 成長加速（ブースト）用タイマー
+        let growthBoostTimer = 0; 
+
+        // --- スクリーンシェイク ---
+        let shakeIntensity = 0;
+        let shakeDecay = 0.88;
+
+        // --- 雷撃システム ---
+        const STATE_IDLE = 0;
+        const STATE_BOLT = 1;
+        const STATE_SPIRAL = 2;
+        const STATE_SPREAD = 3;
+        const STATE_REMAIN = 4;
+        const STATE_FADE = 5;
+
+        let lightningState = STATE_IDLE;
+        let stateTimer = 0;
+        let boltPath = [];
+        let spreadProgress = 0;
+        let isSpecialLightning = false;
+        let specialLightningType = 'none';
+
+        // 通常強化
+        let baseMaxSpreadWidth = 250; 
+        let lpowerLevel = 1;
+        let intervalLevel = 1;
+        let coinLevel = 1;
+
+        // --- 特殊雷システム ---
+        let unlockedWater = false;
+        let unlockedFire = false;
+        let unlockedHeal = false;
+        let currentSpecial = 'none';
+        let waterLevel = 1;
+        let fireLevel = 1;
+        let healLevel = 1;
+        
+        let specialCharge = 0;
+        let chargeSpeedLevel = 1;
+
+        // --- ミニ自動雷システム ---
+        let miniLightningLevel = 0;
+        let miniLightningTimer = 0;
+        let miniBoltPath = null;
+        let miniBoltTimer = 0;
+        let miniBoltTargetX = 0;
+
+        // --- ショップシステム ---
+        let shopOpen = false;
+        let shopSlide = 0;
+        const shopWidth = 350; 
+
+        // レベルアップ演出
+        let levelUpEffectTimer = 0;
+
+        // --- エンティティ配列 ---
+        let enemies = [];
+        let coinsList = [];
+        let leaves = [];
+        let iceShards = [];
+        let textParticles = [];
+        let boostParticles = []; 
+
+        // --- マウス ---
+        let mouseX = 0;
+        let mouseY = 0;
+        let hoveredButton = null;
+        let hoveredShopItem = null;
+
+        // --- 通常強化ボタン (間隔とサイズを拡大) ---
+        const buttons = [
+            { id: 'grow',     x: 800, y: 24,  w: 64, h: 64, cost: 30,  label: '成長加速 (5秒)', desc: '自動成長速度を5秒間、8倍にバースト加速させます。' },
+            { id: 'speed',    x: 888, y: 24,  w: 64, h: 64, cost: 25,  label: '自動成長速度UP', desc: '木の永続自律自動成長速度を向上させます。' },
+            { id: 'interval', x: 800, y: 104, w: 64, h: 64, cost: 40,  label: '落雷間隔短縮',   desc: '自律通常落雷の発生頻度（落雷率）を向上させます。' },
+            { id: 'power',    x: 888, y: 104, w: 64, h: 64, cost: 35,  label: '雷撃威力強化',   desc: '通常落雷の威力と地表伝播の拡散範囲を拡張。' },
+            { id: 'coin',     x: 800, y: 184, w: 64, h: 64, cost: 30,  label: '取得コインUP',   desc: '敵を撃破した際に得られるコイン効率を向上。' },
+            { id: 'shop',     x: 888, y: 184, w: 64, h: 64, cost: 0,   label: '特殊ショップ',   desc: '特殊雷の解放や、自動ミニ雷の購入メニューを開く。' }
+        ];
+
+        // --- ショップ商品定義 ---
+        const shopItems = [
+            { id: 'water',     y: 70,  w: 310, h: 40, cost: 90,  label: '水色特殊雷 解放', desc: '白熱した極大一撃ダメージと超広範囲伝播。' },
+            { id: 'fire',      y: 120, w: 310, h: 40, cost: 110, label: '赤色特殊雷 解放', desc: '敵に炎上ドット効果を追従させ、持続ダメージ。' },
+            { id: 'heal',      y: 170, w: 310, h: 40, cost: 130, label: '緑色特殊雷 解放', desc: '雷撃ダメージに加え、木のHPを一定割合回復。' },
+            { id: 'upgrade',   y: 230, w: 310, h: 40, cost: 100, label: '特殊雷レベルUP', desc: '装備中特殊雷のダメージや追加効果を最大3まで強化。' },
+            { id: 'mini',      y: 290, w: 310, h: 40, cost: 80,  label: '自動ミニ雷 購入', desc: '10秒に1回、自動で細い通常雷が落ち敵を間引きます。' },
+            { id: 'charge',    y: 350, w: 310, h: 40, cost: 50,  label: 'チャージ＆短縮', desc: '特殊ゲージ充填を加速しクールタイムを短縮。' },
+            { id: 'close',     y: 430, w: 310, h: 40, cost: 0,   label: 'ショップを閉じる', desc: '戦闘画面に戻ります。' }
+        ];
+
+        // --- 色彩ユーティリティ ---
+        function getShadowColor(colorHex) {
+            if (colorHex === '#22c55e') return '#15803d'; 
+            if (colorHex === '#3c4a5c') return '#212934'; 
+            if (colorHex === '#e2e8f0') return '#64748b'; 
+            if (colorHex === '#8a2318') return '#4a0f08'; 
+            if (colorHex === '#6d28d9') return '#3b0764'; 
+            return '#111111';
+        }
+
+        function getHighlightColor(colorHex, stageId) {
+            if (stageId === 1) return '#86efac'; 
+            if (stageId === 2) return '#60a5fa'; 
+            if (stageId === 3) return '#ffffff'; 
+            if (stageId === 4) return '#fb923c'; 
+            if (stageId === 5) return '#c084fc'; 
+            return '#ffffff';
+        }
+
+        // --- 袋文字(黒縁付きアウトライン)テキスト描画ヘルパー ---
+        function drawText(text, x, y, font = "24px 'VT323', monospace", fill = "#ffffff", align = "left", baseline = "top") {
+            ctx.save();
+            // 日本語が含まれる場合はフォールバックフォントを指定して中国語フォント等の適用を防ぐ
+            ctx.font = font.replace('monospace', "'Yu Gothic UI', 'Meiryo', sans-serif");
+            ctx.textAlign = align;
+            ctx.textBaseline = baseline;
+            
+            ctx.strokeStyle = '#000000';
+            ctx.lineWidth = 4; 
+            ctx.lineJoin = 'round';
+            ctx.strokeText(text, x, y);
+            
+            ctx.fillStyle = fill;
+            ctx.fillText(text, x, y);
+            ctx.restore();
+        }
+
+        // --- 粒子・演出クラス定義 ---
+
+        class LeafParticle {
+            constructor(randomY = false, stageId = currentStage) {
+                this.reset(randomY, stageId);
+            }
+            reset(randomY = false, stageId = currentStage) {
+                this.x = Math.random() * (WIDTH + 600) - 300; 
+                this.y = randomY ? Math.random() * GROUND_Y : -20;
+                this.vx = (Math.random() - 0.5) * 0.8;
+                this.vy = Math.random() * 0.6 + 0.6;
+                this.size = Math.random() * 5 + 3; 
+                this.angle = Math.random() * Math.PI * 2;
+                this.angleSpeed = (Math.random() - 0.5) * 0.04;
+                this.blown = false;
+
+                if (stageId === 1) {
+                    this.color = `rgb(${Math.floor(Math.random()*40+130)}, ${Math.floor(Math.random()*40+210)}, ${Math.floor(Math.random()*40+130)})`; 
+                } else if (stageId === 2) {
+                    this.color = 'rgba(150, 180, 220, 0.45)';
+                    this.vy = Math.random() * 1.8 + 1.8;
+                    this.vx = -0.3;
+                } else if (stageId === 3) {
+                    this.color = '#ffffff';
+                    this.vy = Math.random() * 0.5 + 0.5;
+                    this.vx = (Math.random() - 0.5) * 0.3;
+                } else if (stageId === 4) {
+                    this.color = `rgb(255, ${Math.floor(Math.random()*120+40)}, 0)`;
+                    this.y = randomY ? Math.random() * GROUND_Y : GROUND_Y;
+                    this.vy = -Math.random() * 0.8 - 0.3;
+                    this.vx = (Math.random() - 0.5) * 0.6;
+                } else {
+                    this.color = `hsl(${Math.random()*60+260}, 100%, 75%)`;
+                    this.vy = (Math.random() - 0.5) * 0.24;
+                    this.vx = (Math.random() - 0.5) * 0.3;
+                }
+            }
+            update(stageId = currentStage) {
+                if (!this.blown) {
+                    if (stageId === 1) {
+                        this.vx = -0.6 + Math.sin(this.y * 0.025) * 0.2;
+                        this.vy = 0.8 + Math.cos(this.x * 0.025) * 0.1;
+                    } else if (stageId === 4) {
+                        this.vy = -Math.random() * 0.8 - 0.3;
+                    }
+                } else {
+                    this.vx *= 0.95;
+                    this.vy *= 0.95;
+                    if (Math.abs(this.vx) < 0.4) this.blown = false;
+                }
+                this.x += this.vx;
+                this.y += this.vy;
+                this.angle += this.angleSpeed;
+
+                if (stageId === 4) {
+                    if (this.y < -10 || this.x < -300 || this.x > WIDTH + 300) this.reset(false, stageId);
+                } else {
+                    if (this.x < -300 || this.x > WIDTH + 300 || this.y > GROUND_Y || this.y < -20) this.reset(false, stageId);
+                }
+            }
+            draw() {
+                ctx.save();
+                ctx.translate(this.x - cameraX, this.y - cameraY);
+                ctx.rotate(this.angle);
+                ctx.fillStyle = this.color;
+                ctx.fillRect(-this.size/2, -this.size/2, this.size, this.size);
+                ctx.restore();
+            }
+            blowAway(sx, sy, force) {
+                const dx = this.x - sx;
+                const dy = this.y - sy;
+                const dist = Math.sqrt(dx*dx + dy*dy);
+                if (dist < 300) {
+                    const angle = Math.atan2(dy, dx);
+                    const push = (1 - dist / 300) * force * 1.5;
+                    this.vx = Math.cos(angle) * push;
+                    this.vy = Math.sin(angle) * push - 0.6;
+                    this.blown = true;
+                }
+            }
+        }
+
+        class BoostParticle {
+            constructor() {
+                this.x = TREE_X + (Math.random() - 0.5) * 40;
+                this.y = GROUND_Y;
+                this.vy = -Math.random() * 4.0 - 1.6;
+                this.vx = (Math.random() - 0.5) * 0.6;
+                this.life = 40 + Math.random() * 20;
+                this.color = `rgba(34, 197, 94, ${Math.random() * 0.6 + 0.4})`;
+                this.size = Math.random() * 5.0 + 2;
+            }
+            update() {
+                this.x += this.vx;
+                this.y += this.vy;
+                this.life--;
+                return this.life > 0 && this.y > GROUND_Y - treeHeight;
+            }
+            draw() {
+                ctx.fillStyle = this.color;
+                ctx.fillRect(this.x - cameraX, this.y - cameraY, this.size, this.size);
+            }
+        }
+
+        class IceShard {
+            constructor(x, y) {
+                this.x = x; this.y = y;
+                this.vx = (Math.random() - 0.5) * 8;
+                this.vy = -Math.random() * 6 - 2;
+                this.g = 0.24;
+                this.life = 40 + Math.random() * 20;
+                this.maxLife = this.life;
+                this.size = Math.random() * 4 + 2;
+            }
+            update() {
+                this.vy += this.g;
+                this.x += this.vx; this.y += this.vy;
+                this.life--;
+                return this.life > 0 && this.y < GROUND_Y;
+            }
+            draw() {
+                const alpha = this.life / this.maxLife;
+                ctx.fillStyle = `rgba(165, 243, 252, ${alpha})`;
+                ctx.fillRect(this.x - cameraX, this.y - cameraY, this.size, this.size);
+            }
+        }
+
+        class CoinParticle {
+            constructor(x, y, value) {
+                this.x = x; this.y = y;
+                this.value = value;
+                this.vx = (Math.random() - 0.5) * 5;
+                this.vy = -Math.random() * 6 - 4;
+                this.g = 0.3;
+                this.isGrounded = false;
+                this.groundTimer = 25;
+                this.isHoming = false;
+                this.speed = 1.0;
+            }
+            update() {
+                if (!this.isGrounded && !this.isHoming) {
+                    this.vy += this.g;
+                    this.x += this.vx;
+                    this.y += this.vy;
+                    if (this.y >= GROUND_Y - 6) {
+                        this.y = GROUND_Y - 6;
+                        this.vy = 0; this.vx = 0;
+                        this.isGrounded = true;
+                    }
+                } else if (this.isGrounded && !this.isHoming) {
+                    this.groundTimer--;
+                    if (this.groundTimer <= 0) this.isHoming = true;
+                } else if (this.isHoming) {
+                    const targetX = 30;
+                    const targetY = 76;
+                    const screenX = this.x - cameraX;
+                    const screenY = this.y - cameraY;
+                    const dx = targetX - screenX;
+                    const dy = targetY - screenY;
+                    const dist = Math.sqrt(dx*dx + dy*dy);
+                    if (dist < 16) {
+                        coins += this.value;
+                        return false;
+                    }
+                    this.speed += 0.64;
+                    this.x += (dx / dist) * this.speed;
+                    this.y += (dy / dist) * this.speed;
+                }
+                return true;
+            }
+            draw() {
+                ctx.fillStyle = '#ffdf00';
+                ctx.strokeStyle = '#d4af37';
+                ctx.lineWidth = 2;
+                ctx.fillRect(this.x - cameraX - 4, this.y - cameraY - 4, 8, 8);
+                ctx.strokeRect(this.x - cameraX - 4, this.y - cameraY - 4, 8, 8);
+            }
+        }
+
+        // テキストパーティクルの定義
+        class TextParticle {
+            constructor(x, y, text, color) {
+                this.x = x;
+                this.y = y;
+                this.text = text;
+                this.color = color;
+                this.vy = -1.5;
+                this.life = 60;
+                this.maxLife = 60;
+            }
+            update() {
+                this.y += this.vy;
+                this.vy *= 0.95;
+                this.life--;
+                return this.life > 0;
+            }
+            draw() {
+                const alpha = this.life / this.maxLife;
+                ctx.save();
+                ctx.globalAlpha = alpha;
+                ctx.font = "bold 22px 'VT323', 'Yu Gothic UI', 'Meiryo', sans-serif";
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                
+                ctx.strokeStyle = '#000000';
+                ctx.lineWidth = 4;
+                ctx.lineJoin = 'round';
+                ctx.strokeText(this.text, this.x - cameraX, this.y - cameraY);
+                
+                ctx.fillStyle = this.color;
+                ctx.fillText(this.text, this.x - cameraX, this.y - cameraY);
+                ctx.restore();
+            }
+        }
+
+        // --- エネミークラス ---
+        class Enemy {
+            constructor() {
+                this.side = Math.random() > 0.5 ? 'left' : 'right';
+                this.x = this.side === 'left' ? -200 : WIDTH + 200;
+                this.y = GROUND_Y;
+                this.burnTicks = 0;
+                this.hitFlash = 0;
+                this.damageCooldown = 0;
+                this.initStageEnemy();
+            }
+
+            initStageEnemy() {
+                if (currentStage === 1) {
+                    this.type = Math.random() > 0.4 ? 'slime' : 'goblin';
+                } else if (currentStage === 2) {
+                    this.type = Math.random() > 0.4 ? 'rock_golem' : 'rock_lizard';
+                } else if (currentStage === 3) {
+                    this.type = Math.random() > 0.4 ? 'ice_zombie' : 'frost_wolf';
+                } else if (currentStage === 4) {
+                    const r = Math.random();
+                    this.type = r < 0.4 ? 'lava_slime' : (r < 0.8 ? 'fire_demon' : 'ash_knight');
+                } else {
+                    this.type = Math.random() > 0.3 ? 'void_aberration' : 'void_warden';
+                }
+
+                switch(this.type) {
+                    case 'slime':
+                        this.maxHp = 40; this.hp = this.maxHp; this.speed = 0.9; this.color = '#22c55e'; this.size = 16; this.attackPower = 4; break;
+                    case 'goblin':
+                        this.maxHp = 25; this.hp = this.maxHp; this.speed = 2.0; this.color = '#b7791f'; this.size = 12; this.attackPower = 2; break;
+                    case 'rock_golem':
+                        this.maxHp = 110; this.hp = this.maxHp; this.speed = 0.5; this.color = '#4a5568'; this.size = 22; this.attackPower = 8; break;
+                    case 'rock_lizard':
+                        this.maxHp = 30; this.hp = this.maxHp; this.speed = 2.6; this.color = '#ecc94b'; this.size = 10; this.attackPower = 3; break;
+                    case 'ice_zombie':
+                        this.maxHp = 130; this.hp = this.maxHp; this.speed = 0.6; this.color = '#90cdf4'; this.size = 20; this.attackPower = 6; break;
+                    case 'frost_wolf':
+                        this.maxHp = 45; this.hp = this.maxHp; this.speed = 3.0; this.color = '#cbd5e0'; this.size = 12; this.attackPower = 4; break;
+                    case 'fire_demon':
+                        this.maxHp = 65; this.hp = this.maxHp; this.speed = 3.4; this.color = '#e53e3e'; this.size = 14; this.attackPower = 8; break;
+                    case 'lava_slime':
+                        this.maxHp = 160; this.hp = this.maxHp; this.speed = 0.8; this.color = '#ed8936'; this.size = 22; this.attackPower = 10; break;
+                    case 'ash_knight':
+                        this.maxHp = 220; this.hp = this.maxHp; this.speed = 1.0; this.color = '#1a202c'; this.size = 20; this.attackPower = 12; break;
+                    case 'void_aberration':
+                        this.maxHp = 85; this.hp = this.maxHp; this.speed = 2.2; this.color = '#805ad5'; this.size = 14; this.attackPower = 8; 
+                        this.teleportTimer = 0; break;
+                    case 'void_warden':
+                        this.maxHp = 320; this.hp = this.maxHp; this.speed = 1.2; this.color = '#d53f8c'; this.size = 24; this.attackPower = 15; break;
+                }
+                this.vx = this.side === 'left' ? this.speed : -this.speed;
+                this.state = 'WALK';
+                this.attackCooldown = 0;
+            }
+
+            update() {
+                if (isGameOver || isAllClear || stageClearTimer > 0) return true;
+
+                if (this.damageCooldown > 0) this.damageCooldown--;
+                if (this.hitFlash > 0) this.hitFlash--;
+
+                if (this.burnTicks > 0) {
+                    this.burnTicks--;
+                    if (this.burnTicks % 15 === 0) {
+                        const burnDamage = 4 * fireLevel;
+                        this.hp -= burnDamage;
+                        this.hitFlash = 5;
+                        textParticles.push(new TextParticle(this.x, this.y - 30, `${burnDamage}`, '#fca5a5'));
+                        if (this.hp <= 0) { this.die(); return false; }
+                    }
+                }
+
+                if (this.type === 'void_aberration' && this.state === 'WALK') {
+                    this.teleportTimer++;
+                    if (this.teleportTimer >= 95) {
+                        this.teleportTimer = 0;
+                        this.x += this.side === 'left' ? 50 : -50;
+                        for (let i = 0; i < 4; i++) {
+                            iceShards.push(new IceShard(this.x + (Math.random()-0.5)*20, this.y - 10));
+                        }
+                    }
+                }
+
+                if (this.state === 'WALK') {
+                    this.x += this.vx;
+                    if (Math.abs(this.x - TREE_X) < 36) { 
+                        this.state = 'ATTACK';
+                        this.x = TREE_X + (this.side === 'left' ? -32 : 24);
+                    }
+                } else if (this.state === 'ATTACK') {
+                    this.attackCooldown++;
+                    if (this.attackCooldown >= 90) {
+                        this.attackCooldown = 0;
+                        treeHp = Math.max(0, treeHp - this.attackPower);
+                        shakeIntensity = 4.0;
+                        if (treeHp <= 0) isGameOver = true;
+                    }
+                }
+
+                if (lightningState >= STATE_SPREAD && this.damageCooldown <= 0) {
+                    let inRange = false;
+                    const distToTree = Math.abs(this.x - TREE_X);
+                    let currentMaxSpread = baseMaxSpreadWidth + (lpowerLevel - 1) * 30;
+                    if (isSpecialLightning) {
+                        currentMaxSpread *= (specialLightningType === 'water' ? 2.1 : 1.6);
+                    }
+
+                    if (lightningState === STATE_SPREAD) {
+                        inRange = distToTree <= spreadProgress;
+                    } else if (lightningState === STATE_REMAIN) {
+                        inRange = distToTree <= currentMaxSpread;
+                    } else if (lightningState === STATE_FADE) {
+                        const cutX = currentMaxSpread * (stateTimer / 15);
+                        inRange = distToTree >= cutX && distToTree <= currentMaxSpread;
+                    }
+
+                    if (inRange) {
+                        let damage = 18 + (lpowerLevel - 1) * 11;
+                        if (isSpecialLightning) {
+                            if (specialLightningType === 'water') damage *= (2.4 + waterLevel * 0.6);
+                            else if (specialLightningType === 'fire') damage *= (2.0 + fireLevel * 0.5);
+                            else if (specialLightningType === 'heal') damage *= (1.4 + healLevel * 0.4);
+                        }
+
+                        this.hp -= Math.floor(damage);
+                        this.damageCooldown = 20;
+                        this.hitFlash = 12;
+
+                        textParticles.push(new TextParticle(this.x, this.y - 24, `${Math.floor(damage)}`, isSpecialLightning ? '#58a6ff' : '#ffffff'));
+
+                        if (isSpecialLightning && specialLightningType === 'fire') {
+                            this.burnTicks = 180 + fireLevel * 60;
+                        }
+
+                        if (this.hp <= 0) { this.die(); return false; }
+                    }
+                }
+
+                return true;
+            }
+
+            die() {
+                totalKills++;
+                stageDefeatedCount++;
+                stageSpawnLeft = Math.max(0, stageSpawnLeft - 1);
+
+                playerXp += this.size * 2;
+                if (playerXp >= maxXp) {
+                    playerLevel++;
+                    playerXp -= maxXp;
+                    maxXp = Math.floor(maxXp * 1.55);
+                    levelUpEffectTimer = 45;
+                    maxTreeHp += 20;
+                    treeHp = Math.min(maxTreeHp, treeHp + 45);
+                }
+
+                const dropCount = Math.floor(Math.random() * 2) + 2 + (coinLevel - 1);
+                for (let i = 0; i < dropCount; i++) {
+                    coinsList.push(new CoinParticle(this.x, this.y - 10, 2));
+                }
+
+                if (stageSpawnLeft <= 0 && enemies.length === 1) {
+                    startStageClearTransition();
+                }
+            }
+
+            draw() {
+                ctx.save();
+                if (this.hitFlash > 0) {
+                    ctx.fillStyle = '#ffffff';
+                } else {
+                    ctx.fillStyle = this.color;
+                }
+
+                const screenX = this.x - cameraX;
+                const screenY = this.y - cameraY;
+
+                if (this.type === 'slime' || this.type === 'lava_slime') {
+                    ctx.fillRect(screenX - this.size/2, screenY - this.size + 4, this.size, this.size - 4);
+                    ctx.fillRect(screenX - this.size/2 - 2, screenY - this.size + 8, this.size + 4, this.size - 8);
+                } else if (this.type === 'rock_golem' || this.type === 'void_warden') {
+                    ctx.fillRect(screenX - this.size/2, screenY - this.size, this.size, this.size);
+                    ctx.fillStyle = '#1a202c';
+                    ctx.fillRect(screenX - 4, screenY - this.size + 6, 8, 4);
+                } else {
+                    ctx.fillRect(screenX - this.size/2, screenY - this.size, this.size, this.size);
+                    ctx.fillRect(screenX - this.size/2 + 2, screenY - this.size - 4, this.size - 4, 4);
+                }
+
+                if (this.burnTicks > 0 && Math.floor(Date.now() / 80) % 2 === 0) {
+                    ctx.fillStyle = '#ef4444';
+                    ctx.fillRect(screenX - 6, screenY - this.size - 10, 4, 6);
+                    ctx.fillStyle = '#f97316';
+                    ctx.fillRect(screenX + 2, screenY - this.size - 12, 4, 8);
+                }
+
+                ctx.restore();
+            }
+        }
+
+        // --- 初期化 ---
+        leaves = Array.from({ length: 80 }, () => new LeafParticle(true));
+        let spawnTimer = 0;
+
+        // --- カメラの追従 & スクリュー制限の更新 ---
+        function updateCamera() {
+            const treeTopY = GROUND_Y - treeHeight;
+            const baseCameraY = Math.max(0, 200 - treeTopY); 
+
+            if (gameState === G_PLAY) {
+                if (keys['KeyA'] || keys['ArrowLeft']) targetCameraX = Math.max(-300, targetCameraX - scrollSpeed);
+                if (keys['KeyD'] || keys['ArrowRight']) targetCameraX = Math.min(300, targetCameraX + scrollSpeed);
+                
+                if (keys['KeyW'] || keys['ArrowUp']) cameraOffsetY -= scrollSpeed;
+                if (keys['KeyS'] || keys['ArrowDown']) cameraOffsetY += scrollSpeed;
+                
+                let desiredY = baseCameraY + cameraOffsetY;
+                
+                const minCameraY = treeTopY - 150; 
+                const maxCameraY = -40; 
+                
+                if (desiredY < minCameraY) desiredY = minCameraY;
+                if (desiredY > maxCameraY) desiredY = maxCameraY;
+                
+                targetCameraY = desiredY;
+                cameraOffsetY = targetCameraY - baseCameraY; 
+            } else {
+                targetCameraY = baseCameraY;
+            }
+
+            cameraX += (targetCameraX - cameraX) * 0.15;
+            cameraY += (targetCameraY - cameraY) * 0.15;
+        }
+
+        // --- 落雷トリガー ---
+        function triggerLightning(isSpecial = false, specialType = 'none') {
+            if (lightningState !== STATE_IDLE || isGameOver) return;
+
+            lightningState = STATE_BOLT;
+            stateTimer = 0;
+            totalStrikes++;
+
+            isSpecialLightning = isSpecial;
+            specialLightningType = specialType;
+
+            boltPath = [];
+            let curX = TREE_X + (Math.random() - 0.5) * 90;
+            let curY = 0;
+            boltPath.push({ x: curX, y: curY });
+
+            const segments = 6;
+            const treeTopY = GROUND_Y - treeHeight;
+            const segmentHeight = treeTopY / segments;
+
+            for (let i = 1; i < segments; i++) {
+                curY += segmentHeight;
+                let shift = (Math.random() - 0.5) * (isSpecial ? 70 : 40);
+                const ratio = i / segments;
+                curX = (1 - ratio) * curX + ratio * TREE_X + shift;
+                boltPath.push({ x: curX, y: curY });
+            }
+            boltPath.push({ x: TREE_X, y: treeTopY });
+
+            shakeIntensity = isSpecial ? 13.0 : 5.0;
+
+            leaves.forEach(leaf => {
+                leaf.blowAway(TREE_X, treeTopY, isSpecial ? 14 : 7);
+            });
+
+            if (currentStage === 3) {
+                for (let i = 0; i < 18; i++) {
+                    iceShards.push(new IceShard(TREE_X + (Math.random()-0.5)*40, treeTopY + (Math.random()-0.5)*20));
+                }
+            }
+
+            if (isSpecial && specialType === 'heal') {
+                const healPercent = 0.35 + healLevel * 0.05;
+                const healAmt = Math.floor(maxTreeHp * healPercent);
+                treeHp = Math.min(maxTreeHp, treeHp + healAmt);
+                textParticles.push(new TextParticle(TREE_X - 30, treeTopY - 40, `HEAL +${healAmt}`, '#22c55e'));
+            }
+        }
+
+        function triggerMiniLightning() {
+            if (enemies.length === 0) return;
+            let target = null;
+            let maxDist = -1;
+            enemies.forEach(e => {
+                const dist = Math.abs(e.x - TREE_X);
+                if (dist > maxDist) { maxDist = dist; target = e; }
+            });
+
+            if (target) {
+                miniBoltTargetX = target.x;
+                miniBoltTimer = 15;
+                
+                miniBoltPath = [];
+                let curX = target.x + (Math.random()-0.5)*30;
+                miniBoltPath.push({ x: curX, y: -cameraY }); 
+                for(let i=1; i<=4; i++) {
+                    curX = curX + (Math.random()-0.5)*20;
+                    miniBoltPath.push({ x: curX, y: (target.y - target.size)* (i/4) });
+                }
+
+                const dmg = 15 + (miniLightningLevel - 1) * 10;
+                target.hp -= dmg;
+                target.hitFlash = 8;
+                textParticles.push(new TextParticle(target.x, target.y - 24, `${dmg}`, '#a5f3fc'));
+                if (target.hp <= 0) target.die();
+            }
+        }
+
+        function castSpecialLightning() {
+            if (specialCharge >= 100 && currentSpecial !== 'none' && lightningState === STATE_IDLE) {
+                triggerLightning(true, currentSpecial);
+                specialCharge = -110;
+            }
+        }
+
+        // --- アップグレード処理 ---
+        function buyNormalUpgrade(btn) {
+            if (coins < btn.cost) return;
+
+            if (btn.id === 'shop') {
+                shopOpen = true;
+                return;
+            }
+
+            coins -= btn.cost;
+            btn.cost = Math.floor(btn.cost * 1.5);
+
+            if (btn.id === 'grow') {
+                growthBoostTimer = 300; 
+                textParticles.push(new TextParticle(TREE_X - 50, GROUND_Y - treeHeight - 30, "GROWTH BOOST!", '#22c55e'));
+            } else if (btn.id === 'speed') {
+                growthSpeedRate += 0.55;
+            } else if (btn.id === 'interval') {
+                intervalLevel++;
+            } else if (btn.id === 'power') {
+                lpowerLevel++;
+            } else if (btn.id === 'coin') {
+                coinLevel++;
+            }
+        }
+
+        function buyShopItem(item) {
+            if (item.id === 'close') {
+                shopOpen = false;
+                return;
+            }
+
+            if (item.id === 'water' && unlockedWater) { currentSpecial = 'water'; return; }
+            if (item.id === 'fire' && unlockedFire) { currentSpecial = 'fire'; return; }
+            if (item.id === 'heal' && unlockedHeal) { currentSpecial = 'heal'; return; }
+
+            if (coins < item.cost) return;
+
+            if (item.id === 'water') {
+                coins -= item.cost; unlockedWater = true; currentSpecial = 'water';
+            } 
+            else if (item.id === 'fire') {
+                coins -= item.cost; unlockedFire = true; currentSpecial = 'fire';
+            } 
+            else if (item.id === 'heal') {
+                coins -= item.cost; unlockedHeal = true; currentSpecial = 'heal';
+            } 
+            else if (item.id === 'upgrade') {
+                if (currentSpecial === 'none') return;
+                coins -= item.cost;
+                if (currentSpecial === 'water') { waterLevel++; item.cost = 100 + waterLevel * 80; }
+                if (currentSpecial === 'fire') { fireLevel++; item.cost = 100 + fireLevel * 80; }
+                if (currentSpecial === 'heal') { healLevel++; item.cost = 100 + healLevel * 80; }
+            } 
+            else if (item.id === 'mini') {
+                if (miniLightningLevel >= 3) return;
+                coins -= item.cost;
+                miniLightningLevel++;
+                item.cost = 80 + miniLightningLevel * 80;
+            } 
+            else if (item.id === 'charge') {
+                if (chargeSpeedLevel >= 5) return;
+                coins -= item.cost;
+                chargeSpeedLevel++;
+                item.cost = 50 + chargeSpeedLevel * 60;
+            }
+        }
+
+        function startStageClearTransition() {
+            stageClearTimer = 120;
+        }
+
+        function proceedToNextStage() {
+            if (currentStage < 5) {
+                currentStage++;
+                selectedStage = currentStage;
+                stageSpawnLeft = stageConfigs[currentStage].totalEnemies;
+                stageDefeatedCount = 0;
+                enemies = [];
+                targetCameraX = 0;
+                cameraOffsetY = 0; 
+                targetCameraY = 0;
+                cameraY = 0;
+                leaves = Array.from({ length: 80 }, () => new LeafParticle(true));
+            } else {
+                isAllClear = true;
+            }
+        }
+
+        // --- 更新ロジック ---
+        function updateGame() {
+            if (gameState !== G_PLAY) {
+                leaves.forEach(leaf => leaf.update(selectedStage));
+                return;
+            }
+
+            if (isGameOver || isAllClear) return;
+
+            updateCamera();
+
+            if (shopOpen) {
+                if (shopSlide < 1) shopSlide += 0.08;
+                if (shopSlide > 1) shopSlide = 1;
+            } else {
+                if (shopSlide > 0) shopSlide -= 0.08;
+                if (shopSlide < 0) shopSlide = 0;
+            }
+
+            if (stageClearTimer > 0) {
+                stageClearTimer--;
+                if (stageClearTimer === 0) proceedToNextStage();
+                return;
+            }
+
+            let currentBoost = 1.0;
+            if (growthBoostTimer > 0) {
+                growthBoostTimer--;
+                currentBoost = 8.0; 
+                if (Math.random() < 0.3) boostParticles.push(new BoostParticle());
+            }
+
+            if (treeHeight < targetTreeHeight) {
+                const oldMaxHp = maxTreeHp;
+                const wasFullHp = treeHp >= oldMaxHp; 
+                treeHeight += 0.44; 
+                maxTreeHp = 100 + Math.floor((treeHeight - 120) * 1.6);
+                
+                const deltaHp = maxTreeHp - oldMaxHp;
+                if (deltaHp > 0 && wasFullHp) {
+                    treeHp += deltaHp; 
+                }
+            }
+            targetTreeHeight += baseGrowthSpeed * growthSpeedRate * currentBoost;
+
+            let expectedBranches = Math.floor((treeHeight - 140) / 24); 
+            if (branches.length < expectedBranches && branches.length < 16) {
+                branches.push({
+                    yRel: treeHeight - 50, 
+                    side: Math.random() > 0.5 ? 'left' : 'right',
+                    size: Math.random() * 10 + 14,  
+                    length: Math.random() * 16 + 40  
+                });
+            }
+
+            const baseInterval = Math.max(120, 360 - (treeHeight - 120) * 2.5);
+            const intervalModifier = Math.pow(0.8, intervalLevel - 1);
+            const finalInterval = Math.floor(baseInterval * intervalModifier);
+
+            autoStrikeTimer++;
+            if (autoStrikeTimer >= finalInterval) {
+                autoStrikeTimer = 0;
+                triggerLightning();
+            }
+
+            if (currentSpecial !== 'none') {
+                if (specialCharge < 100) {
+                    const baseChargeSpeed = 0.06;
+                    specialCharge += baseChargeSpeed * (1 + (chargeSpeedLevel - 1) * 0.4);
+                    if (specialCharge > 100) specialCharge = 100;
+                }
+            }
+
+            if (miniLightningLevel > 0) {
+                miniLightningTimer++;
+                const miniInterval = Math.max(120, 600 - (miniLightningLevel - 1) * 180);
+                if (miniLightningTimer >= miniInterval) {
+                    miniLightningTimer = 0;
+                    triggerMiniLightning();
+                }
+            }
+            if (miniBoltTimer > 0) miniBoltTimer--;
+
+            spawnTimer++;
+            const spawnInterval = Math.max(70, 180 - playerLevel * 6 - currentStage * 10);
+            if (spawnTimer >= spawnInterval && stageSpawnLeft > enemies.length) {
+                spawnTimer = 0;
+                enemies.push(new Enemy());
+            }
+
+            enemies = enemies.filter(enemy => enemy.update());
+            coinsList = coinsList.filter(coin => coin.update());
+            leaves.forEach(leaf => leaf.update());
+            iceShards = iceShards.filter(shard => shard.update());
+            textParticles = textParticles.filter(txt => txt.update());
+            boostParticles = boostParticles.filter(bp => bp.update());
+
+            if (lightningState !== STATE_IDLE) {
+                stateTimer++;
+                let currentMaxSpread = baseMaxSpreadWidth + (lpowerLevel - 1) * 30;
+                if (isSpecialLightning) {
+                    currentMaxSpread *= (specialLightningType === 'water' ? 2.1 : 1.6);
+                }
+
+                switch (lightningState) {
+                    case STATE_BOLT:
+                        if (stateTimer >= 3) {
+                            lightningState = STATE_SPIRAL;
+                            stateTimer = 0;
+                            shakeIntensity = isSpecialLightning ? 6.0 : 2.5;
+                        }
+                        break;
+                    case STATE_SPIRAL:
+                        if (stateTimer >= 8) {
+                            lightningState = STATE_SPREAD;
+                            stateTimer = 0;
+                            shakeIntensity = isSpecialLightning ? 11.0 : 4.5;
+                        }
+                        break;
+                    case STATE_SPREAD:
+                        spreadProgress = (stateTimer / 10) * currentMaxSpread;
+                        if (stateTimer >= 10) {
+                            lightningState = STATE_REMAIN;
+                            stateTimer = 0;
+                        }
+                        break;
+                    case STATE_REMAIN:
+                        if (stateTimer >= (isSpecialLightning ? 130 : 100)) {
+                            lightningState = STATE_FADE;
+                            stateTimer = 0;
+                        }
+                        break;
+                    case STATE_FADE:
+                        if (stateTimer >= 15) {
+                            lightningState = STATE_IDLE;
+                            stateTimer = 0;
+                            isSpecialLightning = false;
+                            specialLightningType = 'none';
+                        }
+                        break;
+                }
+            }
+        }
+
+        // --- プロシージャル情景背景の描画システム ---
+
+        function drawStageBackground(stageId = currentStage) {
+            const config = stageConfigs[stageId];
+            let bgGrad = ctx.createLinearGradient(0, 0, 0, HEIGHT);
+            bgGrad.addColorStop(0, config.bgColors[0]);
+            bgGrad.addColorStop(0.65, config.bgColors[1]);
+            bgGrad.addColorStop(1, config.bgColors[2]);
+            ctx.fillStyle = bgGrad;
+            ctx.fillRect(0, 0, WIDTH, HEIGHT);
+
+            if (stageId === 1) {
+                drawForestScenery();
+            } else if (stageId === 2) {
+                drawCanyonScenery();
+            } else if (stageId === 3) {
+                drawAuroraEffect();
+                drawFrozenScenery();
+            } else if (stageId === 4) {
+                drawLavaScenery();
+            } else if (stageId === 5) {
+                drawVoidStars();
+                drawBlackHoleEffect();
+                drawVoidScenery();
+            }
+
+            ctx.fillStyle = config.bgColors[0];
+            ctx.fillRect(0, GROUND_Y - cameraY, WIDTH, HEIGHT - GROUND_Y + cameraY);
+            ctx.fillStyle = config.grassColor;
+            ctx.fillRect(0, GROUND_Y - cameraY, WIDTH, 6); 
+
+            if (stageId === 4) {
+                ctx.fillStyle = Math.floor(Date.now() / 400) % 2 === 0 ? '#b91c1c' : '#7f1d1d';
+                ctx.fillRect(80 - cameraX, GROUND_Y + 24 - cameraY, 100, 4);
+                ctx.fillRect(640 - cameraX, GROUND_Y + 16 - cameraY, 160, 4);
+            }
+        }
+
+        function drawForestScenery() {
+            ctx.save();
+            ctx.fillStyle = '#86efac'; 
+            ctx.beginPath();
+            ctx.moveTo(0, GROUND_Y - cameraY);
+            for (let x = 0; x <= WIDTH; x += 60) { 
+                let y = 370 - cameraY * 0.35 + Math.sin((x + cameraX * 0.35) * 0.0075) * 24;
+                ctx.lineTo(x, y);
+            }
+            ctx.lineTo(WIDTH, GROUND_Y - cameraY);
+            ctx.fill();
+
+            ctx.fillStyle = '#4ade80'; 
+            for (let tx = -80; tx < WIDTH + 200; tx += 70) { 
+                let screenTx = tx - (cameraX * 0.35) % 70;
+                let treeTopY = 370 - cameraY * 0.35 + Math.sin((tx + cameraX * 0.35) * 0.0075) * 24;
+                ctx.beginPath();
+                ctx.moveTo(screenTx, treeTopY - 50); 
+                ctx.lineTo(screenTx - 16, treeTopY);
+                ctx.lineTo(screenTx + 16, treeTopY);
+                ctx.closePath();
+                ctx.fill();
+            }
+            ctx.restore();
+        }
+
+        function drawCanyonScenery() {
+            ctx.save();
+            ctx.fillStyle = '#06080d'; 
+            for (let tx = -120; tx < WIDTH + 240; tx += 96) {
+                let screenTx = tx - (cameraX * 0.25) % 96;
+                let colH = 220 + Math.sin(tx) * 80;
+                ctx.fillRect(screenTx - 28, colH - cameraY * 0.25, 56, HEIGHT - colH + cameraY);
+            }
+            ctx.restore();
+        }
+
+        function drawAuroraEffect() {
+            ctx.save();
+            ctx.globalCompositeOperation = 'screen';
+            const time = Date.now() * 0.012;
+            const offsetParaX = cameraX * 0.3; 
+            for (let j = 0; j < 2; j++) {
+                ctx.beginPath();
+                let grad = ctx.createLinearGradient(0, 30 - cameraY * 0.2, 0, 260 - cameraY * 0.2);
+                if (j === 0) {
+                    grad.addColorStop(0, 'rgba(34, 197, 94, 0.25)');
+                    grad.addColorStop(1, 'rgba(0, 0, 0, 0)');
+                } else {
+                    grad.addColorStop(0, 'rgba(6, 182, 212, 0.18)');
+                    grad.addColorStop(1, 'rgba(0, 0, 0, 0)');
+                }
+                ctx.fillStyle = grad;
+                ctx.moveTo(0, 260 - cameraY * 0.2);
+                for (let x = 0; x <= WIDTH; x += 30) {
+                    let y = 60 - cameraY * 0.2 + Math.sin((x + offsetParaX) * 0.005 + time * 0.03 + j * Math.PI) * 24 
+                              + Math.cos((x + offsetParaX) * 0.01 - time * 0.01) * 16;
+                    ctx.lineTo(x, y);
+                }
+                ctx.lineTo(WIDTH, 260 - cameraY * 0.2);
+                ctx.closePath();
+                ctx.fill();
+            }
+            ctx.restore();
+        }
+
+        function drawFrozenScenery() {
+            ctx.save();
+            const moonX = 700 - cameraX * 0.15;
+            const moonY = 100 - cameraY * 0.15;
+            ctx.fillStyle = '#e2e8f0';
+            ctx.shadowColor = '#cbd5e1';
+            ctx.shadowBlur = 20;
+            ctx.beginPath();
+            ctx.arc(moonX, moonY, 30, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.shadowBlur = 0; 
+
+            ctx.fillStyle = '#02040a'; 
+            ctx.beginPath();
+            ctx.moveTo(0, GROUND_Y - cameraY);
+            for (let x = 0; x <= WIDTH; x += 80) {
+                let y = 380 - cameraY * 0.3 + Math.sin((x + cameraX * 0.3) * 0.005) * 16;
+                ctx.lineTo(x, y);
+            }
+            ctx.lineTo(WIDTH, GROUND_Y - cameraY);
+            ctx.fill();
+
+            ctx.fillStyle = '#e2e8f0';
+            for (let tx = -100; tx < WIDTH + 200; tx += 100) {
+                let screenTx = tx - (cameraX * 0.3) % 100;
+                let treeTopY = 380 - cameraY * 0.3 + Math.sin((tx + cameraX * 0.3) * 0.005) * 16;
+                ctx.beginPath();
+                ctx.moveTo(screenTx, treeTopY - 40);
+                ctx.lineTo(screenTx - 12, treeTopY);
+                ctx.lineTo(screenTx + 12, treeTopY);
+                ctx.closePath();
+                ctx.fill();
+            }
+            ctx.restore();
+        }
+
+        function drawLavaScenery() {
+            ctx.save();
+            ctx.fillStyle = '#060101';
+            for (let tx = -200; tx < WIDTH + 400; tx += 180) {
+                let screenTx = tx - (cameraX * 0.2) % 180;
+                let vTopY = 240 - cameraY * 0.2 + Math.cos(tx) * 40;
+                ctx.beginPath();
+                ctx.moveTo(screenTx, vTopY);
+                ctx.lineTo(screenTx - 100, GROUND_Y - cameraY);
+                ctx.lineTo(screenTx + 100, GROUND_Y - cameraY);
+                ctx.closePath();
+                ctx.fill();
+
+                ctx.fillStyle = '#f97316';
+                ctx.fillRect(screenTx - 6, vTopY, 12, 4);
+                ctx.fillStyle = '#060101'; 
+            }
+            ctx.restore();
+        }
+
+        function drawVoidStars() {
+            ctx.save();
+            ctx.fillStyle = '#ffffff';
+            for (let i = 0; i < 20; i++) {
+                let sX = (i * 246 + 90) % WIDTH - cameraX * 0.1;
+                let sY = (i * 642 + 134) % (GROUND_Y - 80) - cameraY * 0.1;
+                if (Math.floor(Date.now() / 300 + i) % 2 === 0) {
+                    ctx.fillRect(sX, sY, 2, 2);
+                }
+            }
+            ctx.restore();
+        }
+
+        function drawBlackHoleEffect() {
+            ctx.save();
+            const time = Date.now() * 0.001;
+            const cx = WIDTH / 2 - cameraX * 0.1;
+            const cy = 120 - cameraY * 0.1;
+            
+            for(let i=0; i<4; i++) {
+                ctx.beginPath();
+                ctx.strokeStyle = `rgba(168, 85, 247, ${0.3 - i*0.06})`;
+                ctx.lineWidth = 14 - i * 3;
+                ctx.arc(cx, cy, 50 + i * 20 + Math.sin(time + i) * 5, 0, Math.PI * 2);
+                ctx.stroke();
+            }
+            
+            const grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, 45);
+            grad.addColorStop(0, '#000000');
+            grad.addColorStop(0.7, '#080412');
+            grad.addColorStop(1, 'rgba(168, 85, 247, 0.1)');
+            ctx.fillStyle = grad;
+            ctx.beginPath();
+            ctx.arc(cx, cy, 45, 0, Math.PI * 2);
+            ctx.fill();
+            
+            ctx.restore();
+        }
+
+        function drawVoidScenery() {
+            ctx.save();
+            ctx.fillStyle = '#04020a';
+            for (let tx = -200; tx < WIDTH + 400; tx += 200) {
+                let screenTx = tx - (cameraX * 0.15) % 200;
+                let midY = 280 - cameraY * 0.15 + Math.sin(tx * 0.025) * 40;
+                ctx.beginPath();
+                ctx.moveTo(screenTx, midY);
+                ctx.lineTo(screenTx + 24, midY - 12);
+                ctx.lineTo(screenTx + 48, midY);
+                ctx.lineTo(screenTx + 24, midY + 12);
+                ctx.closePath();
+                ctx.fill();
+            }
+            ctx.restore();
+        }
+
+        // --- プロシージャル極太セコイア樹皮描画システム (テーパリング強化) ---
+        function drawTrunk(x, y, w, h) {
+            ctx.fillStyle = '#21130d'; 
+            for (let i = 0; i < h; i++) {
+                let currentW = w;
+                if (i < 50) {
+                    let ratio = i / 50; 
+                    currentW = w * (0.45 + ratio * 0.55); 
+                }
+                ctx.fillRect(x - currentW/2, y + i, currentW, 1);
+            }
+
+            ctx.fillStyle = '#3a2014'; 
+            for (let i = 0; i < h; i++) {
+                let currentW = w;
+                if (i < 50) {
+                    let ratio = i / 50;
+                    currentW = w * (0.45 + ratio * 0.55);
+                }
+                ctx.fillRect(x - currentW/2 + 3, y + i, currentW - 6, 1);
+            }
+
+            ctx.fillStyle = '#4e2d1c'; 
+            for (let i = 0; i < h; i++) {
+                let currentW = w;
+                if (i < 50) {
+                    let ratio = i / 50;
+                    currentW = w * (0.45 + ratio * 0.55);
+                }
+                ctx.fillRect(x - currentW/4, y + i, currentW * 0.5, 1);
+            }
+
+            ctx.fillStyle = '#1c0f0a';
+            for (let i = 24; i < h; i += 24) { 
+                let currentW = w;
+                if (i < 50) {
+                    let ratio = i / 50;
+                    currentW = w * (0.45 + ratio * 0.55);
+                }
+                ctx.fillRect(x - currentW/3 + (Math.sin(i) * 8), y + i, 4, 12);
+                ctx.fillRect(x + currentW/6 + (Math.cos(i) * 6), y + i + 12, 4, 12);
+            }
+        }
+
+        // --- 松葉（コニファー）ギザギザ多層葉冠の描画システム ---
+        function drawJaggedTriangle(cx, cy, w, h) {
+            ctx.beginPath();
+            ctx.moveTo(cx, cy - h);
+            ctx.lineTo(cx + w/2, cy);
+            ctx.lineTo(cx + w/3, cy - 4); 
+            ctx.lineTo(cx + w/6, cy + 2); 
+            ctx.lineTo(cx, cy - 2);       
+            ctx.lineTo(cx - w/6, cy + 2);
+            ctx.lineTo(cx - w/3, cy - 4);
+            ctx.lineTo(cx - w/2, cy);
+            ctx.closePath();
+            ctx.fill();
+        }
+
+        function drawPineBough(cx, cy, w, h, stageId) {
+            const config = stageConfigs[stageId] || stageConfigs[1];
+            let leafCol = config.grassColor;
+            if (stageId === 3) leafCol = '#475569'; 
+            if (stageId === 4) leafCol = '#c2410c'; 
+
+            const tiers = 3;
+            const tierHeight = h / tiers;
+            for (let i = 0; i < tiers; i++) {
+                const progress = i / (tiers - 1 || 1); 
+                const currentY = cy + h * 0.4 - i * (tierHeight * 0.7);
+                const currentW = w * (1 - progress * 0.35);
+                const currentH = tierHeight * 1.25;
+
+                ctx.fillStyle = getShadowColor(leafCol);
+                drawJaggedTriangle(cx, currentY, currentW, currentH);
+
+                ctx.fillStyle = leafCol;
+                drawJaggedTriangle(cx, currentY - 3.0, currentW * 0.9, currentH); 
+
+                ctx.fillStyle = getHighlightColor(leafCol, stageId);
+                drawJaggedTriangle(cx, currentY - 6.0, currentW * 0.7, currentH * 0.7); 
+            }
+        }
+
+        function drawTree() {
+            const treeTopY = GROUND_Y - treeHeight;
+
+            drawTrunk(TREE_X - cameraX, treeTopY - cameraY, 72, treeHeight);
+
+            branches.forEach(branch => {
+                const bY = GROUND_Y - branch.yRel;
+                if (bY > treeTopY + 56 && bY < GROUND_Y) {
+                    const screenBY = bY - cameraY;
+                    const screenBX = TREE_X - cameraX;
+
+                    const dir = branch.side === 'left' ? -1 : 1;
+                    const length = branch.length;
+                    const endX = screenBX + dir * length;
+                    const endY = screenBY - 10; 
+
+                    ctx.strokeStyle = '#3a2014';
+                    ctx.lineWidth = 6;
+                    ctx.beginPath();
+                    ctx.moveTo(screenBX + dir * 18, screenBY); 
+                    ctx.lineTo(screenBX + dir * (length * 0.4), screenBY - 4);
+                    ctx.lineTo(endX, endY);
+                    ctx.stroke();
+
+                    ctx.strokeStyle = '#21130d';
+                    ctx.lineWidth = 3.6;
+                    ctx.beginPath();
+                    ctx.moveTo(screenBX + dir * (length * 0.4), screenBY - 4);
+                    ctx.lineTo(screenBX + dir * (length * 0.7), screenBY - 14);
+                    ctx.stroke();
+
+                    drawPineBough(endX, endY, branch.size * 1.4, branch.size * 1.2, currentStage);
+                }
+            });
+
+            drawPineBough(TREE_X - cameraX, treeTopY - cameraY + 12, 130, 130, currentStage);
+        }
+
+        // --- 雷撃描画システム ---
+        function drawLightning() {
+            if (lightningState === STATE_IDLE) return;
+
+            ctx.save();
+            
+            if (isSpecialLightning) {
+                if (specialLightningType === 'water') ctx.shadowColor = '#06b6d4';
+                else if (specialLightningType === 'fire') ctx.shadowColor = '#f97316';
+                else if (specialLightningType === 'heal') ctx.shadowColor = '#22c55e';
+            } else {
+                ctx.shadowColor = '#00ffff';
+            }
+            ctx.shadowBlur = isSpecialLightning ? 16 : 8;
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'miter';
+
+            let currentMaxSpread = baseMaxSpreadWidth + (lpowerLevel - 1) * 30;
+            if (isSpecialLightning) {
+                currentMaxSpread *= (specialLightningType === 'water' ? 2.1 : 1.6);
+            }
+
+            if (lightningState === STATE_BOLT) {
+                ctx.strokeStyle = '#ffffff';
+                ctx.lineWidth = isSpecialLightning ? 11.0 : 5.0; 
+                ctx.beginPath();
+                ctx.moveTo(boltPath[0].x - cameraX, boltPath[0].y - cameraY);
+                for (let i = 1; i < boltPath.length; i++) {
+                    ctx.lineTo(boltPath[i].x - cameraX, boltPath[i].y - cameraY);
+                }
+                ctx.stroke();
+            } 
+            else if (lightningState === STATE_SPIRAL) {
+                ctx.strokeStyle = '#ffffff';
+                ctx.lineWidth = isSpecialLightning ? 9.0 : 4.0;
+                
+                const startY = GROUND_Y - treeHeight;
+                const endY = GROUND_Y;
+                const trunkLeft = TREE_X - cameraX - 36;
+                const trunkRight = TREE_X - cameraX + 36;
+
+                const arcsCount = isSpecialLightning ? 3 : 2;
+                for (let arc = 0; arc < arcsCount; arc++) {
+                    ctx.beginPath();
+                    let curY = startY;
+                    let curX = TREE_X - cameraX + (Math.random() - 0.5) * 30;
+                    ctx.moveTo(curX, curY - cameraY);
+
+                    const stepY = 24; 
+                    while (curY < endY) {
+                        curY += stepY;
+                        let targetX = TREE_X - cameraX;
+                        const rand = Math.random();
+                        if (rand < 0.35) targetX = trunkLeft - 10;      
+                        else if (rand < 0.7) targetX = trunkRight + 10;   
+                        else targetX = TREE_X - cameraX + (Math.random() - 0.5) * 40; 
+
+                        curX = targetX + (Math.random() - 0.5) * 15;
+                        ctx.lineTo(curX, curY - cameraY);
+
+                        if (Math.random() < 0.35) {
+                            ctx.lineTo(curX + (Math.random() - 0.5) * 40, curY + (Math.random() - 0.5) * 15 - cameraY);
+                            ctx.moveTo(curX, curY - cameraY);
+                        }
+                    }
+                    ctx.stroke();
+                }
+            } 
+            else if (lightningState === STATE_SPREAD) {
+                ctx.strokeStyle = '#ffffff';
+                ctx.lineWidth = isSpecialLightning ? 8.0 : 4.0;
+                drawGroundLightning(TREE_X - cameraX, TREE_X - cameraX - spreadProgress);
+                drawGroundLightning(TREE_X - cameraX, TREE_X - cameraX + spreadProgress);
+            } 
+            else if (lightningState === STATE_REMAIN) {
+                const alpha = Math.random() * 0.5 + 0.5;
+                ctx.strokeStyle = isSpecialLightning ? 
+                    (specialLightningType === 'fire' ? `rgba(253, 186, 116, ${alpha})` : `rgba(224, 242, 254, ${alpha})`) : 
+                    `rgba(255, 255, 255, ${alpha})`;
+                ctx.lineWidth = isSpecialLightning ? 8.0 : 4.0;
+                drawGroundLightning(TREE_X - cameraX - currentMaxSpread, TREE_X - cameraX + currentMaxSpread, true);
+            } 
+            else if (lightningState === STATE_FADE) {
+                const cutX = currentMaxSpread * (stateTimer / 15);
+                ctx.strokeStyle = 'rgba(255, 255, 255, 0.6)';
+                ctx.lineWidth = 3.0;
+
+                if (TREE_X - currentMaxSpread < TREE_X - cutX) {
+                    drawGroundLightning(TREE_X - cameraX - currentMaxSpread, TREE_X - cameraX - cutX);
+                }
+                if (TREE_X + cutX < TREE_X + currentMaxSpread) {
+                    drawGroundLightning(TREE_X - cameraX + cutX, TREE_X - cameraX + currentMaxSpread);
+                }
+            }
+            ctx.restore();
+        }
+
+        // --- 自動ミニ雷描画システム ---
+        function drawMiniLightning() {
+            if (miniBoltTimer > 0 && miniBoltPath) {
+                ctx.save();
+                ctx.strokeStyle = '#a5f3fc';
+                ctx.shadowColor = '#06b6d4';
+                ctx.shadowBlur = 6;
+                ctx.lineWidth = 2; 
+                ctx.beginPath();
+                ctx.moveTo(miniBoltPath[0].x - cameraX, miniBoltPath[0].y - cameraY);
+                for(let i=1; i<miniBoltPath.length; i++) {
+                    ctx.lineTo(miniBoltPath[i].x - cameraX, miniBoltPath[i].y - cameraY);
+                }
+                ctx.stroke();
+                ctx.restore();
+            }
+        }
+
+        // --- 地表雷撃波描画システム ---
+        function drawGroundLightning(startX, endX, isCrack = false) {
+            ctx.beginPath();
+            ctx.moveTo(startX, GROUND_Y - cameraY);
+            const dx = endX - startX;
+            const segments = Math.max(4, Math.floor(Math.abs(dx) / 7));
+            for (let i = 1; i <= segments; i++) {
+                const r = i / segments;
+                const x = startX + dx * r;
+                let yNoise = (Math.random() - 0.5) * 10; 
+                if (isCrack) yNoise = Math.random() * 8 - 2; 
+                ctx.lineTo(x, GROUND_Y - cameraY + yNoise);
+            }
+            ctx.stroke();
+        }
+
+        // --- UIシステム (2倍HDスケール) ---
+        function drawUI() {
+            ctx.save();
+            ctx.font = "26px 'VT323', 'Yu Gothic UI', 'Meiryo', sans-serif"; 
+            ctx.textBaseline = 'top';
+
+            ctx.shadowColor = '#000000';
+            ctx.shadowBlur = 6;
+
+            // 1. 左上：総合レベルUI
+            ctx.fillStyle = '#11141a';
+            ctx.strokeStyle = '#30363d';
+            ctx.lineWidth = 2;
+            ctx.fillRect(16, 16, 284, 64);
+            ctx.strokeRect(16, 16, 284, 64);
+
+            drawText(`LV ${playerLevel}`, 28, 22, "bold 30px 'VT323', monospace", '#58a6ff');
+
+            ctx.fillStyle = '#21262d';
+            ctx.fillRect(104, 28, 180, 10);
+            ctx.fillStyle = '#58a6ff';
+            const xpWidth = Math.min(180, (playerXp / maxXp) * 180);
+            ctx.fillRect(104, 28, xpWidth, 10);
+
+            const enemyLeftCount = stageSpawnLeft + enemies.length;
+            drawText(`撃破:${totalKills} | 落雷:${totalStrikes} | 残り:${enemyLeftCount}`, 28, 50, "22px 'VT323', monospace", '#8b949e');
+
+            if (levelUpEffectTimer > 0) {
+                levelUpEffectTimer--;
+                ctx.strokeStyle = `rgba(234, 179, 8, ${levelUpEffectTimer / 45})`;
+                ctx.lineWidth = 4;
+                ctx.beginPath();
+                ctx.arc(60, 36, 36 - (levelUpEffectTimer * 0.5), 0, Math.PI * 2);
+                ctx.stroke();
+            }
+
+            // 2. 左中央：特殊雷管理UI 
+            const isCooldown = specialCharge < 0; 
+            ctx.fillStyle = isCooldown ? '#1a1d24' : '#11141a';
+            ctx.strokeStyle = isCooldown ? '#444444' : '#30363d';
+            ctx.lineWidth = 2;
+            ctx.fillRect(16, 90, 190, 36);
+            ctx.strokeRect(16, 90, 190, 36);
+
+            ctx.beginPath();
+            ctx.arc(34, 108, 10, 0, Math.PI * 2);
+            if (currentSpecial === 'none') {
+                ctx.fillStyle = '#30363d';
+                ctx.fill();
+            } else {
+                ctx.fillStyle = isCooldown ? '#555555' : (currentSpecial === 'water' ? '#38bdf8' : (currentSpecial === 'fire' ? '#ef4444' : '#22c55e'));
+                ctx.fill();
+
+                ctx.fillStyle = isCooldown ? '#888888' : '#ffffff';
+                if (currentSpecial === 'water') {
+                    ctx.fillRect(32, 104, 4, 8);
+                } else if (currentSpecial === 'fire') {
+                    ctx.fillRect(32, 102, 4, 4);
+                    ctx.fillRect(30, 106, 8, 4);
+                } else if (currentSpecial === 'heal') {
+                    ctx.fillRect(32, 102, 4, 10);
+                    ctx.fillRect(28, 106, 12, 4);
+                }
+
+                if (specialCharge >= 100 && !isCooldown) {
+                    ctx.strokeStyle = Math.floor(Date.now() / 60) % 2 === 0 ? '#ffdf00' : '#ffffff';
+                    ctx.lineWidth = 2;
+                    ctx.beginPath();
+                    ctx.moveTo(22 + (Math.random()-0.5)*8, 96 + (Math.random()-0.5)*8);
+                    ctx.lineTo(46 + (Math.random()-0.5)*8, 120 + (Math.random()-0.5)*8);
+                    ctx.stroke();
+                }
+            }
+
+            ctx.fillStyle = '#21262d';
+            ctx.fillRect(52, 102, 140, 12);
+            if (specialCharge > 0 && !isCooldown) {
+                ctx.fillStyle = specialCharge >= 100 ? (Math.floor(Date.now()/120)%2===0 ? '#ffffff' : '#38bdf8') : '#0284c7';
+                ctx.fillRect(52, 102, (specialCharge / 100) * 140, 12);
+            } else if (isCooldown) {
+                ctx.fillStyle = '#444444';
+                const cooldownProgress = (110 + specialCharge) / 110; 
+                ctx.fillRect(52, 102, cooldownProgress * 140, 12);
+            }
+
+            // 3. 右下：木の生命力UI
+            const finalHpBarWidth = 200;
+            const hpBarX = WIDTH - finalHpBarWidth - 20 - (shopWidth * shopSlide);
+            const hpBarY = HEIGHT - 36;
+
+            ctx.fillStyle = '#11141a';
+            ctx.fillRect(hpBarX - 8, hpBarY - 20, finalHpBarWidth + 16, 28);
+            ctx.strokeRect(hpBarX - 8, hpBarY - 20, finalHpBarWidth + 16, 28);
+
+            ctx.fillStyle = '#991b1b';
+            ctx.fillRect(hpBarX, hpBarY - 12, finalHpBarWidth, 12);
+            ctx.fillStyle = '#22c55e';
+            const hpRatio = Math.max(0, treeHp / maxTreeHp);
+            ctx.fillRect(hpBarX, hpBarY - 12, finalHpBarWidth * hpRatio, 12);
+
+            drawText(`HP: ${treeHp}/${maxTreeHp}`, hpBarX + 4, hpBarY - 26, "22px 'VT323', monospace", '#ffffff');
+
+            // 4. 右上：通常強化ボタン (サイズ拡大・間隔調整済み)
+            const normalBtnAlpha = 1 - shopSlide; 
+            if (normalBtnAlpha > 0.05) {
+                ctx.globalAlpha = normalBtnAlpha;
+                buttons.forEach(btn => {
+                    const isHovered = hoveredButton && hoveredButton.id === btn.id;
+                    ctx.fillStyle = isHovered ? '#21262d' : '#11141a';
+                    ctx.strokeStyle = isHovered ? '#ffffff' : '#30363d';
+                    ctx.lineWidth = 2;
+                    ctx.fillRect(btn.x, btn.y, btn.w, btn.h);
+                    ctx.strokeRect(btn.x, btn.y, btn.w, btn.h);
+
+                    if (btn.id === 'grow') {
+                        ctx.fillStyle = '#22c55e';
+                        ctx.fillRect(btn.x + 24, btn.y + 20, 16, 16);
+                        ctx.fillStyle = '#ffdf00';
+                        ctx.fillRect(btn.x + 28, btn.y + 36, 6, 10);
+                    } else if (btn.id === 'speed') {
+                        ctx.fillStyle = '#06b6d4';
+                        ctx.fillRect(btn.x + 18, btn.y + 24, 6, 16);
+                        ctx.fillStyle = '#22c55e';
+                        ctx.fillRect(btn.x + 34, btn.y + 22, 14, 20);
+                    } else if (btn.id === 'interval') {
+                        ctx.fillStyle = '#ffdf00';
+                        ctx.fillRect(btn.x + 28, btn.y + 16, 6, 32);
+                        ctx.fillRect(btn.x + 20, btn.y + 30, 22, 6);
+                    } else if (btn.id === 'power') {
+                        ctx.fillStyle = '#ffffff';
+                        ctx.beginPath();
+                        ctx.moveTo(btn.x + 38, btn.y + 14);
+                        ctx.lineTo(btn.x + 22, btn.y + 34);
+                        ctx.lineTo(btn.x + 34, btn.y + 34);
+                        ctx.lineTo(btn.x + 26, btn.y + 50);
+                        ctx.closePath();
+                        ctx.fill();
+                    } else if (btn.id === 'coin') {
+                        ctx.fillStyle = '#ffdf00';
+                        ctx.beginPath();
+                        ctx.arc(btn.x + 32, btn.y + 32, 14, 0, Math.PI*2);
+                        ctx.fill();
+                    } else if (btn.id === 'shop') {
+                        ctx.fillStyle = '#a855f7';
+                        ctx.fillRect(btn.x + 22, btn.y + 26, 20, 22);
+                        ctx.fillStyle = '#e9d5ff';
+                        ctx.fillRect(btn.x + 26, btn.y + 18, 12, 8);
+                    }
+
+                    const costColor = coins >= btn.cost ? '#58a6ff' : '#f85149';
+                    drawText(`C:${btn.cost}`, btn.x + btn.w/2, btn.y + btn.h + 4, "22px 'VT323', monospace", costColor, 'center');
+                });
+                ctx.globalAlpha = 1.0; 
+            }
+
+            // 5. 新ヘッダー情報・ツールチップパネル
+            const infoX = 316;
+            const infoY = 16;
+            const infoW = 468; // 少し縮小してボタンに被らないように
+            const infoH = 64;
+
+            ctx.fillStyle = '#11141a';
+            ctx.strokeStyle = '#30363d';
+            ctx.lineWidth = 2;
+            ctx.fillRect(infoX, infoY, infoW, infoH);
+            ctx.strokeRect(infoX, infoY, infoW, infoH);
+
+            let currentHover = shopSlide > 0.9 ? hoveredShopItem : hoveredButton;
+            if (currentHover && currentHover.id !== 'close') {
+                drawText(currentHover.label, infoX + 12, infoY + 8, "bold 24px 'VT323', monospace", '#e9d5ff');
+                drawText(currentHover.desc, infoX + 12, infoY + 36, "20px 'VT323', monospace", '#8b949e');
+            } else {
+                ctx.fillStyle = '#ffdf00';
+                ctx.beginPath();
+                ctx.arc(infoX + 32, infoY + 32, 10, 0, Math.PI*2);
+                ctx.fill();
+                drawText(`Coin: ${coins}G`, infoX + 56, infoY + 16, "bold 32px 'VT323', monospace", '#ffdf00');
+                drawText("[W/A/S/D] でカメラ移動", infoX + 220, infoY + 22, "18px 'VT323', monospace", '#64748b');
+            }
+
+            // 6. スライドショップUIの描画
+            if (shopSlide > 0) {
+                const sX = WIDTH - shopWidth * shopSlide;
+                ctx.fillStyle = 'rgba(11, 13, 18, 0.96)';
+                ctx.strokeStyle = '#a855f7';
+                ctx.lineWidth = 3;
+                ctx.fillRect(sX, 0, shopWidth, HEIGHT);
+                ctx.strokeRect(sX, 0, shopWidth, HEIGHT);
+
+                drawText("⭐ 特殊ショップ ⭐", sX + 20, 22, "bold 26px 'VT323', monospace", '#e9d5ff');
+
+                shopItems.forEach(item => {
+                    const absX = sX + 20;
+                    const isHovered = hoveredShopItem && hoveredShopItem.id === item.id;
+                    ctx.fillStyle = isHovered ? '#2c1e3d' : '#14111a';
+                    ctx.strokeStyle = isHovered ? '#ffffff' : '#4a3b5c';
+                    ctx.strokeRect(absX, item.y, item.w, item.h);
+                    ctx.fillRect(absX, item.y, item.w, item.h);
+
+                    drawText(item.label, absX + 10, item.y + 8, "bold 22px 'VT323', monospace", '#ffffff');
+
+                    let statusText = `C:${item.cost}`;
+                    let isAffordable = coins >= item.cost;
+
+                    if (item.id === 'water') {
+                        if (currentSpecial === 'water') { statusText = "装備中"; isAffordable = true; }
+                        else if (unlockedWater) { statusText = "選択"; isAffordable = true; }
+                    } else if (item.id === 'fire') {
+                        if (currentSpecial === 'fire') { statusText = "装備中"; isAffordable = true; }
+                        else if (unlockedFire) { statusText = "選択"; isAffordable = true; }
+                    } else if (item.id === 'heal') {
+                        if (currentSpecial === 'heal') { statusText = "装備中"; isAffordable = true; }
+                        else if (unlockedHeal) { statusText = "選択"; isAffordable = true; }
+                    } else if (item.id === 'upgrade') {
+                        if (currentSpecial === 'none') { statusText = "未装備"; isAffordable = false; }
+                        else {
+                            let lv = currentSpecial === 'water' ? waterLevel : (currentSpecial === 'fire' ? fireLevel : healLevel);
+                            statusText = lv >= 3 ? "最大LV3" : `C:${item.cost} (LV${lv})`;
+                        }
+                    } else if (item.id === 'mini') {
+                        statusText = miniLightningLevel >= 3 ? "最大LV3" : `C:${item.cost} (LV${miniLightningLevel})`;
+                    } else if (item.id === 'charge') {
+                        statusText = chargeSpeedLevel >= 5 ? "最大LV5" : `C:${item.cost} (LV${chargeSpeedLevel})`;
+                    } else if (item.id === 'close') {
+                        statusText = "閉じる";
+                    }
+
+                    ctx.fillStyle = isAffordable ? '#e9d5ff' : '#f85149';
+                    drawText(statusText, absX + 210, item.y + 8, "22px 'VT323', monospace", ctx.fillStyle);
+                });
+            }
+
+            // 7. ステージ情報
+            ctx.fillStyle = 'rgba(17, 20, 26, 0.6)';
+            ctx.fillRect(320, 490, 320, 30);
+            drawText(`Stage ${currentStage}: ${stageConfigs[currentStage].name}`, WIDTH/2, 492, "bold 24px 'VT323', monospace", '#a855f7', 'center');
+
+            // 8. 成長ブースト中
+            if (growthBoostTimer > 0) {
+                drawText("成長ブースト中！", 224, 100, "bold 22px 'VT323', monospace", '#22c55e');
+            }
+
+            // 9. ステージクリアフェード
+            if (stageClearTimer > 0) {
+                ctx.fillStyle = `rgba(0, 0, 0, ${1 - stageClearTimer / 120})`;
+                ctx.fillRect(0, 0, WIDTH, HEIGHT);
+                drawText("Stage Clear!", WIDTH/2, HEIGHT/2 - 20, "bold 64px 'VT323', monospace", '#ffdf00', 'center');
+                drawText("Next Stage", WIDTH/2, HEIGHT/2 + 30, "30px 'VT323', monospace", '#ffffff', 'center');
+            }
+
+            // 10. ゲームオーバー
+            if (isGameOver) {
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.85)';
+                ctx.fillRect(0, 0, WIDTH, HEIGHT);
+                drawText("ゲームオーバー", WIDTH/2, HEIGHT/2 - 30, "bold 72px 'VT323', monospace", '#f85149', 'center');
+                drawText("クリックで復活 (ステータス維持)", WIDTH/2, HEIGHT/2 + 30, "32px 'VT323', monospace", '#ffffff', 'center');
+            }
+
+            // 11. オールクリア
+            if (isAllClear) {
+                ctx.fillStyle = 'rgba(10, 5, 20, 0.95)';
+                ctx.fillRect(0, 0, WIDTH, HEIGHT);
+                drawText("✨ 全ステージクリア ✨", WIDTH/2, HEIGHT/2 - 40, "bold 64px 'VT323', monospace", '#ffdf00', 'center');
+                drawText("セコイアの巨樹を守り抜きました！世界は調和を取り戻しました。", WIDTH/2, HEIGHT/2 + 10, "30px 'VT323', monospace", '#ffffff', 'center');
+                drawText("クリックしてタイトルへ戻る", WIDTH/2, HEIGHT/2 + 50, "32px 'VT323', monospace", '#a855f7', 'center');
+            }
+
+            ctx.restore();
+        }
+
+        // --- タイトル ＆ ステージ選択画面 ---
+
+        function drawTitleScreen() {
+            drawStageBackground(1);
+
+            drawTrunk(WIDTH/2, 200, 72, 260); 
+            drawPineBough(WIDTH/2, 212, 130, 130, 1);
+
+            ctx.save();
+            drawText("Lightning Tree Defense", WIDTH/2, HEIGHT/3, "bold 72px 'VT323', monospace", '#ffffff', 'center');
+            drawText("2D SEQUOIA GROWTH & DEFENSE GAME", WIDTH/2, HEIGHT/3 + 48, "bold 28px 'VT323', monospace", '#4ade80', 'center');
+
+            const btnX = WIDTH/2 - 100;
+            const btnY = HEIGHT/2 + 40;
+            const btnW = 200;
+            const btnH = 52;
+
+            const isHover = mouseX >= btnX && mouseX <= btnX + btnW && mouseY >= btnY && mouseY <= btnY + btnH;
+            ctx.fillStyle = isHover ? '#21262d' : '#11141a';
+            ctx.strokeStyle = isHover ? '#ffdf00' : '#30363d';
+            ctx.lineWidth = 3;
+            ctx.fillRect(btnX, btnY, btnW, btnH);
+            ctx.strokeRect(btnX, btnY, btnW, btnH);
+
+            const playColor = isHover ? '#ffdf00' : '#ffffff';
+            drawText("PLAY", WIDTH/2, btnY + 10, "bold 36px 'VT323', monospace", playColor, 'center');
+            ctx.restore();
+        }
+
+        function drawStageSelectScreen() {
+            drawStageBackground(selectedStage);
+
+            ctx.save();
+            drawText("ステージを選択", WIDTH/2, 70, "bold 32px 'VT323', monospace", '#ffffff', 'center');
+
+            const btnW = 64;
+            const btnH = 64;
+            const startX = WIDTH/2 - (5 * btnW + 4 * 20) / 2;
+            const btnY = HEIGHT/2 - 40;
+
+            for (let i = 1; i <= 5; i++) {
+                const bX = startX + (i - 1) * (btnW + 20);
+                const isSelected = selectedStage === i;
+                const isHovered = hoveredStageButton === i;
+
+                ctx.fillStyle = isHovered || isSelected ? '#2c1e3d' : '#11141a';
+                ctx.strokeStyle = isSelected ? '#ffdf00' : (isHovered ? '#a855f7' : '#30363d');
+                ctx.lineWidth = isSelected ? 4 : 2;
+                ctx.fillRect(bX, btnY, btnW, btnH);
+                ctx.strokeRect(bX, btnY, btnW, btnH);
+
+                const textColor = isSelected ? '#ffdf00' : (isHovered ? '#e9d5ff' : '#64748b');
+                drawText(`${i}`, bX + btnW/2, btnY + 12, "bold 40px 'VT323', monospace", textColor, 'center');
+            }
+
+            drawText(`Stage ${selectedStage}: ${stageConfigs[selectedStage].name}`, WIDTH/2, btnY + 90, "bold 26px 'VT323', monospace", '#ffdf00', 'center');
+
+            const playX = WIDTH/2 - 120;
+            const playY = HEIGHT - 90;
+            const playW = 240;
+            const playH = 48;
+
+            const isPlayHover = mouseX >= playX && mouseX <= playX + playW && mouseY >= playY && mouseY <= playY + playH;
+            ctx.fillStyle = isPlayHover ? '#2d1f3d' : '#14111a';
+            ctx.strokeStyle = isPlayHover ? '#a855f7' : '#4a3b5c';
+            ctx.lineWidth = 3;
+            ctx.fillRect(playX, playY, playW, playH);
+            ctx.strokeRect(playX, playY, playW, playH);
+
+            const gpColor = isPlayHover ? '#ffffff' : '#a855f7';
+            drawText("Game Start", WIDTH/2, playY + 10, "bold 32px 'VT323', monospace", gpColor, 'center');
+            ctx.restore();
+        }
+
+        // --- メイン描画ループ ---
+        function loop() {
+            updateGame();
+
+            let offsetX = 0, offsetY = 0;
+            if (shakeIntensity > 0.1 && gameState === G_PLAY) {
+                offsetX = (Math.random() - 0.5) * shakeIntensity;
+                offsetY = (Math.random() - 0.5) * shakeIntensity;
+                shakeIntensity *= shakeDecay;
+            } else {
+                shakeIntensity = 0;
+            }
+            container.style.transform = `translate(${offsetX * 2}px, ${offsetY * 2}px)`;
+
+            ctx.clearRect(0, 0, WIDTH, HEIGHT);
+
+            if (gameState === G_TITLE) {
+                drawTitleScreen();
+            } else if (gameState === G_STAGE_SELECT) {
+                drawStageSelectScreen();
+            } else if (gameState === G_PLAY) {
+                drawStageBackground();
+                drawTree();
+
+                enemies.forEach(enemy => enemy.draw());
+                leaves.forEach(leaf => leaf.draw());
+                iceShards.forEach(shard => shard.draw());
+                coinsList.forEach(coin => coin.draw());
+                textParticles.forEach(txt => txt.draw());
+                boostParticles.forEach(bp => bp.draw());
+
+                drawLightning();
+                drawMiniLightning();
+
+                drawUI();
+            }
+
+            if (gameState !== G_PLAY) {
+                leaves.forEach(leaf => leaf.draw());
+            }
+
+            requestAnimationFrame(loop);
+        }
+
+        // --- キーボード入力監視 ---
+        window.addEventListener('keydown', (e) => {
+            keys[e.code] = true;
+
+            if (gameState === G_PLAY && e.code === 'Space') {
+                e.preventDefault();
+                castSpecialLightning();
+            }
+        });
+
+        window.addEventListener('keyup', (e) => {
+            keys[e.code] = false;
+        });
+
+        // --- マウス・座標取得 (1:1フィッティング) ---
+        function getMousePos(e) {
+            const rect = canvas.getBoundingClientRect();
+            return {
+                x: ((e.clientX - rect.left) / rect.width) * canvas.width,
+                y: ((e.clientY - rect.top) / rect.height) * canvas.height
+            };
+        }
+
+        canvas.addEventListener('mousemove', (e) => {
+            const pos = getMousePos(e);
+            mouseX = pos.x;
+            mouseY = pos.y;
+
+            hoveredButton = null;
+            hoveredShopItem = null;
+
+            if (gameState === G_PLAY) {
+                if (isGameOver || isAllClear) return;
+
+                if (shopSlide > 0.9) {
+                    const sX = WIDTH - shopWidth;
+                    for (let item of shopItems) {
+                        const absX = sX + 20;
+                        if (mouseX >= absX && mouseX <= absX + item.w &&
+                            mouseY >= item.y && mouseY <= item.y + item.h) {
+                            hoveredShopItem = item;
+                            break;
+                        }
+                    }
+                }
+
+                if (!hoveredShopItem && shopSlide < 0.1) { 
+                    for (let btn of buttons) {
+                        if (mouseX >= btn.x && mouseX <= btn.x + btn.w &&
+                            mouseY >= btn.y && mouseY <= btn.y + btn.h) {
+                            hoveredButton = btn;
+                            break;
+                        }
+                    }
+                }
+            } 
+            else if (gameState === G_STAGE_SELECT) {
+                const btnW = 64;
+                const btnH = 64;
+                const startX = WIDTH/2 - (5 * btnW + 4 * 20) / 2;
+                const btnY = HEIGHT/2 - 40;
+
+                let foundHover = false;
+                for (let i = 1; i <= 5; i++) {
+                    const bX = startX + (i - 1) * (btnW + 20);
+                    if (mouseX >= bX && mouseX <= bX + btnW && mouseY >= btnY && mouseY <= btnY + btnH) {
+                        hoveredStageButton = i;
+                        foundHover = true;
+                        break;
+                    }
+                }
+                if (!foundHover) hoveredStageButton = null; 
+            }
+        });
+
+        canvas.addEventListener('mousedown', (e) => {
+            const pos = getMousePos(e);
+
+            if (gameState === G_TITLE) {
+                const btnX = WIDTH/2 - 100;
+                const btnY = HEIGHT/2 + 40;
+                if (pos.x >= btnX && pos.x <= btnX + 200 && pos.y >= btnY && pos.y <= btnY + 52) {
+                    gameState = G_STAGE_SELECT;
+                    hoveredStageButton = null;
+                }
+            } 
+            else if (gameState === G_STAGE_SELECT) {
+                const btnW = 64;
+                const btnH = 64;
+                const startX = WIDTH/2 - (5 * btnW + 4 * 20) / 2;
+                const btnY = HEIGHT/2 - 40;
+
+                for (let i = 1; i <= 5; i++) {
+                    const bX = startX + (i - 1) * (btnW + 20);
+                    if (pos.x >= bX && pos.x <= bX + btnW && pos.y >= btnY && pos.y <= btnY + btnH) {
+                        selectedStage = i;
+                        currentStage = i;
+                    }
+                }
+
+                const playX = WIDTH/2 - 120;
+                const playY = HEIGHT - 90;
+                if (pos.x >= playX && pos.x <= playX + 240 && pos.y >= playY && pos.y <= playY + 48) {
+                    gameState = G_PLAY;
+                    stageSpawnLeft = stageConfigs[currentStage].totalEnemies;
+                    stageDefeatedCount = 0;
+                    enemies = [];
+                    coinsList = [];
+                    targetCameraX = 0;
+                    cameraOffsetY = 0; 
+                    targetCameraY = 0; 
+                    cameraY = 0;       
+                    leaves = Array.from({ length: 80 }, () => new LeafParticle(true));
+                }
+            } 
+            else if (gameState === G_PLAY) {
+                if (isGameOver) {
+                    isGameOver = false;
+                    treeHp = maxTreeHp;
+                    enemies = [];
+                    coinsList = [];
+                    stageSpawnLeft = stageConfigs[currentStage].totalEnemies;
+                    spawnTimer = 0;
+                    return;
+                }
+
+                if (isAllClear) {
+                    isAllClear = false;
+                    gameState = G_TITLE;
+                    return;
+                }
+
+                if (pos.x >= 16 && pos.x <= 206 && pos.y >= 90 && pos.y <= 126) {
+                    castSpecialLightning();
+                    return;
+                }
+
+                if (shopSlide > 0.9 && hoveredShopItem) {
+                    buyShopItem(hoveredShopItem);
+                    return;
+                }
+
+                if (hoveredButton && shopSlide < 0.1) {
+                    buyNormalUpgrade(hoveredButton);
+                    return;
+                }
+
+                const isClickInShopArea = shopSlide > 0 && pos.x >= WIDTH - shopWidth * shopSlide;
+                if (pos.y < GROUND_Y && !isClickInShopArea) {
+                    triggerLightning();
+                }
+            }
+        });
+
+        loop();
+	</script>
+</body>
+
+</html>
