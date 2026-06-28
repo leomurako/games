@@ -1742,7 +1742,7 @@
             if (isAllClear) {
                 ctx.fillStyle = 'rgba(10, 5, 20, 0.95)';
                 ctx.fillRect(0, 0, WIDTH, HEIGHT);
-                drawText("✨ 全ステージクリア ✨", WIDTH/2, HEIGHT/2 - 40, "bold 64px 'VT323', monospace", '#ffdf00', 'center');
+                drawText("✨ all Stage Clear! ✨", WIDTH/2, HEIGHT/2 - 40, "bold 64px 'VT323', monospace", '#ffdf00', 'center');
                 drawText("セコイアの巨樹を守り抜きました！世界は調和を取り戻しました。", WIDTH/2, HEIGHT/2 + 10, "30px 'VT323', monospace", '#ffffff', 'center');
                 drawText("クリックしてタイトルへ戻る", WIDTH/2, HEIGHT/2 + 50, "32px 'VT323', monospace", '#a855f7', 'center');
             }
@@ -1783,7 +1783,7 @@
             drawStageBackground(selectedStage);
 
             ctx.save();
-            drawText("ステージを選択", WIDTH/2, 70, "bold 32px 'VT323', monospace", '#ffffff', 'center');
+            drawText("Choose a stage", WIDTH/2, 70, "bold 32px 'VT323', monospace", '#ffffff', 'center');
 
             const btnW = 64;
             const btnH = 64;
