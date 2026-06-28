@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>リンク集</title>
+  <style>
+    /* リンク全体のグリッドレイアウト（画面幅に合わせて自動で折り返します） */
+    .links-container {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 20px;
+      padding: 20px;
+      font-family: sans-serif;
+    }
+
+    /* カード型リンクのスタイル */
+    .link-card {
+      background-color: #ffffff;
+      border: 1px solid #e0e0e0;
+      border-radius: 8px;
+      padding: 20px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    /* カーソルを乗せたときのアニメーション */
+    .link-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
+    }
+
+    /* タイトル */
+    .link-title {
+      font-size: 1.2rem;
+      font-weight: bold;
+      margin-top: 0;
+      margin-bottom: 10px;
+      color: #333333;
+    }
+
+    /* 説明文 */
+    .link-description {
+      font-size: 0.9rem;
+      color: #666666;
+      margin-bottom: 20px;
+      line-height: 1.5;
+      flex-grow: 1; /* 説明文の長さが違ってもボタンの位置が揃うようにします */
+    }
+
+    /* ボタン */
+    .link-button {
+      display: inline-block;
+      text-align: center;
+      background-color: #007bff; /* ボタンの色。サイトに合わせて変更してください */
+      color: #ffffff;
+      padding: 10px 15px;
+      text-decoration: none;
+      border-radius: 5px;
+      font-weight: bold;
+      font-size: 0.9rem;
+      transition: background-color 0.2s ease;
+    }
+
+    .link-button:hover {
+      background-color: #0056b3; /* カーソルを乗せたときのボタンの色 */
+    }
+  </style>
+</head>
+<body>
+
+  <!-- リンク集全体のコンテナ -->
+  <div class="links-container">
+
+    <!-- リンクカード1 -->
+    <div class="link-card">
+      <h3 class="link-title">おすすめのゲームなどのリンク集です</h3>
+      <p class="link-description">ゲームリンクなどをまとめているので、開く際は履歴などにご注意ください</p>
+    </div>
+
+    <!-- リンクカード2 -->
+    <div class="link-card">
+      <h3 class="link-title">3D CITY</h3>
+      <p class="link-description">3Dの街を自分で作れるゲームサイトです</p>
+      <a class="link-button" href="https://lo-th.github.io/3d.city/index.html" target="_blank" rel="noopener noreferrer">サイトを見る</a>
+    </div>
+
+    <!-- リンクカード3 -->
+    <div class="link-card">
+      <h3 class="link-title">T-Rex Runner</h3>
+      <p class="link-description">googleのWi-Fiがないときにできるゲームです</p>
+      <a class="link-button" href="https://wayou.github.io/t-rex-runner/" target="_blank" rel="noopener noreferrer">サイトを見る</a>
+    </div>
+
+    <!-- リンクカード4 -->
+    <div class="link-card">
+      <h3 class="link-title">Space invaders</h3>
+      <p class="link-description">スペースインベーダーゲームの軽量版です</p>
+      <a class="link-button" href="https://pi0.github.io/space-invaders/" target="_blank" rel="noopener noreferrer">サイトを見る</a>
+    </div>
+
+    <!-- リンクカード5 -->
+    <div class="link-card">
+      <h3 class="link-title">Javascript Racer</h3>
+      <p class="link-description">2Dレーシングゲームです</p>
+      <a class="link-button" href="https://jakesgordon.com/games/racer/" target="_blank" rel="noopener noreferrer">サイトを見る</a>
+    </div>
+
+    <!-- リンクカード6 -->
+    <div class="link-card">
+      <h3 class="link-title">A Dark Room</h3>
+      <p class="link-description">テキストベースのRPGです <br> 右下のlanguageから日本語に変更できます</p>
+      <a class="link-button" href="https://jakesgordon.com/games/racer/" target="_blank" rel="noopener noreferrer">サイトを見る</a>
+    </div>
+
+    <!-- リンクカード7 -->
+    <div class="link-card">
+      <h3 class="link-title">Hextris</h3>
+      <p class="link-description">六角形を回転させて色をそろえて消していくパズルゲームです</p>
+      <a class="link-button" href="https://leomurako.github.io/hextris/" target="_blank" rel="noopener noreferrer">サイトを見る</a>
+    </div>
+
+    <!-- リンクカード8 -->
+    <div class="link-card">
+      <h3 class="link-title">2048</h3>
+      <p class="link-description">スライドさせて同じ数字を重ねていき2048を目指すゲームです</p>
+      <a class="link-button" href="https://leomurako.github.io/2048/" target="_blank" rel="noopener noreferrer">サイトを見る</a>
+    </div>
+
+    <!-- リンクカード9 -->
+    <div class="link-card">
+      <h3 class="link-title">HexGL</h3>
+      <p class="link-description">近未来SF3Dレーシングゲームです</p>
+      <a class="link-button" href="https://pablocp.github.io/HexGL/" target="_blank" rel="noopener noreferrer">サイトを見る</a>
+    </div>
+
+    <!-- リンクカード10 -->
+    <div class="link-card">
+      <h3 class="link-title">Mykonos Island Voxels</h3>
+      <p class="link-description">14×14のグリッド上に直感的に作れるアイソメトリックの3Dサンドボックスゲームです</p>
+      <a class="link-button" href="https://leomurako.github.io/mykonos-island-voxels/" target="_blank" rel="noopener noreferrer">サイトを見る</a>
+    </div>
+
+    <!-- リンクカード11 -->
+    <div class="link-card">
+      <h3 class="link-title">Underrun</h3>
+      <p class="link-description">暗闇のラボを舞台に、ライフルで敵を撃ち倒しながら進む、見下ろし型SFシューティングゲームです <br>※ブロックされている可能性があります</p>
+      <a class="link-button" href="https://phoboslab.org/underrun/" target="_blank" rel="noopener noreferrer">サイトを見る</a>
+    </div>
+
+    <!-- リンクカード12 -->
+    <div class="link-card">
+      <h3 class="link-title">Tower game</h3>
+      <p class="link-description">クレーンからゆらゆらと揺れるビルブロックをタイミングよく落とし、積み上げていくゲームです</p>
+      <a class="link-button" href="https://iamkun.github.io/tower_game/" target="_blank" rel="noopener noreferrer">サイトを見る</a>
+    </div>
+
+
+    <!-- ★今後新しくリンクを追加するときは、すぐ下の追加用テンプレートをコピーしてここに貼り付けます -->
+
+  </div>
+
+</body>
+</html>
